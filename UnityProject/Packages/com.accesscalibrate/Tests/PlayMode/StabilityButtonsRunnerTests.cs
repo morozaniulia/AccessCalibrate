@@ -343,6 +343,33 @@ namespace AccessCalibration.PlayModeTests
         }
 
         [Test]
+        public void UnansweredCheck_RecordsTheDeviceThatStartedIt_NotTheOneUsedBefore()
+        {
+            var mouse = InputSystem.AddDevice<Mouse>();
+            _runner.StartCalibration();
+
+            Tap(mouse.leftButton, 10.1, 10.2);            // Reaction started with a mouse click…
+            _runner.Tick();
+            Assert.IsTrue(_runner.Reaction.IsRunning);
+            _runner.SkipCurrent();                         // …then skipped
+            _runner.SkipCurrent();                         // Hold (from its intro)
+            _runner.SkipCurrent();                         // Repeated presses
+            _runner.SkipCurrent();                         // Steadiness
+            Assert.AreSame(_runner.ButtonAccess, _runner.CurrentTest);
+
+            Tap(Keyboard.enterKey, 11.1, 11.2);            // Button reach started from the keyboard
+            _runner.Tick();
+            Assert.IsTrue(_runner.ButtonAccess.IsRunning);
+            for (int i = 0; i < 10 && _runner.ButtonAccess.IsRunning; i++)
+                TickAt(_runner.ButtonAccess, Now + 6);     // no prompt answered: every one times out
+
+            var buttons = _runner.LastMeasurements.Buttons;
+            Assert.AreEqual(_runner.ButtonAccess.Buttons.Count, buttons.UnpressedButtons.Count);
+            Assert.AreEqual(InputDeviceKind.Keyboard, buttons.Device,
+                "the keyboard started this check; the mouse click belonged to an earlier one");
+        }
+
+        [Test]
         public void AnyButtonOnIntro_StartsTheTest()
         {
             _runner.StartCalibration();

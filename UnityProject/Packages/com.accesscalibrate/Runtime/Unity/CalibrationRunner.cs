@@ -215,6 +215,9 @@ namespace AccessCalibration
         {
             if (!IsCalibrating || !InIntro) return;
             InIntro = false;
+            // The device that just started this check is the one it is done with, until a press
+            // says otherwise (a check nobody answers must not inherit the previous check's device).
+            _tests[_index].PreferredDevice = _preferred;
             _tests[_index].Begin();
         }
 
