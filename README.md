@@ -2,9 +2,123 @@
 
 > **Not a medical tool.** The thresholds are hypothetical starting points and have not been clinically validated.
 
-AccessCalibrate is an open-source Unity package. On first launch it runs a short (~60 s) motor-ability calibration: reaction, comfortable hold, repeated presses, steadiness and button reach. It then proposes accessibility settings (timing windows, hold-to-toggle, mashing alternatives, stick deadzone, aim assist, remapping). Each proposal shows the reason it was made. **The player always has the final say:** every proposal can be switched on or off, and the package never changes a setting by itself.
+AccessCalibrate is an open-source Unity toolkit that applies ideas from **ability-based design** to a 60-second motor calibration with **transparent rules**. On first launch a player goes through five short checks: reaction, comfortable hold, repeated presses, steadiness and button reach. The game then suggests accessibility settings: longer timing windows, skippable quick-time events, hold-to-toggle, holding instead of mashing, a bigger stick deadzone, aim assist and button remapping. Each suggestion comes with the measurement and the rule behind it. **The player always has the final say:** every suggestion is a switch, uncertain ones start off, and nothing changes until the player presses *Apply*.
 
-*Work in progress. The full README (architecture, installation, prior work, results) comes with the final step.*
+| | | |
+|---|---|---|
+| ![Welcome screen](Docs/images/ui-1-welcome.png) | ![Reaction check](Docs/images/ui-3-reaction.png) | ![Hold check](Docs/images/ui-4-hold.png) |
+| ![Steadiness check](Docs/images/ui-5-steadiness.png) | ![Suggested settings](Docs/images/ui-6-confirmation.png) | ![High Contrast theme](Docs/images/ui-8-confirmation-high-contrast.png) |
+| ![Demo: quick-time event](Docs/images/demo-2-quick-time.png) | ![Demo: lever](Docs/images/demo-3-lever.png) | |
+
+*All images are rendered by the automated tests (`BuiltInViewTests`, `DemoLevelTests`); the measurements shown are test inputs, not data from players.*
+
+## Why
+
+Most games already offer accessibility options: longer timing windows, toggles instead of holds, remapping. But the options sit in a menu that players have to find, understand and tune before they know which ones help. Players with motor disabilities often find out the hard way, by failing a quick-time event or a long button hold. AccessCalibrate flips the order. A one-minute calibration measures a few motor abilities, a set of plain rules turns the measurements into suggestions, and the player decides what to keep. The same measurements work on gamepad, keyboard, mouse and touch.
+
+## How it works
+
+```
+ 5 checks (~10 s each)          Measurements            RulesEngine (pure, deterministic)        Confirmation screen          Game
+ reaction · hold · presses  ─►  raw trials, device,  ─►  per-device thresholds from RulesConfig ─►  one switch per suggestion ─►  AccessCalibrate.Profile
+ steadiness · button reach      confidence               → ProposedChange (value + reason)         uncertain = off, Apply       OnProfileChanged
+```
+
+| Check | What is measured | Rule (gamepad defaults, all hypotheses) | Suggestion |
+|---|---|---|---|
+| Reaction | median of 6 trials, first dropped, < 120 ms and > 2000 ms ignored | median > 450 ms (+ 50 ms latency margin) | timing windows ×1.5 |
+| | | median > 700 ms (+ 50 ms) | timing windows ×2 and skippable quick-time events |
+| Hold | longest of 2 comfortable holds, max 5 s | < 2 s | press once instead of holding |
+| Repeated presses | presses per second in a 5 s window from the first press | < 4 / s | hold instead of pressing rapidly |
+| Steadiness | spread of the cursor around the player's own average position (2D standard deviation, × circle radius) | > 0.15 | bigger stick deadzone and medium aim assist |
+| Button reach | main buttons not pressed within 5 s each (configurable) | 1 or more | remap those buttons |
+| | | half or more | one-handed layout |
+
+Keyboard, mouse and touch have their own thresholds, documented in `RulesConfig`. Every measurement is *ok*, *uncertain* (too few valid trials, even after one retry) or *skipped*. Rules never act on skipped measurements. Proposals based on uncertain measurements are shown with "not measured reliably, so it starts off".
+
+### Design principles
+
+- **The player decides.** Nothing is applied before *Apply*. *Not now* keeps the defaults, and every setting can be changed later from the game's options.
+- **Transparent and deterministic.** The same measurements and the same `RulesConfig` always give the same suggestions, and each suggestion shows its reason ("Median reaction 620 ms · rule: above 500 ms → timing windows ×1.5").
+- **No comparison with other players.** Thresholds are set by the developer. The package never derives them from other players' data, never ranks a player against a corpus, and never shows a score like "this game suits you X%".
+- **No input on the player's behalf.** The package suggests settings. It never plays for the player.
+- **Nobody can fail.** Wording stays neutral, any check can be skipped, the signal never flashes, the "reduce motion" option is respected, and a held button gets "Let go of the button to begin" instead of a wrong result.
+- **Private.** All data stays on the device. No telemetry, no network access.
+
+## Install
+
+Requires Unity 6000.3 (Unity 6.3 LTS) or newer and the Input System package (1.20+). The demo also needs URP.
+
+In Unity, open **Window → Package Manager → + → Install package from git URL…** and paste:
+
+```
+https://github.com/<user>/AccessCalibrate.git?path=/UnityProject/Packages/com.accesscalibrate
+```
+
+(Replace `<user>` with the account that hosts the repository.)
+
+## Quick start
+
+1. Add a `CalibrationRunner` component to a GameObject in your first scene. Optionally list your game's main buttons in its **Buttons** field, and assign a theme.
+2. Then, in code:
+
+```csharp
+using AccessCalibration;
+
+void Start()
+{
+    AccessCalibrate.RunIfFirstLaunch();           // Welcome → 5 checks → suggestions
+    Apply(AccessCalibrate.Profile);
+    AccessCalibrate.OnProfileChanged += Apply;    // after Apply, Redo, or your options menu
+}
+
+void Apply(AccessCalibration.Core.AccessibilityProfile p)
+{
+    qteWindow = baseWindow * p.timingMultiplier;
+    holdIsToggle = p.holdToToggle;
+    // p.qteMode, p.mashingMode, p.stickDeadzone, p.aimAssist, p.remapSuggestions, p.suggestOneHandedLayout
+}
+```
+
+`AccessCalibrate.RequestCalibration()` starts the calibration again, for example from a "Redo calibration" option. `SetProfile`, `ExportJson` and `TryImportJson` let your options menu edit, back up or move the profile.
+
+## Architecture
+
+```
+UnityProject/Packages/com.accesscalibrate/
+  Runtime/Core/      pure C# (asmdef noEngineReferences): Measurements, SignalProcessing, RulesConfig,
+                     RulesEngine, ProposalReview, AccessibilityProfile (+ JSON), StudyCsv
+  Runtime/Unity/     Unity adapter: CalibrationRunner, the 5 checks (Tests/), ProfileStore, AccessCalibrate (API),
+                     StudyMode, CalibrationTexts, UIToolkitCalibrationView + UI/ (themes, glyphs, drawn elements)
+  Runtime/UI/        UXML, USS (tokens + 3 themes), Manrope font (OFL)
+  Tests/EditMode/    Core, rules, profile store, API, study CSV, theme contrast
+  Tests/PlayMode/    every check with simulated input (InputTestFixture), runner, welcome, confirmation, rendering
+  Samples~/Demo/     3D demo level + its tests
+tools/               plot_study.py (+ tests)
+Docs/                DESIGN_SPEC.md, screenshots
+```
+
+- **Core has no Unity dependency.** Its assembly is compiled with `noEngineReferences`, so the measurement and rules logic could move to another engine (e.g. Godot) unchanged.
+- **Timing comes from input events.** Press and release times come from `InputAction.CallbackContext.time`. Stimuli are stamped on the same clock (`Time.realtimeSinceStartupAsDouble`). Nothing is timed from `Update()`.
+- **The UI is replaceable.** The checks only talk to `ICalibrationView`. The built-in view is one implementation, and a game can supply its own.
+
+## How it is verified
+
+| Suite | Tests | What it covers |
+|---|---|---|
+| EditMode | 102 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for all presets, no literal colours in the USS |
+| PlayMode | 65 | each check with simulated keyboard / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input) |
+| Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
+
+A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:
+
+- Reading the reaction time from the frame (`Update()`) instead of the input event makes the "signal at 0, press at 0.5 s → 500 ms" test fail (it measured 900 ms).
+- Inverting the reaction rule makes 6 rule tests fail.
+- Replacing the median with the mean makes 3 tests fail.
+
+## Results
+
+**No study with players has been run yet**, so there are no results about players to report. The work so far is technical, and the evidence for it is the test suite above. To run a study, use study mode (below). It saves one CSV row per calibration with a label for the condition ("normal", "non-dominant hand", "gloves"…), and `tools/plot_study.py` compares the conditions.
 
 ## Limits
 
@@ -12,7 +126,21 @@ AccessCalibrate is an open-source Unity package. On first launch it runs a short
 - **Display latency is unknown.** The moment a signal appears is recorded when the frame that shows it is *processed* (`Time.realtimeSinceStartupAsDouble`), not when the screen actually lights up. Rendering, the display's refresh and its internal processing add an unknown delay, which makes measured reactions slightly slower than the player really is. Reaction rules therefore only fire above *threshold + `ReactionLatencyMarginMs`* (50 ms by default), so display lag alone does not trigger them.
 - **Input timing comes from input events.** Press and release times come from `InputAction.CallbackContext.time`, not from `Update()`, so frame rate does not add to the measurement. The input device's own latency (USB / Bluetooth polling) is not measured.
 - **Steadiness is a spread, not a diagnosis.** The steadiness test measures how much the cursor wanders around the player's own average position (2D standard deviation, as a fraction of the circle radius). Holding still slightly off-centre is not counted as unsteadiness. The distance from the centre is stored for information only, and no rule uses it.
-- **Short samples.** Each test lasts a few seconds. Fatigue, practice, the time of day, or an unfamiliar controller can change the results. That is why every proposal stays editable, and the calibration can be repeated at any time.
+- **Short samples.** Each check lasts a few seconds. Fatigue, practice, the time of day, or an unfamiliar controller can change the results. That is why every suggestion stays editable, and the calibration can be repeated at any time.
+- **Motor abilities only.** Vision, hearing and cognitive needs are out of scope.
+- **UI Toolkit limits.** There is no real backdrop blur (the optional blur in the design spec isn't implemented, so the panel is more opaque instead). Gradients and shadows are approximated, and dashed outlines are drawn in code.
+
+## Prior work
+
+AccessCalibrate is **not the first** system to adapt an interface to a person's abilities. It is a small, open toolkit that applies ideas from this line of work to a 60-second motor calibration for games, with rules that the developer sets and the player can read.
+
+- **Ability-based design.** J. O. Wobbrock, S. K. Kane, K. Z. Gajos, S. Harada, J. Froehlich, "Ability-Based Design: Concept, Principles and Examples", *ACM Transactions on Accessible Computing*, 2011. This is the framing used here: design for what a person *can* do, and let the system adapt instead of the person.
+- **SUPPLE / SUPPLE++.** K. Z. Gajos, J. O. Wobbrock, D. S. Weld, "Automatically generating user interfaces adapted to users' motor and vision capabilities", *UIST 2007*; and "Improving the performance of motor-impaired users with automatically-generated, ability-based interfaces", *CHI 2008*. SUPPLE++ measures motor performance with a short set of tasks and then *generates* a whole user interface by optimisation. AccessCalibrate, by contrast, keeps the game's interface and suggests a few named settings through readable rules.
+- **Detecting pointing performance.** A. Hurst, S. E. Hudson, J. Mankoff, S. Trewin, "Automatically detecting pointing performance", *IUI 2008*. Classifying pointing behaviour from interaction data, which is related to the steadiness check.
+- **ABD-MT, the Ability-Based Design Mobile Toolkit.** J. Kong, M. Zhong, J. Fogarty, J. O. Wobbrock (MobileHCI 2024, *Proc. ACM HCI* 8, MHCI, article 277; [paper](https://faculty.washington.edu/wobbrock/pubs/mobilehci-24.01.pdf), [project page](https://create.uw.edu/ability-based-design-mobile-toolkit)). An Android toolkit with observers, an ability modeler and a UI adapter in which developers write adaptation rules. It is the closest in spirit (a developer toolkit with rules). AccessCalibrate targets Unity games and uses an explicit calibration instead of continuous observation.
+- **Sony Interactive Entertainment patent, "User adaptation system and method"** ([US11420110B2](https://patents.google.com/patent/US11420110B2/en), [EP3808423B1](https://patents.google.com/patent/EP3808423B1/en); priority 2019). Its claims cover testing a player's controller abilities, comparing the results with reference players' playthroughs, telling the player how suitable a game is, and mitigations such as remapping or auto-input. AccessCalibrate deliberately avoids those elements. Its rules are deterministic thresholds set by the developer, it never compares a player with other players or reference data, it shows no suitability score, and it never generates input for the player. *(This is a design note, not legal advice.)*
+- **ObservePlay.** An accessible gaming platform whose author describes profiling players from observation during an onboarding session instead of through settings menus ([author's post](https://dev.to/khushboo_parmar/i-built-an-accessible-gaming-platform-that-profiles-players-through-observation-instead-of-settings-3g1); a research paper was announced there, and the post's figures are self-reported).
+- **Access Profiles.** "Access Profiles", *Frontiers in Computer Science*, 2026 ([article](https://www.frontiersin.org/journals/computer-science/articles/10.3389/fcomp.2026.1823366/full)). A framework for communication between game designer-developers and players with disabilities, including infrastructure to find relevant games and select settings automatically at launch. An `AccessibilityProfile` exported as JSON could fit that kind of infrastructure.
 
 ## Demo
 
@@ -114,6 +242,9 @@ Keep the `{0}` / `{1}` placeholders. If you pass your own buttons to `Calibratio
 
 All data stays on the device. No telemetry, no network access.
 
-## License
+## License and credits
 
-Apache License 2.0. See `LICENSE` and `NOTICE`.
+Apache License 2.0 (see `LICENSE` and `NOTICE`). © 2026 Morozan Iulia.
+
+- Font: Manrope, SIL Open Font License 1.1.
+- Demo models: Quaternius, *Ultimate Platformer Pack*, CC0 1.0.
