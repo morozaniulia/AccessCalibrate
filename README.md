@@ -4,6 +4,8 @@
 
 AccessCalibrate is an open-source Unity toolkit that applies ideas from **ability-based design** to a 60-second motor calibration with **transparent rules**. On first launch a player goes through five short checks: reaction, comfortable hold, repeated presses, steadiness and button reach. The game then suggests accessibility settings: longer timing windows, skippable quick-time events, hold-to-toggle, holding instead of mashing, a bigger stick deadzone, aim assist and button remapping. Each suggestion comes with the measurement and the rule behind it. **The player always has the final say:** every suggestion is a switch, uncertain ones start off, and nothing changes until the player presses *Apply*.
 
+**[Install](#install) · [Demo](#demo) · [Results](#results) · [Design spec](Docs/DESIGN_SPEC.md)**
+
 | | | |
 |---|---|---|
 | ![Welcome screen](Docs/images/ui-1-welcome.png) | ![Reaction check](Docs/images/ui-3-reaction.png) | ![Hold check](Docs/images/ui-4-hold.png) |
@@ -52,10 +54,8 @@ Requires Unity 6000.3 (Unity 6.3 LTS) or newer and the Input System package (1.2
 In Unity, open **Window → Package Manager → + → Install package from git URL…** and paste:
 
 ```
-https://github.com/<user>/AccessCalibrate.git?path=/UnityProject/Packages/com.accesscalibrate
+https://github.com/morozaniulia/AccessCalibrate.git?path=/UnityProject/Packages/com.accesscalibrate
 ```
-
-(Replace `<user>` with the account that hosts the repository.)
 
 ## Quick start
 
@@ -245,9 +245,20 @@ Keep the `{0}` / `{1}` placeholders. If you pass your own buttons to `Calibratio
 
 All data stays on the device. No telemetry, no network access.
 
+## Feedback
+
+If you are a **player with a motor disability** or a **game developer**, your feedback is the most useful thing this project can get. Tell us what a check measured wrong, which suggestion didn't fit, or what is missing (a device, a setting, a kind of input):
+
+- [Open an issue](https://github.com/morozaniulia/AccessCalibrate/issues/new) for something that is wrong or broken.
+- [Start a discussion](https://github.com/morozaniulia/AccessCalibrate/discussions) for ideas, questions or your experience with the calibration.
+
+Please don't post personal health information. Describing what happened and which device you used is enough.
+
 ## License and credits
 
 Apache License 2.0 (see `LICENSE` and `NOTICE`). © 2026 Morozan Iulia.
+
+Designed and built by **Morozan Iulia**: [Portfolio](https://iuliamorozan.com/) · [LinkedIn](https://www.linkedin.com/in/morozaniulia)
 
 - Font: Manrope, SIL Open Font License 1.1.
 - Demo models: Quaternius, *Ultimate Platformer Pack*, CC0 1.0.
