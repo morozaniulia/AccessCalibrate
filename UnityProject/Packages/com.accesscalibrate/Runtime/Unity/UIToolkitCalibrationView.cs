@@ -512,7 +512,7 @@ namespace AccessCalibration
             else SetHints();
         }
 
-        /// <summary>True while at least one row is faded (more rows above or below the visible part).</summary>
+        /// <summary>True while at least one row is faded (hidden rows above or below the visible part).</summary>
         internal bool ListFadeVisible => _anyRowFaded;
         internal ScrollView ConfirmList => _list;
 
@@ -521,9 +521,9 @@ namespace AccessCalibration
 
         /// <summary>
         /// Soft edges without drawing anything on top: each row's opacity drops from 1 to 0.15 as its
-        /// centre gets within 60 px of an edge where more rows are hidden (the bottom; and the top
-        /// too while scrolled mid-list). At the end of the list nothing is faded; the selected row
-        /// is never faded.
+        /// centre gets within 60 px of an edge — but only an edge with hidden content beyond it:
+        /// the top once scrolled down, the bottom while more rows are below. When everything fits,
+        /// nothing is faded. The selected row is never faded.
         /// </summary>
         void UpdateFade()
         {
@@ -536,8 +536,7 @@ namespace AccessCalibration
             bool overflow = content > viewportHeight + 1f;
             float y = _list.scrollOffset.y;
             bool moreBelow = overflow && y < content - viewportHeight - 1f;
-            // The top edge softens only mid-list; scrolled to the bottom, nothing is faded.
-            bool moreAbove = moreBelow && y > 1f;
+            bool moreAbove = overflow && y > 1f;
             var viewport = _list.contentViewport.worldBound;
 
             for (int i = 0; i < _review.Items.Count && i < _selectable.Count; i++)

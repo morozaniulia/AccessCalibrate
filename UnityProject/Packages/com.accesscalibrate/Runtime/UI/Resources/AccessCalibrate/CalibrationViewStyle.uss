@@ -338,8 +338,9 @@
 .ac-confirm-list-wrap--empty .ac-confirm-empty { display: flex; }
 .ac-confirm-list-wrap--empty .ac-confirm-list { display: none; }
 
-/* Soft edges: rows near an edge with more rows beyond it fade out (opacity set in code, from 1
-   to 0.15 over the last 60 px). Nothing is drawn on top, so there are no straight edges. */
+/* Soft edges: rows near an edge with hidden content beyond it (top when scrolled down, bottom
+   while more rows are below) fade out — opacity set in code, from 1 to 0.15 over the last 60 px.
+   Nothing is drawn on top; when everything fits, nothing fades. */
 .ac-row { opacity: 1; }
 
 /* Thin scrollbar: 4 px, round, white 30%, no arrows; shown only while scrolling or on hover. */

@@ -173,6 +173,8 @@ namespace AccessCalibration.PlayModeTests
             Assert.AreEqual(1, _view.Root.Query(className: "ac-row--uncertain").ToList().Count);
             Assert.AreEqual(1, _view.Root.Query<DashedOutline>().ToList().Count);
             yield return Snapshot("6-confirmation");
+            Assert.IsFalse(_view.ListFadeVisible, "everything fits: no edge is faded");
+            Assert.IsTrue(_view.Root.Query(className: "ac-row").ToList().All(r => r.resolvedStyle.opacity > 0.999f));
             var apply = _view.Root.Q<Button>("ac-apply");
             var applyLabel = _view.Root.Q<Label>("ac-apply-label");
             Assert.Less(apply.layout.width, 0.45f * _view.Root.Q("ac-panel").layout.width, "Apply hugs its content");
@@ -235,8 +237,14 @@ namespace AccessCalibration.PlayModeTests
 
             _view.ConfirmList.scrollOffset = new Vector2(0, 10000);
             yield return Snapshot("6d-confirmation-end");
-            Assert.IsFalse(_view.ListFadeVisible, "at the end of the list nothing is faded at the bottom");
-            Assert.AreEqual(1f, rows[rows.Count - 1].resolvedStyle.opacity, 1e-3, "the last row is fully visible at the end");
+            Assert.AreEqual(1f, rows[rows.Count - 1].resolvedStyle.opacity, 1e-3, "nothing below: the last row is fully visible");
+            Assert.Less(rows[0].resolvedStyle.opacity, 0.99f, "rows hidden above: the top edge fades");
+            Assert.IsTrue(_view.ListFadeVisible);
+            Assert.IsTrue(rows.All(r => r.resolvedStyle.opacity >= 0.15f - 1e-3), "never below 0.15");
+
+            _view.ConfirmList.scrollOffset = Vector2.zero;
+            yield return null;
+            Assert.AreEqual(1f, rows[0].resolvedStyle.opacity, 1e-3, "back at the top: nothing hidden above, no top fade");
             Assert.AreEqual(buttonsTop, _view.Root.Q<Button>("ac-apply").worldBound.y, 0.5f, "the buttons never move");
 
             // Nothing to suggest: centred message, no "Turn on / off" hint.
