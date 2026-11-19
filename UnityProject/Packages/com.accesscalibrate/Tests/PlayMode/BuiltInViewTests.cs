@@ -168,7 +168,6 @@ namespace AccessCalibration.PlayModeTests
             var measuring = Q("ac-stability-measuring");
             var left = Q("ac-stability-left");
             yield return Snapshot("5-steadiness");
-            yield return KeyboardSnapshot("5-steadiness");
             Assert.AreEqual(measuring.worldBound.center.y, left.worldBound.center.y, 4f, "\"Measuring\" and \"s left\" on one line");
             Assert.Greater(left.worldBound.xMin, measuring.worldBound.xMax, "at opposite ends");
 
@@ -210,6 +209,37 @@ namespace AccessCalibration.PlayModeTests
             // PlayStation glyphs (drawn shapes). Device → family is covered by GlyphFamilyTests.
             _view.ForceGlyphFamily(GlyphFamily.PlayStation);
             yield return Snapshot("9-confirmation-playstation");
+        }
+
+        [UnityTest, Timeout(60000)]
+        public IEnumerator Steadiness_WithAMouse_SaysMouse()
+        {
+            // Keyboard and mouse only: steadiness is measured with the mouse (the README image).
+            InputSystem.RemoveDevice(_pad);
+            var mouse = InputSystem.AddDevice<Mouse>();
+            Set(mouse.position, Vector2.zero);
+            yield return StartRunner();
+            _view.ForceGlyphFamily(GlyphFamily.Keyboard);
+
+            _runner.WelcomeStart();
+            _runner.SkipCurrent();            // reaction (from its intro)
+            _runner.SkipCurrent();            // hold
+            _runner.SkipCurrent();            // repeated presses
+            _runner.BeginCurrent();           // steadiness
+            var test = _runner.Stability;
+            Assert.AreEqual(StabilityTest.Mode.Mouse, test.ActiveMode);
+            for (int f = 0; f < 28; f++)
+            {
+                Set(mouse.position, f < 2 ? Vector2.zero   // starts outside the circle
+                    : test.Target + new Vector2(Mathf.Sin(f * 1.3f) * 0.36f, Mathf.Cos(f * 0.9f) * 0.28f + 0.16f) * test.Radius);
+                yield return null;
+                _now += 0.1;
+                test.Tick(_now);
+            }
+            Assert.AreEqual(StabilityTest.Phase.Measuring, test.CurrentPhase);
+            Assert.IsTrue(_view.Root.Query<Label>().ToList().Any(l => l.text == CalibrationTexts.DeviceMouse),
+                "the step header names the device: Mouse");
+            yield return Snapshot("5-steadiness-mouse");
         }
 
         [UnityTest, Timeout(60000)]
