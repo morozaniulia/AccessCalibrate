@@ -1,6 +1,6 @@
 {
     "name": "AccessCalibrate.Core.Tests",
-    "rootNamespace": "AccessCalibrate.Core.Tests",
+    "rootNamespace": "AccessCalibration.Core.Tests",
     "references": [
         "AccessCalibrate.Core",
         "UnityEngine.TestRunner",

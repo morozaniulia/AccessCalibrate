@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace AccessCalibrate.Core
+namespace AccessCalibration.Core
 {
     public enum QteMode { Normal, Skippable, Off }
     public enum MashingMode { Normal, HoldInstead, Auto }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 
-namespace AccessCalibrate.Core.Tests
+namespace AccessCalibration.Core.Tests
 {
     public class RulesEngineTests
     {

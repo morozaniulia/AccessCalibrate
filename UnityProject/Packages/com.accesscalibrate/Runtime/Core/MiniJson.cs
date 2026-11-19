@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace AccessCalibrate.Core
+namespace AccessCalibration.Core
 {
     /// <summary>
     /// A tiny JSON reader/writer, just enough for <see cref="AccessibilityProfile"/>.

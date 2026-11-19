@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace AccessCalibrate.Core
+namespace AccessCalibration.Core
 {
     /// <summary>The kind of input device a measurement was taken with.</summary>
     public enum InputDeviceKind

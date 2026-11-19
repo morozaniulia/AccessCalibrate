@@ -1,6 +1,6 @@
 {
     "name": "AccessCalibrate.Core",
-    "rootNamespace": "AccessCalibrate.Core",
+    "rootNamespace": "AccessCalibration.Core",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

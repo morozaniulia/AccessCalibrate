@@ -3,7 +3,7 @@
 
 using System;
 
-namespace AccessCalibrate.Core
+namespace AccessCalibration.Core
 {
     /// <summary>
     /// Thresholds for one input device.

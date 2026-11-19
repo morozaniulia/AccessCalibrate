@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace AccessCalibrate.Core
+namespace AccessCalibration.Core
 {
     /// <summary>
     /// One proposed setting together with WHY it was proposed — the confirmation screen shows this

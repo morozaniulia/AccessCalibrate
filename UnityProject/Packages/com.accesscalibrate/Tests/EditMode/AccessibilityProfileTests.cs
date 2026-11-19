@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace AccessCalibrate.Core.Tests
+namespace AccessCalibration.Core.Tests
 {
     public class AccessibilityProfileTests
     {

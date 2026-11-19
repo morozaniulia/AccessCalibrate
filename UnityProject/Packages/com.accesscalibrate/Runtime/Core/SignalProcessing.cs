@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AccessCalibrate.Core
+namespace AccessCalibration.Core
 {
     /// <summary>Small, pure helper functions for turning raw trials into one number.</summary>
     public static class SignalProcessing
