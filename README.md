@@ -5,6 +5,10 @@
 AccessCalibrate is an open-source Unity toolkit that applies ideas from **ability-based design** to a 60-second motor calibration with **transparent rules**. On first launch a player goes through five short checks: reaction, comfortable hold, repeated presses, steadiness and button reach. The game then suggests accessibility settings: longer timing windows, skippable quick-time events, hold-to-toggle, holding instead of mashing, a bigger stick deadzone, aim assist and button remapping. Each suggestion comes with the measurement and the rule behind it. **The player decides:** every suggestion is a switch, uncertain ones start off, and nothing changes until the player presses *Apply*.
 
 
+https://github.com/user-attachments/assets/8f70c4d6-96d5-4ef4-8361-18aa85f9d0e8
+
+
+
 **[Install](#install) · [Demo](#demo) · [Results](#results) · [Design spec](Docs/DESIGN_SPEC.md)**
 
 | | | |
@@ -16,7 +20,7 @@ AccessCalibrate is an open-source Unity toolkit that applies ideas from **abilit
 
 ## Why
 
-Most games already offer accessibility options: longer timing windows, toggles instead of holds, remapping. But the options sit in a menu that players have to find, understand and tune before they know which ones help. Players with motor disabilities often often notice only after failing a quick-time event or a long button hold. AccessCalibrate starts with the measurement instead. A one-minute calibration measures a few motor abilities, a set of plain rules turns the measurements into suggestions, and the player decides what to keep. The same measurements work on gamepad, keyboard, mouse and touch.
+Most games already offer accessibility options: longer timing windows, toggles instead of holds, remapping. But the options sit in a menu that players have to find, understand and tune before they know which ones help. Players with motor disabilities often notice only after failing a quick-time event or a long button hold. AccessCalibrate starts with the measurement instead. A one-minute calibration measures a few motor abilities, a set of plain rules turns the measurements into suggestions, and the player decides what to keep. The same measurements work on gamepad, keyboard, mouse and touch.
 
 ## How it works
 
