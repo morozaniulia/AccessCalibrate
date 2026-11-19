@@ -26,13 +26,21 @@ namespace AccessCalibration.Demo
         // Level layout along +Z (metres).
         const float QteTriggerZ = 9f, LeverTriggerZ = 20.5f, DoorZ = 23f, BridgeTriggerZ = 26.5f;
         const float GapStartZ = 28f, GapEndZ = 34f, PathStartZ = 38f, PathEndZ = 52f, GoalZ = 56f;
-        const float MoveSpeed = 4.5f, Gravity = -20f;
+        const float MoveSpeed = 4.5f, Gravity = -20f, FreeJumpHeight = 1.2f;
 
         public Phase CurrentPhase { get; private set; } = Phase.Explore;
         public Transform Player => _player != null ? _player.transform : null;
         public DemoHud Hud => _hud;
         public CalibrationRunner Runner => _runner;
         public Camera Camera => _camera;
+        /// <summary>True while the player is in the air (free jump or falling).</summary>
+        public bool IsAirborne => _player != null && !IsGrounded;
+
+        // CharacterController.isGrounded flickers from frame to frame; treat "touched the ground
+        // in the last 0.12 s" as grounded so a jump press is never lost ("coyote time").
+        const float GroundedGraceSeconds = 0.12f;
+        float _lastGroundedAt = -10f;
+        bool IsGrounded => Time.time - _lastGroundedAt <= GroundedGraceSeconds;
         /// <summary>False when no Universal (3D) renderer was found: models then render without lighting.</summary>
         public bool Has3DRenderer { get; private set; } = true;
 
@@ -293,6 +301,9 @@ namespace AccessCalibration.Demo
             _player.radius = 0.35f;
             _player.center = new Vector3(0, 0.82f, 0);
             _player.stepOffset = 0.3f;
+            // Default 0.001 drops any move smaller than 1 mm per frame, which at high frame rates
+            // silently cuts jumps short. Unity recommends 0.
+            _player.minMoveDistance = 0f;
 
             var model = DemoAssets.Spawn("Character", go.transform.position, 1.6f, go.transform, byHeight: true,
                                          fallback: PrimitiveType.Capsule, fallbackColor: new Color(0.2f, 0.5f, 1f));
@@ -329,15 +340,28 @@ namespace AccessCalibration.Demo
 
         void UpdateExplore()
         {
+            // Free jump with A / Space anywhere while exploring (separate from the quick-time event).
+            if (IsGrounded && _input.Action.WasPressedThisFrame())
+            {
+                _verticalSpeed = Mathf.Sqrt(2f * -Gravity * FreeJumpHeight);
+                _lastGroundedAt = -10f;   // no second jump from the grace window
+                _anim.Play("Jump", loop: false, restart: true);
+                _timerRunning = true;
+            }
+
             Vector2 move = _input.ReadMove(_profile.stickDeadzone);
             MovePlayer(new Vector3(move.x, 0, move.y) * MoveSpeed);
             if (move.sqrMagnitude > 0.01f) _timerRunning = true;
 
+            // Stations start only on the ground, so a jump never lands you mid-air in one.
             float z = _player.transform.position.z;
-            if (!_qteDone && z >= QteTriggerZ) StartQte();
-            else if (_qteDone && !_leverDone && z >= LeverTriggerZ) StartStation(Phase.Lever);
-            else if (_leverDone && !_bridgeDone && z >= BridgeTriggerZ) StartStation(Phase.Bridge);
-            else if (_bridgeDone && z >= GoalZ) Finish();
+            if (IsGrounded)
+            {
+                if (!_qteDone && z >= QteTriggerZ) StartQte();
+                else if (_qteDone && !_leverDone && z >= LeverTriggerZ) StartStation(Phase.Lever);
+                else if (_leverDone && !_bridgeDone && z >= BridgeTriggerZ) StartStation(Phase.Bridge);
+                else if (_bridgeDone && z >= GoalZ) Finish();
+            }
 
             bool onPath = _bridgeDone && z >= PathStartZ - 0.5f && z <= PathEndZ;
             if (onPath)
@@ -360,13 +384,14 @@ namespace AccessCalibration.Demo
             if (_player.isGrounded && _verticalSpeed < 0) _verticalSpeed = -1f;
             _verticalSpeed += Gravity * Time.deltaTime;
             _player.Move((horizontal + Vector3.up * _verticalSpeed) * Time.deltaTime);
+            if (_player.isGrounded) _lastGroundedAt = Time.time;
 
             if (horizontal.sqrMagnitude > 0.05f)
-            {
                 _playerModel.rotation = Quaternion.Slerp(_playerModel.rotation,
                     Quaternion.LookRotation(new Vector3(horizontal.x, 0, horizontal.z)), 12f * Time.deltaTime);
-                _anim.Play("Run");
-            }
+
+            if (!IsGrounded) _anim.Play("Jump", loop: false);   // keeps the jump pose in the air
+            else if (horizontal.sqrMagnitude > 0.05f) _anim.Play("Run");
             else _anim.Play("Idle");
         }
 

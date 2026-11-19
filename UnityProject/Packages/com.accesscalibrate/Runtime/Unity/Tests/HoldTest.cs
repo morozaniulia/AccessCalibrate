@@ -20,7 +20,7 @@ namespace AccessCalibration
         public double WaitForPressSeconds = 6.0;
         public double PauseBetweenTrialsSeconds = 1.0;
 
-        enum State { WaitingForPress, Holding, Pause }
+        enum State { WaitingForRelease, WaitingForPress, Holding, Pause }
 
         State _state;
         double _stateSince;
@@ -30,6 +30,7 @@ namespace AccessCalibration
         InputAction _button;
 
         public override string Title => CalibrationTexts.HoldTitle;
+        protected override string LetGoText => CalibrationTexts.HoldLetGo;
         public override string Instructions => CalibrationTexts.HoldInstructions;
 
         protected override void OnBegin(double now)
@@ -45,8 +46,16 @@ namespace AccessCalibration
 
         void StartTrial(double now)
         {
-            _state = State.WaitingForPress;
             _stateSince = now;
+            if (InputDevices.AnyButtonHeld())
+            {
+                // Still holding from the previous trial (e.g. past the 5 s cap): a new press can't
+                // be seen until the button goes up.
+                _state = State.WaitingForRelease;
+                View.SetStatus(CalibrationTexts.HoldLetGo);
+                return;
+            }
+            _state = State.WaitingForPress;
             View.SetStatus(string.Format(CalibrationTexts.HoldTrial, _holds.Count + 1, Trials)
                            + " · " + CalibrationTexts.HoldWaiting);
         }
@@ -76,6 +85,9 @@ namespace AccessCalibration
                     View.PlayCue();
                     View.SetStatus(CalibrationTexts.HoldMaxReached);
                     RecordHold(MaxHoldSeconds, now);
+                    break;
+                case State.WaitingForRelease when !InputDevices.AnyButtonHeld():
+                    StartTrial(now);
                     break;
                 case State.WaitingForPress when now - _stateSince >= WaitForPressSeconds:
                     RecordHold(0, now);

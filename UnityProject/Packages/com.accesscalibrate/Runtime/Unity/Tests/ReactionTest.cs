@@ -23,7 +23,7 @@ namespace AccessCalibration
         /// <summary>Random source for the pauses. Replace with a seeded one for reproducible runs.</summary>
         public Random Random = new Random();
 
-        enum State { Waiting, Showing }
+        enum State { WaitingForRelease, Waiting, Showing }
 
         State _state;
         bool _retried;
@@ -63,7 +63,17 @@ namespace AccessCalibration
 
         protected override void OnTick(double now)
         {
-            if (_state == State.Waiting && now >= NextStimulusAt)
+            if (_state == State.WaitingForRelease)
+            {
+                if (!InputDevices.AnyButtonHeld()) StartTrial(now);   // new random pause from the release
+            }
+            else if (_state == State.Waiting && now >= NextStimulusAt && InputDevices.AnyButtonHeld())
+            {
+                // The signal is due but a button is still down: a new press couldn't be seen.
+                _state = State.WaitingForRelease;
+                View.SetStatus(CalibrationTexts.ReactionLetGo);
+            }
+            else if (_state == State.Waiting && now >= NextStimulusAt)
             {
                 _state = State.Showing;
                 StimulusShownAt = now;
@@ -78,7 +88,7 @@ namespace AccessCalibration
 
         void OnPress(InputAction.CallbackContext ctx)
         {
-            if (!IsRunning || InputDevices.IsSkipKey(ctx)) return;
+            if (!IsRunning || InputDevices.IsSkipKey(ctx) || _state == State.WaitingForRelease) return;
             Remember(ctx);
 
             if (_state == State.Showing)

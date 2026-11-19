@@ -27,6 +27,12 @@ namespace AccessCalibration
         public InputDeviceKind PreferredDevice = InputDeviceKind.Gamepad;
 
         public bool IsRunning { get; private set; }
+        /// <summary>
+        /// The test is waiting for every button to be released before it really starts. A button
+        /// already down when an input action is enabled never fires that action, so a press held
+        /// over from the intro card would otherwise be invisible to the test.
+        /// </summary>
+        public bool IsWaitingForRelease { get; private set; }
         public bool IsFinished { get; private set; }
         public bool WasSkipped { get; private set; }
 
@@ -38,7 +44,10 @@ namespace AccessCalibration
         public abstract string Title { get; }
         public abstract string Instructions { get; }
 
-        /// <summary>Starts (or restarts) the test.</summary>
+        /// <summary>Text shown while waiting for the held button to be released.</summary>
+        protected virtual string LetGoText => CalibrationTexts.LetGoToBegin;
+
+        /// <summary>Starts (or restarts) the test — after any held button is released.</summary>
         public void Begin()
         {
             IsRunning = true;
@@ -46,6 +55,12 @@ namespace AccessCalibration
             WasSkipped = false;
             Device = PreferredDevice;
             View.ShowTest(Title, Instructions);
+            if (InputDevices.AnyButtonHeld())
+            {
+                IsWaitingForRelease = true;
+                View.SetStatus(LetGoText);
+                return;
+            }
             OnBegin(Clock());
         }
 
@@ -60,7 +75,15 @@ namespace AccessCalibration
         /// <summary>Advances timers. Called from Update; tests call it directly with a fixed time.</summary>
         public void Tick(double now)
         {
-            if (IsRunning) OnTick(now);
+            if (!IsRunning) return;
+            if (IsWaitingForRelease)
+            {
+                if (InputDevices.AnyButtonHeld()) return;
+                IsWaitingForRelease = false;
+                OnBegin(now);
+                return;
+            }
+            OnTick(now);
         }
 
         /// <summary>Copies this test's result into <paramref name="m"/>.</summary>
@@ -75,6 +98,7 @@ namespace AccessCalibration
         {
             if (!IsRunning) return;
             IsRunning = false;
+            IsWaitingForRelease = false;
             IsFinished = true;
             OnStop();
             View.ShowStimulus(false);
@@ -150,6 +174,38 @@ namespace AccessCalibration
             })
                 a.AddBinding(path);
             return a;
+        }
+
+        /// <summary>
+        /// True while any control that "press any button" listens to is down (same list as
+        /// <see cref="CreateAnyButton"/>). Used to wait for a release; timing never comes from this.
+        /// </summary>
+        public static bool AnyButtonHeld()
+        {
+            foreach (var device in InputSystem.devices)
+            {
+                switch (device)
+                {
+                    case Gamepad g:
+                        if (g.buttonSouth.isPressed || g.buttonEast.isPressed || g.buttonWest.isPressed || g.buttonNorth.isPressed
+                            || g.leftShoulder.isPressed || g.rightShoulder.isPressed || g.leftTrigger.isPressed || g.rightTrigger.isPressed
+                            || g.leftStickButton.isPressed || g.rightStickButton.isPressed) return true;
+                        break;
+                    case Keyboard k:
+                        if (k.anyKey.isPressed) return true;
+                        break;
+                    case Mouse m:
+                        if (m.leftButton.isPressed || m.rightButton.isPressed) return true;
+                        break;
+                    case Touchscreen t:
+                        if (t.press.isPressed) return true;
+                        break;
+                    case Joystick j:
+                        if (j.trigger != null && j.trigger.isPressed) return true;
+                        break;
+                }
+            }
+            return false;
         }
 
         /// <summary>The skip shortcut (Escape / gamepad Select). Never counted as a test press.</summary>

@@ -123,7 +123,7 @@ namespace AccessCalibration.Demo
             root.Add(_toast);
 
             // Bottom-left: controls.
-            _controls = Text("Move: left stick / WASD", 18, Dim);
+            _controls = Text("Move: left stick / WASD   ·   Jump: A / Space", 18, Dim);
             _controls.style.position = Position.Absolute;
             _controls.style.left = 24; _controls.style.bottom = 20;
             root.Add(_controls);

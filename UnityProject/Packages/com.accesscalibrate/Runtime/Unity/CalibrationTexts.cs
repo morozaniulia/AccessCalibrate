@@ -26,6 +26,8 @@ namespace AccessCalibration
         public static string SkipHint = "You can skip at any time (Esc / Select).";
         public static string SkipButton = "Skip";
         public static string TestCounter = "Test {0} of {1}";
+        /// <summary>A button is still held when a test starts (e.g. from the intro card).</summary>
+        public static string LetGoToBegin = "Let go of the button to begin.";
 
         // ------------------------------------------------------------- 1. reaction
         public static string ReactionTitle = "Reaction";
@@ -34,6 +36,7 @@ namespace AccessCalibration
         public static string ReactionTrial = "Try {0} of {1}";
         public static string ReactionTooEarly = "A little early — no problem, let's continue.";
         public static string ReactionRetry = "Let's do one more short round.";
+        public static string ReactionLetGo = "Let go of the button — the next signal comes after that.";
 
         // ------------------------------------------------------------- 2. hold
         public static string HoldTitle = "Hold";
@@ -42,6 +45,7 @@ namespace AccessCalibration
         public static string HoldHolding = "Holding… let go whenever you like.";
         public static string HoldMaxReached = "That's it, you can let go.";
         public static string HoldTrial = "Try {0} of {1}";
+        public static string HoldLetGo = "Let go, then press and hold.";
 
         // ------------------------------------------------------------- 3. repeated presses
         public static string TapsTitle = "Repeated presses";
