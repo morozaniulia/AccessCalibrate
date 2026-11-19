@@ -39,9 +39,6 @@
     --ac-cursor-halo: rgba(11, 12, 16, 0.85);
     --ac-uncertain-border: rgba(255, 255, 255, 0.34);
     --ac-scrollbar: rgba(255, 255, 255, 0.30);
-    /* The list fades into this colour at its bottom edge: the panel colour itself, so over the
-       panel the fade ends looking like the panel (no band). */
-    --ac-fade: rgba(20, 22, 30, 0.88);
     --ac-transparent: rgba(0, 0, 0, 0);
     /* ---- shape ---- */
     --ac-radius-panel: 36px;
@@ -341,15 +338,9 @@
 .ac-confirm-list-wrap--empty .ac-confirm-empty { display: flex; }
 .ac-confirm-list-wrap--empty .ac-confirm-list { display: none; }
 
-/* Soft edge: the last visible row fades into the panel (48 px) while more rows are below. */
-.ac-list-fade {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 48px;
-    --ac-fade-c: var(--ac-fade);
-    opacity: 1;
-    transition-property: opacity;
-    transition-duration: 0.15s;
-}
-.ac-list-fade--hidden { opacity: 0; }
+/* Soft edges: rows near an edge with more rows beyond it fade out (opacity set in code, from 1
+   to 0.15 over the last 60 px). Nothing is drawn on top, so there are no straight edges. */
+.ac-row { opacity: 1; }
 
 /* Thin scrollbar: 4 px, round, white 30%, no arrows; shown only while scrolling or on hover. */
 .ac-confirm-list .unity-scroller--vertical {
@@ -462,7 +453,6 @@
 .ac-reduce-motion .ac-btn,
 .ac-reduce-motion .ac-switch,
 .ac-reduce-motion .ac-switch-knob,
-.ac-reduce-motion .ac-list-fade,
 .ac-reduce-motion .ac-confirm-list .unity-scroller--vertical { transition-duration: 0s; }
 .ac-reduce-motion .ac-panel--enter { opacity: 1; translate: 0 0; }
 .ac-reduce-motion .ac-btn.ac-selected { scale: 1 1; }

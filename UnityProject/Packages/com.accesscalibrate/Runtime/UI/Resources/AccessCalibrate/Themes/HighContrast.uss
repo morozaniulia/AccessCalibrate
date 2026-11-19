@@ -35,5 +35,4 @@
     --ac-cursor-halo: #000000;
     --ac-uncertain-border: #FFFFFF;
     --ac-scrollbar: #FFFFFF;
-    --ac-fade: #000000;
 }

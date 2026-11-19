@@ -212,17 +212,31 @@ namespace AccessCalibration.PlayModeTests
             Assert.IsTrue(_runner.Review.Items.Any(i => i.Change.Setting == "mouseSmoothing"));
             Assert.IsFalse(_runner.Review.Items.Any(i => i.Change.Setting == "stickDeadzone"));
             yield return Snapshot("6b-confirmation-long");
-            Assert.IsTrue(_view.ListFadeVisible, "more rows below → the last visible row fades out");
+            Assert.IsTrue(_view.ListFadeVisible, "more rows below → rows near the bottom fade out");
+            Assert.AreEqual(0, _view.Root.Query(className: "ac-list-fade").ToList().Count, "no overlay is drawn on top of the list");
+            var rows = _view.Root.Query(className: "ac-row").ToList();
+            Assert.AreEqual(1f, rows[0].resolvedStyle.opacity, 1e-3, "rows away from the edge are untouched");
+            Assert.IsTrue(rows.Any(r => r.resolvedStyle.opacity < 0.99f), "a row near the bottom is faded");
+            Assert.IsTrue(rows.All(r => r.resolvedStyle.opacity >= 0.15f - 1e-3), "never below 0.15");
             var buttonsTop = _view.Root.Q<Button>("ac-apply").worldBound.y;
+
+            // Light and High Contrast themes: same soft edge, no drawn shapes.
+            AccessCalibrate.UseTheme(ThemePreset.GlassLight);
+            yield return Snapshot("6b-confirmation-long-glass-light");
+            AccessCalibrate.UseTheme(ThemePreset.HighContrast);
+            yield return Snapshot("6b-confirmation-long-high-contrast");
+            AccessCalibrate.UseTheme(ThemePreset.GlassDark);
 
             _view.ConfirmList.scrollOffset = new Vector2(0, 90);
             yield return null;
             Assert.IsTrue(_view.ConfirmList.ClassListContains("ac-scrolling"), "scrollbar shows while scrolling");
             yield return Snapshot("6c-confirmation-scrolling");
+            Assert.Less(rows[0].resolvedStyle.opacity, 0.99f, "scrolled down: the row cut at the top fades too");
 
             _view.ConfirmList.scrollOffset = new Vector2(0, 10000);
             yield return Snapshot("6d-confirmation-end");
-            Assert.IsFalse(_view.ListFadeVisible, "at the end of the list the fade goes away");
+            Assert.IsFalse(_view.ListFadeVisible, "at the end of the list nothing is faded at the bottom");
+            Assert.AreEqual(1f, rows[rows.Count - 1].resolvedStyle.opacity, 1e-3, "the last row is fully visible at the end");
             Assert.AreEqual(buttonsTop, _view.Root.Q<Button>("ac-apply").worldBound.y, 0.5f, "the buttons never move");
 
             // Nothing to suggest: centred message, no "Turn on / off" hint.

@@ -55,7 +55,7 @@ namespace AccessCalibration
         ScrollView _list;
         VisualElement _listWrap;
         Label _empty;
-        GradientFade _fade;
+        bool _anyRowFaded;
         IVisualElementScheduledItem _hideScrollbar;
         Button _apply, _redo, _skipAll;
         GlyphBadge _applyGlyph;
@@ -192,8 +192,6 @@ namespace AccessCalibration
             _listWrap = _root.Q("ac-confirm-list-wrap");
             _empty = _root.Q<Label>("ac-confirm-empty");
             _empty.text = CalibrationTexts.ConfirmNothing;
-            _fade = new GradientFade();
-            _listWrap.Add(_fade);
             _list.verticalScrollerVisibility = ScrollerVisibility.Auto;
             _list.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             _list.verticalScroller.valueChanged += _ => { ShowScrollbarBriefly(); UpdateFade(); };
@@ -514,19 +512,47 @@ namespace AccessCalibration
             else SetHints();
         }
 
-        /// <summary>True while rows are hidden below the visible part of the list.</summary>
-        internal bool ListFadeVisible => !_fade.ClassListContains("ac-list-fade--hidden");
+        /// <summary>True while at least one row is faded (more rows above or below the visible part).</summary>
+        internal bool ListFadeVisible => _anyRowFaded;
         internal ScrollView ConfirmList => _list;
 
-        /// <summary>The fade shows only while the list overflows and isn't scrolled to the end.</summary>
+        /// <summary>Height of the soft edge, in px, and the opacity a row reaches right at the edge.</summary>
+        const float FadeZone = 60f, FadeMin = 0.15f;
+
+        /// <summary>
+        /// Soft edges without drawing anything on top: each row's opacity drops from 1 to 0.15 as its
+        /// centre gets within 60 px of an edge where more rows are hidden (the bottom; and the top
+        /// too while scrolled mid-list). At the end of the list nothing is faded; the selected row
+        /// is never faded.
+        /// </summary>
         void UpdateFade()
         {
-            if (_list == null) return;
+            _anyRowFaded = false;
+            if (_list == null || _review == null) return;
             float content = _list.contentContainer.layout.height;
-            float viewport = _list.contentViewport.layout.height;
-            bool overflow = !float.IsNaN(content) && !float.IsNaN(viewport) && content > viewport + 1f;
-            bool atEnd = _list.scrollOffset.y >= content - viewport - 1f;
-            _fade.EnableInClassList("ac-list-fade--hidden", !overflow || atEnd);
+            float viewportHeight = _list.contentViewport.layout.height;
+            if (float.IsNaN(content) || float.IsNaN(viewportHeight)) return;
+
+            bool overflow = content > viewportHeight + 1f;
+            float y = _list.scrollOffset.y;
+            bool moreBelow = overflow && y < content - viewportHeight - 1f;
+            // The top edge softens only mid-list; scrolled to the bottom, nothing is faded.
+            bool moreAbove = moreBelow && y > 1f;
+            var viewport = _list.contentViewport.worldBound;
+
+            for (int i = 0; i < _review.Items.Count && i < _selectable.Count; i++)
+            {
+                var row = _selectable[i];
+                float opacity = 1f;
+                if (!row.ClassListContains("ac-selected"))
+                {
+                    float centre = row.worldBound.center.y;
+                    if (moreBelow) opacity = Mathf.Min(opacity, Mathf.Lerp(FadeMin, 1f, Mathf.Clamp01((viewport.yMax - centre) / FadeZone)));
+                    if (moreAbove) opacity = Mathf.Min(opacity, Mathf.Lerp(FadeMin, 1f, Mathf.Clamp01((centre - viewport.yMin) / FadeZone)));
+                }
+                row.style.opacity = opacity;
+                if (opacity < 0.999f) _anyRowFaded = true;
+            }
         }
 
         /// <summary>The thin scrollbar appears while scrolling (and on hover, via USS), then fades out.</summary>
@@ -542,6 +568,7 @@ namespace AccessCalibration
         {
             for (int i = 0; i < _selectable.Count; i++) _selectable[i].EnableInClassList("ac-selected", i == index);
             if (_review != null && index >= 0 && index < _review.Items.Count) _list.ScrollTo(_selectable[index]);
+            UpdateFade();
         }
 
         public void RefreshConfirmation()
