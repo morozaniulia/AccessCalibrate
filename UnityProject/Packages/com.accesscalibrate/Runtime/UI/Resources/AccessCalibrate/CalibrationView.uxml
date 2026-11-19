@@ -64,8 +64,10 @@
                         <ui:VisualElement class="ac-stability-text">
                             <ui:Label name="ac-stability-title" class="ac-h1 ac-h1--stage" />
                             <ui:Label name="ac-stability-body" class="ac-body" />
-                            <ui:Label name="ac-stability-measuring" class="ac-measuring" />
-                            <ui:Label name="ac-stability-left" class="ac-time-left" />
+                            <ui:VisualElement class="ac-measure-row">
+                                <ui:Label name="ac-stability-measuring" class="ac-measuring" />
+                                <ui:Label name="ac-stability-left" class="ac-time-left" />
+                            </ui:VisualElement>
                             <ui:VisualElement class="ac-bar"><ui:VisualElement name="ac-stability-bar" class="ac-bar-fill" /></ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>

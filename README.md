@@ -107,7 +107,7 @@ Docs/                DESIGN_SPEC.md, screenshots
 | Suite | Tests | What it covers |
 |---|---|---|
 | EditMode | 102 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for all presets, no literal colours in the USS |
-| PlayMode | 65 | each check with simulated keyboard / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input) |
+| PlayMode | 69 | each check with simulated keyboard / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input) |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
 A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:

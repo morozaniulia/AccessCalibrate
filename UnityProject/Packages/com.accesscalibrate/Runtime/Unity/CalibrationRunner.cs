@@ -79,10 +79,10 @@ namespace AccessCalibration
         readonly List<CalibrationTest> _tests = new List<CalibrationTest>();
         int _index;
         InputDeviceKind _preferred = InputDeviceKind.Gamepad;
-        InputAction _start, _skip, _up, _down, _submit;
+        InputAction _start, _skip, _up, _down, _submit, _toggle;
         bool _startRequested, _skipRequested;
         int _moveRequested;
-        bool _submitRequested;
+        bool _submitRequested, _toggleRequested;
         double _reviewShownAt, _welcomeShownAt;
 
         void Awake()
@@ -116,10 +116,14 @@ namespace AccessCalibration
             _up.performed += _ => { if (IsReviewing || IsWelcoming) _moveRequested = -1; };
             _down = CreateButtonAction("AccessCalibrate/Down", "<Gamepad>/dpad/down", "<Gamepad>/leftStick/down", "<Keyboard>/downArrow", "<Keyboard>/s");
             _down.performed += _ => { if (IsReviewing || IsWelcoming) _moveRequested = +1; };
-            _submit = CreateButtonAction("AccessCalibrate/Submit", "<Gamepad>/buttonSouth", "<Keyboard>/enter", "<Keyboard>/numpadEnter", "<Keyboard>/space");
+            // Confirm / apply (A, ✕, Enter) and, on the suggestions screen, a separate
+            // on/off for the selected row (X, □, Space) — one button, one job.
+            _submit = CreateButtonAction("AccessCalibrate/Submit", "<Gamepad>/buttonSouth", "<Keyboard>/enter", "<Keyboard>/numpadEnter");
             _submit.performed += _ => { if (IsReviewing || IsWelcoming) _submitRequested = true; };
+            _toggle = CreateButtonAction("AccessCalibrate/Toggle", "<Gamepad>/buttonWest", "<Keyboard>/space");
+            _toggle.performed += _ => { if (IsReviewing) _toggleRequested = true; };
 
-            foreach (var a in new[] { _start, _skip, _up, _down, _submit }) a.Enable();
+            foreach (var a in new[] { _start, _skip, _up, _down, _submit, _toggle }) a.Enable();
         }
 
         static InputAction CreateButtonAction(string name, params string[] paths)
@@ -132,8 +136,8 @@ namespace AccessCalibration
         void OnDisable()
         {
             AccessCalibrate.OnCalibrationRequested -= StartCalibration;
-            foreach (var a in new[] { _start, _skip, _up, _down, _submit }) a?.Dispose();
-            _start = _skip = _up = _down = _submit = null;
+            foreach (var a in new[] { _start, _skip, _up, _down, _submit, _toggle }) a?.Dispose();
+            _start = _skip = _up = _down = _submit = _toggle = null;
         }
 
         void EnsureView()
@@ -157,7 +161,7 @@ namespace AccessCalibration
             IsReviewing = false;
             IsCalibrating = true;
             _index = 0;
-            _startRequested = _skipRequested = _submitRequested = false;
+            _startRequested = _skipRequested = _submitRequested = _toggleRequested = false;
             _moveRequested = 0;
             ButtonAccess.Buttons = Buttons;
 
@@ -271,10 +275,11 @@ namespace AccessCalibration
             {
                 bool ready = Clock() - _reviewShownAt >= ConfirmationInputDelaySeconds;
                 if (ready && _moveRequested != 0) MoveSelection(_moveRequested);
+                if (ready && _toggleRequested) ToggleSelection();
                 if (ready && _submitRequested) ActivateSelection();
             }
             _moveRequested = 0;
-            _submitRequested = false;
+            _submitRequested = _toggleRequested = false;
         }
 
         void Update() => Tick();
@@ -308,7 +313,7 @@ namespace AccessCalibration
             IsReviewing = true;
             _reviewShownAt = Clock();
             _moveRequested = 0;
-            _submitRequested = false;
+            _submitRequested = _toggleRequested = false;
 
             // Study mode: log what was measured and proposed, before the player decides.
             if (StudyMode.Enabled) StudyMode.Record(measurements, LastResult.Profile);
@@ -328,14 +333,23 @@ namespace AccessCalibration
             View.SetConfirmationSelection(Selection);
         }
 
-        /// <summary>Press the selected row: toggle a proposal, or press Accept / Redo / Skip.</summary>
+        /// <summary>
+        /// Confirm (A / ✕ / Enter): on a button, press it; on a suggestion row, apply — switching
+        /// rows is <see cref="ToggleSelection"/>'s job.
+        /// </summary>
         public void ActivateSelection()
         {
             if (!IsReviewing) return;
-            if (Selection < Review.Items.Count) SetAccepted(Selection, !Review.Items[Selection].Accepted);
-            else if (Selection == AcceptIndex) Accept();
+            if (Selection < Review.Items.Count || Selection == AcceptIndex) Accept();
             else if (Selection == RedoIndex) Redo();
             else Skip();
+        }
+
+        /// <summary>Turn on / off (X / □ / Space): switch the selected row. Does nothing on a button.</summary>
+        public void ToggleSelection()
+        {
+            if (!IsReviewing || Selection >= Review.Items.Count) return;
+            SetAccepted(Selection, !Review.Items[Selection].Accepted);
         }
 
         /// <summary>Switch one proposal on or off (mouse / touch on the switch, or keyboard / gamepad).</summary>

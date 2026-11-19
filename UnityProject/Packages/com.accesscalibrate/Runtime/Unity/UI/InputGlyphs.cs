@@ -35,6 +35,8 @@ namespace AccessCalibration.UI
         AnyButton,
         /// <summary>D-pad / arrow keys up-down.</summary>
         Move,
+        /// <summary>Turn the selected row on / off: gamepad west button / Space (runner toggle).</summary>
+        Toggle,
     }
 
     /// <summary>
@@ -74,6 +76,14 @@ namespace AccessCalibration.UI
                         case GlyphFamily.Nintendo: return new Glyph("−");
                         case GlyphFamily.Xbox: return new Glyph("View", isKey: true);
                         default: return new Glyph("Esc", isKey: true);
+                    }
+                case PromptAction.Toggle:
+                    switch (family)
+                    {
+                        case GlyphFamily.PlayStation: return new Glyph("", shape: GlyphShape.Square);
+                        case GlyphFamily.Nintendo: return new Glyph("Y");   // west on a Switch pad
+                        case GlyphFamily.Xbox: return new Glyph("X");
+                        default: return new Glyph("Space", isKey: true);
                     }
                 default: // Move
                     return family == GlyphFamily.Keyboard ? new Glyph("↑ ↓", isKey: true) : new Glyph("D-pad ↑↓", isKey: true);

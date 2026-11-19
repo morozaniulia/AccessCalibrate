@@ -64,6 +64,7 @@ namespace AccessCalibration
         /// <summary>The panel this view draws into (e.g. to render it into a texture).</summary>
         public PanelSettings Panel => _doc != null ? _doc.panelSettings : null;
         internal VisualElement Root => _root;
+        internal int StabilityTrailCount => _arena.TrailCount;
         /// <summary>The glyph family on screen (follows the last device that pressed a button).</summary>
         public GlyphFamily GlyphFamily => _glyphs?.Family ?? GlyphFamily.Keyboard;
 
@@ -495,7 +496,8 @@ namespace AccessCalibration
             _selectable.Add(_redo);
             _selectable.Add(_skipAll);
             RefreshConfirmation();
-            SetHints((PromptAction.Confirm, CalibrationTexts.ToggleHint, null));
+            // Apply already shows its own confirm glyph on the button, so the bar only shows on/off.
+            SetHints((PromptAction.Toggle, CalibrationTexts.ToggleHint, null));
         }
 
         public void SetConfirmationSelection(int index)

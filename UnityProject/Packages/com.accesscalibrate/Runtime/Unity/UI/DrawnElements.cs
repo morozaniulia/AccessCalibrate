@@ -154,15 +154,30 @@ namespace AccessCalibration.UI
         public StabilityArena() : base("ac-arena", "--ac-arena-fill-c", "--ac-arena-border-c", "--ac-crosshair-c",
                                        "--ac-target-c", "--ac-cursor-c", "--ac-cursor-halo-c", "--ac-trail-c") { }
 
+        /// <summary>A new trail dot only after the cursor really moved (arena units), so dots don't pile up under it.</summary>
+        public float TrailSpacing = 0.02f;
+        Vector2 _lastTrailPoint = new Vector2(float.NaN, float.NaN);
+
+        public int TrailCount => _trail.Count;
+
         public void SetCursor(Vector2 position)
         {
-            _trail.Enqueue(Cursor);
-            while (_trail.Count > TrailLength) _trail.Dequeue();
+            if (float.IsNaN(_lastTrailPoint.x) || Vector2.Distance(_lastTrailPoint, Cursor) >= TrailSpacing)
+            {
+                _trail.Enqueue(Cursor);
+                _lastTrailPoint = Cursor;
+                while (_trail.Count > TrailLength) _trail.Dequeue();
+            }
             Cursor = position;
             MarkDirtyRepaint();
         }
 
-        public void ClearTrail() { _trail.Clear(); MarkDirtyRepaint(); }
+        public void ClearTrail()
+        {
+            _trail.Clear();
+            _lastTrailPoint = new Vector2(float.NaN, float.NaN);
+            MarkDirtyRepaint();
+        }
 
         Vector2 ToPx(Vector2 a, Rect r, float R) => r.center + new Vector2(a.x, -a.y) * R;
 

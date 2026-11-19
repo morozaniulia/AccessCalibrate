@@ -34,6 +34,17 @@ namespace AccessCalibration.PlayModeTests
         }
 
         [Test]
+        public void ToggleGlyph_IsTheWestButton_OrSpace()
+        {
+            Assert.AreEqual("X", InputGlyphs.For(GlyphFamily.Xbox, PromptAction.Toggle).Text);
+            Assert.AreEqual(GlyphShape.Square, InputGlyphs.For(GlyphFamily.PlayStation, PromptAction.Toggle).Shape);
+            Assert.AreEqual("Y", InputGlyphs.For(GlyphFamily.Nintendo, PromptAction.Toggle).Text);   // west on Switch
+            var key = InputGlyphs.For(GlyphFamily.Keyboard, PromptAction.Toggle);
+            Assert.AreEqual("Space", key.Text);
+            Assert.IsTrue(key.IsKey);
+        }
+
+        [Test]
         public void ButtonPress_SwitchesTheFamily()
         {
             var keyboard = InputSystem.AddDevice<Keyboard>();

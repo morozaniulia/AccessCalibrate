@@ -300,8 +300,10 @@
     --ac-trail-c: var(--ac-trail);
 }
 .ac-stability-text { width: 460px; margin-left: 56px; }
-.ac-measuring { font-size: 17px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); margin-top: 28px; padding: 0; }
-.ac-time-left { font-size: 15px; color: var(--ac-text-muted); margin: 2px 0 10px 0; padding: 0; }
+/* "Measuring" on the left, "3.0 s left" on the right, one line, above the bar */
+.ac-measure-row { flex-direction: row; justify-content: space-between; align-items: flex-end; margin: 28px 0 10px 0; }
+.ac-measuring { font-size: 17px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); margin: 0; padding: 0; }
+.ac-time-left { font-size: 15px; color: var(--ac-text-muted); margin: 0; padding: 0; }
 .ac-bar { height: 6px; border-radius: 3px; background-color: var(--ac-track); overflow: hidden; }
 .ac-bar--wide { width: 420px; margin-top: 22px; }
 .ac-bar-fill { height: 100%; width: 0; background-color: var(--ac-focus); border-radius: 3px; }
@@ -372,7 +374,9 @@
 
 .ac-confirm-buttons { flex-direction: row; flex-shrink: 0; }
 .ac-confirm-buttons .ac-btn { margin-right: 14px; }
-.ac-btn--apply { min-width: 380px; }
+/* Apply hugs its content: 30 px left, 22 px right, 16 px between text and glyph */
+.ac-btn--apply { flex-grow: 0; flex-shrink: 0; padding: 0 22px 0 30px; justify-content: flex-start; }
+.ac-btn--apply .ac-btn-glyph { margin-left: 16px; }
 
 /* ---------------------------------------------------------------- hint bar */
 .ac-hints { flex-direction: row; justify-content: flex-end; align-items: center; height: 64px; padding: 0 48px 6px 48px; flex-shrink: 0; }

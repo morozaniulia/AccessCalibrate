@@ -94,11 +94,11 @@ namespace AccessCalibration.PlayModeTests
             int steps = _runner.AcceptIndex - IndexOf("holdToToggle");
             for (int i = 0; i < steps; i++) PressAndTick(_gamepad.dpad.up);
             Assert.AreEqual(IndexOf("holdToToggle"), _runner.Selection);
-            PressAndTick(_gamepad.buttonSouth);
+            PressAndTick(_gamepad.buttonWest);                       // X: turn the row on
             Assert.IsTrue(_runner.Review.Items[IndexOf("holdToToggle")].Accepted);
 
             for (int i = 0; i < steps; i++) PressAndTick(_gamepad.dpad.down);
-            PressAndTick(_gamepad.buttonSouth);
+            PressAndTick(_gamepad.buttonSouth);                      // A: apply
 
             Assert.IsTrue(AccessCalibrate.Profile.holdToToggle);
             Assert.AreEqual(1.5f, AccessCalibrate.Profile.timingMultiplier);
@@ -111,12 +111,51 @@ namespace AccessCalibration.PlayModeTests
             Now += _runner.ConfirmationInputDelaySeconds;
             int steps = _runner.AcceptIndex - IndexOf("timingMultiplier");
             for (int i = 0; i < steps; i++) PressAndTick(Keyboard.upArrowKey);
-            PressAndTick(Keyboard.enterKey);                      // switch timing off
+            PressAndTick(Keyboard.spaceKey);                      // Space: switch timing off
             for (int i = 0; i < steps; i++) PressAndTick(Keyboard.downArrowKey);
             PressAndTick(Keyboard.enterKey);                      // Accept
 
             Assert.AreEqual(1f, AccessCalibrate.Profile.timingMultiplier);
             Assert.IsTrue(AccessCalibrate.HasSavedProfile);
+        }
+
+        [Test]
+        public void ConfirmOnARow_Applies_ItDoesNotToggleTheRow()
+        {
+            _runner.ShowProposal(Sample());
+            Now += _runner.ConfirmationInputDelaySeconds;
+            PressAndTick(_gamepad.dpad.up);                     // onto the last row (hold, uncertain, off)
+            Assert.Less(_runner.Selection, _runner.AcceptIndex);
+            PressAndTick(_gamepad.buttonSouth);                 // A on a row = Apply
+
+            Assert.IsFalse(_runner.IsReviewing);
+            Assert.IsFalse(AccessCalibrate.Profile.holdToToggle, "A must not switch the row on");
+            Assert.AreEqual(1.5f, AccessCalibrate.Profile.timingMultiplier);
+        }
+
+        [Test]
+        public void ToggleOnAButton_DoesNothing()
+        {
+            _runner.ShowProposal(Sample());
+            Now += _runner.ConfirmationInputDelaySeconds;
+            Assert.AreEqual(_runner.AcceptIndex, _runner.Selection);
+            PressAndTick(_gamepad.buttonWest);                  // X on "Apply"
+            Assert.IsTrue(_runner.IsReviewing);
+            Assert.IsTrue(_runner.Review.Items[IndexOf("timingMultiplier")].Accepted);
+            Assert.IsFalse(_runner.Review.Items[IndexOf("holdToToggle")].Accepted);
+        }
+
+        [Test]
+        public void SpaceToggles_EnterApplies()
+        {
+            _runner.ShowProposal(Sample());
+            Now += _runner.ConfirmationInputDelaySeconds;
+            PressAndTick(Keyboard.upArrowKey);                  // hold row
+            PressAndTick(Keyboard.spaceKey);                    // on
+            Assert.IsTrue(_runner.IsReviewing, "Space must not apply");
+            Assert.IsTrue(_runner.Review.Items[IndexOf("holdToToggle")].Accepted);
+            PressAndTick(Keyboard.enterKey);                    // apply from the row
+            Assert.IsTrue(AccessCalibrate.Profile.holdToToggle);
         }
 
         [Test]

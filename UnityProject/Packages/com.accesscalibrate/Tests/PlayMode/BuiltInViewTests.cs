@@ -141,13 +141,18 @@ namespace AccessCalibration.PlayModeTests
             var target = _runner.Stability.StickTarget;
             for (int f = 0; f < 26; f++)
             {
-                Set(_pad.leftStick, target + new Vector2(Mathf.Sin(f * 1.3f) * 0.04f, Mathf.Cos(f * 0.9f) * 0.03f + 0.05f));
+                Set(_pad.leftStick, target + new Vector2(Mathf.Sin(f * 1.3f) * 0.09f, Mathf.Cos(f * 0.9f) * 0.07f + 0.04f));
                 yield return null;
                 _now += 0.1;
                 _runner.Stability.Tick(_now);
             }
             Assert.AreEqual(StabilityTest.Phase.Measuring, _runner.Stability.CurrentPhase);
+            Assert.GreaterOrEqual(_view.StabilityTrailCount, 5, "trail of the last ~6 positions");
+            var measuring = Q("ac-stability-measuring");
+            var left = Q("ac-stability-left");
             yield return Snapshot("5-steadiness");
+            Assert.AreEqual(measuring.worldBound.center.y, left.worldBound.center.y, 4f, "\"Measuring\" and \"s left\" on one line");
+            Assert.Greater(left.worldBound.xMin, measuring.worldBound.xMax, "at opposite ends");
 
             // 6. Suggested settings: two reliable proposals, one uncertain (starts off)
             _runner.SkipCurrent();
@@ -162,9 +167,15 @@ namespace AccessCalibration.PlayModeTests
                 },
             });
             Assert.AreEqual("Apply 2 settings", _view.Root.Q<Label>("ac-apply-label").text);
+            var hintText = _view.Root.Q("ac-hints").Q<Label>(className: "ac-glyph-text");
+            Assert.AreEqual("X", hintText.text, "on/off hint uses the toggle button");
             Assert.AreEqual(1, _view.Root.Query(className: "ac-row--uncertain").ToList().Count);
             Assert.AreEqual(1, _view.Root.Query<DashedOutline>().ToList().Count);
             yield return Snapshot("6-confirmation");
+            var apply = _view.Root.Q<Button>("ac-apply");
+            var applyLabel = _view.Root.Q<Label>("ac-apply-label");
+            Assert.Less(apply.layout.width, 0.45f * _view.Root.Q("ac-panel").layout.width, "Apply hugs its content");
+            Assert.AreEqual(30f, applyLabel.worldBound.xMin - apply.worldBound.xMin, 6f, "30 px left padding (+ border)");
 
             // Themes switch live, without rebuilding the screen
             AccessCalibrate.UseTheme(ThemePreset.GlassLight);
