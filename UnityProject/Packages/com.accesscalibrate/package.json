@@ -17,5 +17,12 @@
   ],
   "dependencies": {
     "com.unity.inputsystem": "1.20.1"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Demo",
+      "description": "A short 3D platformer level (1–2 minutes) that shows the effect of every setting. Requires URP with a Universal (3D) renderer. Models: Quaternius, CC0.",
+      "path": "Samples~/Demo"
+    }
+  ]
 }

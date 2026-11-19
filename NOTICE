@@ -5,3 +5,11 @@ This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
 AccessCalibrate is not a medical device or diagnostic tool. Its thresholds are
 hypothetical starting points that have not been clinically validated.
+
+Third-party assets
+------------------
+The demo sample (Packages/com.accesscalibrate/Samples~/Demo/Resources/AccessCalibrateDemo/Models)
+uses 3D models from "Ultimate Platformer Pack" by Quaternius (https://quaternius.com),
+released under CC0 1.0 Universal (Public Domain Dedication):
+https://creativecommons.org/publicdomain/zero/1.0/
+Only the models used by the demo are included; they are unmodified.

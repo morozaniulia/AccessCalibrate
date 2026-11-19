@@ -1,0 +1,26 @@
+{
+    "name": "AccessCalibrate.Demo",
+    "rootNamespace": "AccessCalibration.Demo",
+    "references": [
+        "AccessCalibrate.Core",
+        "AccessCalibrate.Runtime",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "ACCESSCALIBRATE_URP"
+        }
+    ],
+    "noEngineReferences": false
+}

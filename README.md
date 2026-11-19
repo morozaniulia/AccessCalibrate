@@ -14,6 +14,23 @@ AccessCalibrate is an open-source Unity package. On first launch it runs a short
 - **Steadiness is a spread, not a diagnosis.** The steadiness test measures how much the cursor wanders around the player's own average position (2D standard deviation, as a fraction of the circle radius). Holding still slightly off-centre is not counted as unsteadiness. The distance from the centre is stored for information only, and no rule uses it.
 - **Short samples.** Each test lasts a few seconds. Fatigue, practice, the time of day, or an unfamiliar controller can change the results. That is why every proposal stays editable, and the calibration can be repeated at any time.
 
+## Demo
+
+The package includes a short 3D level, playable in 1–2 minutes, that shows what each setting does. Import it from **Package Manager → AccessCalibrate → Samples → Demo**, then open `AccessCalibrateDemo.unity`.
+
+| Station | Setting it shows |
+|---|---|
+| Rolling ball: press to jump | the quick-time window is `0.8 s × timingMultiplier`; `qteMode` Skippable adds a skip button, Off jumps for you |
+| Lever | `holdToToggle`: one press instead of holding for 2 s |
+| Drawbridge | `mashingMode`: tap about 12 times, hold for 3 s (HoldInstead) or automatic (Auto) |
+| Narrow path | `stickDeadzone` is applied to the raw stick, so small movements are ignored |
+
+The calibration runs on the first launch. **Redo calibration** (Start / F1) is always available, and a small panel shows the active settings.
+
+The demo needs URP with a **Universal (3D) renderer** in the pipeline asset's renderer list (it doesn't have to be the default). The demo camera selects it automatically, so a 2D project keeps its 2D renderer as the default.
+
+3D models: [Ultimate Platformer Pack](https://quaternius.com) by Quaternius, CC0 1.0 (public domain). Only the models the demo uses are included.
+
 ## Translating the texts
 
 Every text the player sees lives in `CalibrationTexts` (static strings). To translate it, assign your own values once at startup, before the calibration runs:

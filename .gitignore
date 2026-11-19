@@ -49,3 +49,7 @@ desktop.ini
 
 # Third-party asset archive (used in Step 5, not redistributed)
 /Ultimate Platformer Pack by Quaternius.zip
+
+# Demo sample imported into the project for development (source of truth: Packages/com.accesscalibrate/Samples~/Demo)
+/UnityProject/Assets/Samples/
+/UnityProject/Assets/Samples.meta
