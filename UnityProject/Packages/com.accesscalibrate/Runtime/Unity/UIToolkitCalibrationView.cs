@@ -472,11 +472,13 @@ namespace AccessCalibration
             _selectable.Clear();
 
             // Nothing proposed: "No changes needed", a centred message instead of the list, no
-            // "Turn on / off" hint, and no "Not now" (it would do the same as "Continue without changes").
+            // "Turn on / off" hint, no "Keep what helps…" note (nothing to keep), and no "Not now"
+            // (it would do the same as "Continue without changes").
             bool nothing = review.Items.Count == 0;
             _listWrap.EnableInClassList("ac-confirm-list-wrap--empty", nothing);
             _confirmTitle.text = nothing ? CalibrationTexts.ConfirmTitleNothing : CalibrationTexts.ConfirmTitle;
             _skipAll.style.display = nothing ? DisplayStyle.None : DisplayStyle.Flex;
+            _confirmNote.style.display = nothing ? DisplayStyle.None : DisplayStyle.Flex;
             for (int i = 0; i < review.Items.Count; i++)
             {
                 var item = review.Items[i];

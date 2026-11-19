@@ -299,6 +299,7 @@ namespace AccessCalibration.PlayModeTests
 
             Assert.AreEqual(CalibrationTexts.ConfirmTitle, Q("ac-confirm-title").text);
             Assert.AreEqual(DisplayStyle.Flex, _view.Root.Q<Button>("ac-skip-all").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.Flex, Q("ac-confirm-note").resolvedStyle.display);
 
             // Nothing to suggest: "No changes needed", centred message, no "Turn on / off" hint,
             // no "Not now" (same as "Continue without changes"), "Redo setup" kept.
@@ -309,6 +310,7 @@ namespace AccessCalibration.PlayModeTests
             Assert.AreEqual(CalibrationTexts.ConfirmApplyNone, Q("ac-apply-label").text);
             Assert.AreEqual(DisplayStyle.None, _view.Root.Q<Button>("ac-skip-all").resolvedStyle.display, "Not now hidden");
             Assert.AreEqual(DisplayStyle.Flex, _view.Root.Q<Button>("ac-redo").resolvedStyle.display, "Redo setup kept");
+            Assert.AreEqual(DisplayStyle.None, Q("ac-confirm-note").resolvedStyle.display, "no \"Keep what helps\" note: nothing to keep");
             Assert.AreEqual(-1, _runner.SkipIndex);
             Assert.AreEqual(_runner.AcceptIndex, _runner.Selection);
             _runner.MoveSelection(+1);
