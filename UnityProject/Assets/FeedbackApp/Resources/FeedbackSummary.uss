@@ -1,0 +1,55 @@
+/* Summary screen of the feedback build. Uses the plugin's --ac-… tokens (Glass Dark on .ac-root),
+   so it looks like the calibration screens. */
+
+.fb-page {
+    flex-grow: 1;
+    padding: 36px 56px 30px 56px;
+}
+.fb-header { flex-direction: row; justify-content: space-between; align-items: flex-end; margin-bottom: 18px; flex-shrink: 0; }
+.fb-applied { font-size: 17px; color: var(--ac-text-secondary); padding: 0; margin: 0 0 6px 0; }
+
+.fb-columns { flex-direction: row; flex-grow: 1; flex-shrink: 1; min-height: 0; }
+.fb-col { flex-grow: 1; flex-basis: 0; min-height: 0; }
+.fb-col--measured { margin-right: 32px; flex-grow: 0.85; }
+.fb-col-title {
+    font-size: 13px;
+    -unity-font-definition: var(--ac-font-700);
+    letter-spacing: 1.8px;
+    color: var(--ac-text-muted);
+    padding: 0;
+    margin: 0 0 12px 0;
+}
+.fb-scroll { flex-grow: 1; flex-shrink: 1; }
+
+.fb-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 16px 5px 20px;
+    margin-bottom: 6px;
+    border-radius: var(--ac-radius-row);
+    background-color: var(--ac-surface-row);
+    border-width: 1px;
+    border-color: var(--ac-surface-row-border);
+}
+.fb-row-text { flex-shrink: 1; flex-grow: 1; }
+.fb-row-name { font-size: 16px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); padding: 0; margin: 0; }
+.fb-row-value { font-size: 13px; color: var(--ac-text-reason); padding: 0; margin: 2px 0 0 0; white-space: normal; }
+.fb-row-device { font-size: 14px; color: var(--ac-text-muted); padding: 0; margin: 0 0 0 12px; flex-shrink: 0; }
+
+.fb-state {
+    font-size: 14px;
+    -unity-font-definition: var(--ac-font-700);
+    padding: 4px 12px;
+    margin: 0 0 0 12px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    border-width: 1px;
+}
+.fb-state--on { background-color: var(--ac-focus); color: var(--ac-on-focus); border-color: var(--ac-focus); }
+.fb-state--off { background-color: var(--ac-transparent); color: var(--ac-text-secondary); border-color: var(--ac-track); }
+.fb-empty { font-size: 16px; color: var(--ac-text-secondary); padding: 0; margin: 4px 0 0 0; white-space: normal; }
+
+.fb-footer { flex-direction: row; align-items: center; margin-top: 18px; flex-shrink: 0; }
+.fb-footer .ac-btn { margin-right: 14px; }
+.fb-status { font-size: 16px; color: var(--ac-text-secondary); padding: 0; margin: 0 0 0 10px; flex-shrink: 1; white-space: normal; }

@@ -1,0 +1,26 @@
+{
+    "name": "AccessCalibrate.FeedbackApp.Tests",
+    "rootNamespace": "AccessCalibration.FeedbackApp.Tests",
+    "references": [
+        "AccessCalibrate.Core",
+        "AccessCalibrate.Runtime",
+        "AccessCalibrate.FeedbackApp",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

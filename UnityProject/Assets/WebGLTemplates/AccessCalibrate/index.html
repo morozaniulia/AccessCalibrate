@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AccessCalibrate: try the calibration</title>
+    <link rel="icon" href="data:,">
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #333f4d; color: #d9dde3;
+                   font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+      #unity-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none;
+                      background: {{{ BACKGROUND_COLOR }}}; }
+      #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+                 justify-content: center; gap: 14px; font-size: 16px; }
+      #bar { width: 260px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.18); overflow: hidden; }
+      #fill { width: 0; height: 100%; background: #fff; }
+      #note { position: fixed; left: 14px; bottom: 10px; font-size: 12px; opacity: .72; pointer-events: auto; }
+      #note a { color: inherit; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="loading"><div>Loading AccessCalibrate…</div><div id="bar"><div id="fill"></div></div></div>
+    <div id="note">Keyboard, mouse or gamepad (press a gamepad button once so the browser connects it).
+      Nothing is sent anywhere. <a href="https://github.com/morozaniulia/AccessCalibrate" target="_blank" rel="noopener">Source on GitHub</a></div>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      canvas.addEventListener("pointerdown", function () { canvas.focus(); });
+      var script = document.createElement("script");
+      script.src = "Build/{{{ LOADER_FILENAME }}}";
+      script.onload = function () {
+        createUnityInstance(canvas, {
+          arguments: [],
+          dataUrl: "Build/{{{ DATA_FILENAME }}}",
+          frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+#if USE_THREADS
+          workerUrl: "Build/{{{ WORKER_FILENAME }}}",
+#endif
+#if USE_WASM
+          codeUrl: "Build/{{{ CODE_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+          symbolsUrl: "Build/{{{ SYMBOLS_FILENAME }}}",
+#endif
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+          productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+          productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+        }, function (progress) {
+          document.querySelector("#fill").style.width = (100 * progress) + "%";
+        }).then(function (instance) {
+          window.unityInstance = instance;
+          document.querySelector("#loading").remove();
+          canvas.focus();
+        }).catch(function (message) {
+          document.querySelector("#loading").textContent = "Could not start: " + message;
+        });
+      };
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
