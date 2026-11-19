@@ -173,6 +173,18 @@ namespace AccessCalibrate.Core.Tests
             Assert.AreEqual(MashingMode.Normal, RulesEngine.Evaluate(m, _config).Profile.mashingMode);
         }
 
+        [TestCase(0.0)]
+        [TestCase(-1.0)]
+        public void Taps_ZeroOrNegativeDuration_IsIgnoredLikeSkipped(double seconds)
+        {
+            // A broken measurement (no time elapsed) must not be read as "0 presses per second".
+            var m = AllSkipped();
+            m.Taps = new TapMeasurement { PressCount = 0, DurationSeconds = seconds, Confidence = Confidence.Ok };
+            var r = RulesEngine.Evaluate(m, _config);
+            Assert.AreEqual(MashingMode.Normal, r.Profile.mashingMode);
+            Assert.IsEmpty(r.Changes);
+        }
+
         // ------------------------------------------------------------ stability
 
         [Test]
@@ -262,6 +274,17 @@ namespace AccessCalibrate.Core.Tests
 
             m.Buttons = Buttons(new[] { "A", "B", "X" }, new[] { "B", "X" }); // 2 of 3 ≥ half
             Assert.IsTrue(RulesEngine.Evaluate(m, _config).Profile.suggestOneHandedLayout);
+        }
+
+        [Test]
+        public void Buttons_OnlyOneRequested_NeverSuggestsOneHandedLayout()
+        {
+            // With a single button, "half missed" says nothing about one-handed play — remap only.
+            var m = AllSkipped();
+            m.Buttons = Buttons(new[] { "A" }, new[] { "A" });
+            var p = RulesEngine.Evaluate(m, _config).Profile;
+            CollectionAssert.AreEqual(new[] { "A" }, p.remapSuggestions);
+            Assert.IsFalse(p.suggestOneHandedLayout);
         }
 
         [Test]

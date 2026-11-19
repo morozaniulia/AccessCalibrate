@@ -114,6 +114,8 @@ namespace AccessCalibrate.Core
         static void ApplyTaps(TapMeasurement tap, RulesConfig config, RulesResult result)
         {
             if (tap == null || !tap.IsUsable) return;
+            // No time elapsed → the measurement is broken, not "0 presses/s". Treat it like skipped.
+            if (tap.DurationSeconds <= 0) return;
             var t = config.For(tap.Device);
             if (tap.PressesPerSecond < t.TapMinPerSecond)
             {
@@ -149,7 +151,8 @@ namespace AccessCalibrate.Core
                 Add(result, b, "remapSuggestions", string.Join(", ", b.UnpressedButtons),
                     "buttons not pressed", missed, "buttons", 1, "≥");
             }
-            if (total > 0 && missed * 2 >= total)
+            // One-handed layout only makes sense when the game asked about at least 2 buttons.
+            if (total >= 2 && missed * 2 >= total)
             {
                 result.Profile.suggestOneHandedLayout = true;
                 Add(result, b, "suggestOneHandedLayout", "true",
