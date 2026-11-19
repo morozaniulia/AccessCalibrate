@@ -2,7 +2,7 @@
 
 > **Not a medical tool.** The thresholds are hypothetical starting points and have not been clinically validated.
 
-AccessCalibrate is an open-source Unity toolkit that applies ideas from **ability-based design** to a 60-second motor calibration with **transparent rules**. On first launch a player goes through five short checks: reaction, comfortable hold, repeated presses, steadiness and button reach. The game then suggests accessibility settings: longer timing windows, skippable quick-time events, hold-to-toggle, holding instead of mashing, a bigger stick deadzone, aim assist and button remapping. Each suggestion comes with the measurement and the rule behind it. **The player always has the final say:** every suggestion is a switch, uncertain ones start off, and nothing changes until the player presses *Apply*.
+AccessCalibrate is an open-source Unity toolkit that applies ideas from **ability-based design** to a 60-second motor calibration with **transparent rules**. On first launch a player goes through five short checks: reaction, comfortable hold, repeated presses, steadiness and button reach. The game then suggests accessibility settings: longer timing windows, skippable quick-time events, hold-to-toggle, holding instead of mashing, a bigger stick deadzone, aim assist and button remapping. Each suggestion comes with the measurement and the rule behind it. **The player decides:** every suggestion is a switch, uncertain ones start off, and nothing changes until the player presses *Apply*.
 
 **[Install](#install) · [Demo](#demo) · [Results](#results) · [Design spec](Docs/DESIGN_SPEC.md)**
 
@@ -16,7 +16,7 @@ AccessCalibrate is an open-source Unity toolkit that applies ideas from **abilit
 
 ## Why
 
-Most games already offer accessibility options: longer timing windows, toggles instead of holds, remapping. But the options sit in a menu that players have to find, understand and tune before they know which ones help. Players with motor disabilities often find out the hard way, by failing a quick-time event or a long button hold. AccessCalibrate flips the order. A one-minute calibration measures a few motor abilities, a set of plain rules turns the measurements into suggestions, and the player decides what to keep. The same measurements work on gamepad, keyboard, mouse and touch.
+Most games already offer accessibility options: longer timing windows, toggles instead of holds, remapping. But the options sit in a menu that players have to find, understand and tune before they know which ones help. Players with motor disabilities often often notice only after failing a quick-time event or a long button hold. AccessCalibrate starts with the measurement instead. A one-minute calibration measures a few motor abilities, a set of plain rules turns the measurements into suggestions, and the player decides what to keep. The same measurements work on gamepad, keyboard, mouse and touch.
 
 ## How it works
 
@@ -44,7 +44,7 @@ Keyboard, mouse and touch have their own thresholds, documented in `RulesConfig`
 - **Transparent and deterministic.** The same measurements and the same `RulesConfig` always give the same suggestions, and each suggestion shows its reason ("Median reaction 620 ms · rule: above 500 ms → timing windows ×1.5").
 - **No comparison with other players.** Thresholds are set by the developer. The package never derives them from other players' data, never ranks a player against a corpus, and never shows a score like "this game suits you X%".
 - **No input on the player's behalf.** The package suggests settings. It never plays for the player.
-- **Nobody can fail.** Wording stays neutral, any check can be skipped, the signal never flashes, the "reduce motion" option is respected, and a held button gets "Let go of the button to begin" instead of a wrong result.
+- **Neutral checks.** Wording stays neutral, any check can be skipped, the signal never flashes, the "reduce motion" option is respected, and a held button gets "Let go of the button to begin" instead of a wrong result.
 - **Private.** All data stays on the device. No telemetry, no network access.
 
 ## Install
@@ -135,7 +135,7 @@ To run your own study, use study mode (below). It saves one CSV row per calibrat
 
 ## Prior work
 
-AccessCalibrate is **not the first** system to adapt an interface to a person's abilities. It is a small, open toolkit that applies ideas from this line of work to a 60-second motor calibration for games, with rules that the developer sets and the player can read.
+Other systems have adapted interfaces to a person's abilities. AccessCalibrate is a small, open toolkit that applies ideas from this line of work to a 60-second motor calibration for games, with rules that the developer sets and the player can read.
 
 - **Ability-based design.** J. O. Wobbrock, S. K. Kane, K. Z. Gajos, S. Harada, J. Froehlich, "Ability-Based Design: Concept, Principles and Examples", *ACM Transactions on Accessible Computing*, 2011. This is the framing used here: design for what a person *can* do, and let the system adapt instead of the person.
 - **SUPPLE / SUPPLE++.** K. Z. Gajos, J. O. Wobbrock, D. S. Weld, "Automatically generating user interfaces adapted to users' motor and vision capabilities", *UIST 2007*; and "Improving the performance of motor-impaired users with automatically-generated, ability-based interfaces", *CHI 2008*. SUPPLE++ measures motor performance with a short set of tasks and then *generates* a whole user interface by optimisation. AccessCalibrate, by contrast, keeps the game's interface and suggests a few named settings through readable rules.
@@ -247,7 +247,7 @@ All data stays on the device. No telemetry, no network access.
 
 ## Feedback
 
-If you are a **player with a motor disability** or a **game developer**, your feedback is the most useful thing this project can get. Tell us what a check measured wrong, which suggestion didn't fit, or what is missing (a device, a setting, a kind of input):
+If you are a **player with a motor disability** or a **game developer**, feedback from you helps the most. Tell us what a check measured wrong, which suggestion didn't fit, or what is missing (a device, a setting, a kind of input):
 
 - [Open an issue](https://github.com/morozaniulia/AccessCalibrate/issues/new) for something that is wrong or broken.
 - [Start a discussion](https://github.com/morozaniulia/AccessCalibrate/discussions) for ideas, questions or your experience with the calibration.
