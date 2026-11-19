@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using AccessCalibration.Core;
 using NUnit.Framework;
@@ -84,11 +85,22 @@ namespace AccessCalibration.PlayModeTests
             var m = new Measurements
             {
                 Reaction = new ReactionMeasurement { MedianMs = 620, Confidence = Confidence.Ok },
-                Hold = new HoldMeasurement { MaxHoldSeconds = 1.4, Confidence = Confidence.Ok },
+                Hold = new HoldMeasurement { MaxHoldSeconds = 1.4, Confidence = Confidence.Uncertain },
+                Buttons = new ButtonAccessMeasurement
+                {
+                    RequestedButtons = { "A", "B", "X", "Y" }, UnpressedButtons = { "X", "Y" }, Confidence = Confidence.Ok,
+                },
             };
-            view.ShowSummary(RulesEngine.Evaluate(m, new RulesConfig()).Changes);
-            Assert.AreEqual(2, view.Root.Query<Label>(className: "ac-summary-row").ToList().Count);
-            yield return Snapshot("5-summary");
+            var review = new ProposalReview(RulesEngine.Evaluate(m, new RulesConfig()));
+            view.ShowConfirmation(review);
+            view.SetConfirmationSelection(review.Items.Count);   // Accept
+            var toggles = view.Root.Query<Toggle>(className: "ac-toggle").ToList();
+            Assert.AreEqual(4, toggles.Count);                     // timing, hold, remap, one-handed
+            Assert.AreEqual(1, view.Root.Query<Label>(className: "ac-uncertain").ToList().Count);
+            var holdIndex = review.Items.ToList().FindIndex(i => i.Change.Setting == "holdToToggle");
+            Assert.IsFalse(toggles[holdIndex].value, "uncertain proposal must start switched off");
+            Assert.IsTrue(toggles[0].value);
+            yield return Snapshot("5-confirmation");
         }
     }
 }

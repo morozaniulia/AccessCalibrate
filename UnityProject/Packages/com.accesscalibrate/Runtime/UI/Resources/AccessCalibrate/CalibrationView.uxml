@@ -14,7 +14,14 @@
                 <ui:Label name="ac-prompt" class="ac-prompt" />
             </ui:VisualElement>
             <ui:Label name="ac-status" class="ac-status" />
-            <ui:VisualElement name="ac-summary" class="ac-summary" />
+            <ui:VisualElement name="ac-confirm" class="ac-confirm">
+                <ui:ScrollView name="ac-confirm-list" class="ac-confirm-list" />
+                <ui:VisualElement class="ac-confirm-buttons">
+                    <ui:Button name="ac-accept" class="ac-btn ac-btn--primary" />
+                    <ui:Button name="ac-redo" class="ac-btn" />
+                    <ui:Button name="ac-skip-all" class="ac-btn" />
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement class="ac-footer">
                 <ui:Label name="ac-hint" class="ac-hint" />
                 <ui:Button name="ac-skip" class="ac-skip" />

@@ -23,9 +23,14 @@ namespace AccessCalibration
         UIDocument _doc;
         AudioSource _audio;
         AudioClip _cue;
-        VisualElement _root, _stage, _stimulus, _arena, _target, _cursor, _summary;
+        VisualElement _root, _stage, _stimulus, _arena, _target, _cursor, _confirm;
+        ScrollView _confirmList;
         Label _counter, _title, _instructions, _status, _prompt, _hint;
-        Button _skip;
+        Button _skip, _accept, _redo, _skipAll;
+        CalibrationRunner _runner;
+        ProposalReview _review;
+        readonly List<Toggle> _toggles = new List<Toggle>();
+        readonly List<VisualElement> _selectable = new List<VisualElement>();
 
         /// <summary>The panel this view draws into (e.g. to render it into a texture).</summary>
         public PanelSettings Panel => _doc != null ? _doc.panelSettings : null;
@@ -55,6 +60,7 @@ namespace AccessCalibration
             view._audio.playOnAwake = false;
             go.SetActive(true);
 
+            view._runner = runner;
             view.Bind(runner.ReduceMotion);
             view.SkipClicked += runner.SkipCurrent;
             return view;
@@ -78,11 +84,21 @@ namespace AccessCalibration
             _arena = _root.Q("ac-arena");
             _target = _root.Q("ac-target");
             _cursor = _root.Q("ac-cursor");
-            _summary = _root.Q("ac-summary");
+            _confirm = _root.Q("ac-confirm");
+            _confirmList = _root.Q<ScrollView>("ac-confirm-list");
             _skip = _root.Q<Button>("ac-skip");
+            _accept = _root.Q<Button>("ac-accept");
+            _redo = _root.Q<Button>("ac-redo");
+            _skipAll = _root.Q<Button>("ac-skip-all");
 
             _skip.text = CalibrationTexts.SkipButton;
             _skip.clicked += () => SkipClicked?.Invoke();
+            _accept.text = CalibrationTexts.ConfirmAccept;
+            _redo.text = CalibrationTexts.ConfirmRedo;
+            _skipAll.text = CalibrationTexts.ConfirmSkip;
+            _accept.clicked += () => _runner?.Accept();
+            _redo.clicked += () => _runner?.Redo();
+            _skipAll.clicked += () => _runner?.Skip();
             _hint.text = CalibrationTexts.SkipHint;
             _cue = MakeCue();
             ResetStage();
@@ -94,8 +110,7 @@ namespace AccessCalibration
             ShowStabilityArena(false);
             SetPrompt("");
             SetStatus("");
-            _summary.style.display = DisplayStyle.None;
-            _summary.Clear();
+            _confirm.style.display = DisplayStyle.None;
             _stage.style.display = DisplayStyle.Flex;
             _skip.style.display = DisplayStyle.Flex;
             _hint.style.display = DisplayStyle.Flex;
@@ -147,24 +162,67 @@ namespace AccessCalibration
             _target.EnableInClassList("ac-target--inside", xInRadii * xInRadii + yInRadii * yInRadii <= 1f);
         }
 
-        public void ShowSummary(IReadOnlyList<ProposedChange> changes)
+        public void ShowConfirmation(ProposalReview review)
         {
+            _root.style.display = DisplayStyle.Flex;
             ResetStage();
+            _review = review;
             _stage.style.display = DisplayStyle.None;
             _skip.style.display = DisplayStyle.None;
             _hint.style.display = DisplayStyle.None;
             _counter.text = "";
             _title.text = CalibrationTexts.ConfirmTitle;
-            _instructions.text = "";
-            _summary.style.display = DisplayStyle.Flex;
-            if (changes.Count == 0)
-                _summary.Add(new Label(CalibrationTexts.ConfirmNothing) { name = "ac-summary-empty" });
-            foreach (var c in changes)
+            _instructions.text = review.Items.Count > 0 ? CalibrationTexts.ConfirmIntro : CalibrationTexts.ConfirmNothing;
+            _confirm.style.display = DisplayStyle.Flex;
+
+            _confirmList.Clear();
+            _toggles.Clear();
+            _selectable.Clear();
+            for (int i = 0; i < review.Items.Count; i++)
             {
-                var row = new Label("• " + c.Summary);
-                row.AddToClassList("ac-summary-row");
-                _summary.Add(row);
+                var item = review.Items[i];
+                int index = i;
+
+                var row = new VisualElement();
+                row.AddToClassList("ac-row");
+                var toggle = new Toggle { name = "ac-toggle-" + i, text = ProposalTexts.Title(item.Change) }; // text sits right of the box
+                toggle.AddToClassList("ac-toggle");
+                toggle.SetValueWithoutNotify(item.Accepted);
+                toggle.RegisterValueChangedCallback(e => _runner?.SetAccepted(index, e.newValue));
+                row.Add(toggle);
+
+                var reason = new Label(ProposalTexts.Reason(item.Change));
+                reason.AddToClassList("ac-reason");
+                row.Add(reason);
+
+                if (item.Change.IsUncertain)
+                {
+                    var note = new Label(CalibrationTexts.ConfirmUncertain);
+                    note.AddToClassList("ac-uncertain");
+                    row.Add(note);
+                }
+
+                _confirmList.Add(row);
+                _toggles.Add(toggle);
+                _selectable.Add(row);
             }
+            _selectable.Add(_accept);
+            _selectable.Add(_redo);
+            _selectable.Add(_skipAll);
+        }
+
+        public void SetConfirmationSelection(int index)
+        {
+            for (int i = 0; i < _selectable.Count; i++)
+                _selectable[i].EnableInClassList("ac-selected", i == index);
+            if (index >= 0 && index < _toggles.Count) _confirmList.ScrollTo(_selectable[index]);
+        }
+
+        public void RefreshConfirmation()
+        {
+            if (_review == null) return;
+            for (int i = 0; i < _toggles.Count && i < _review.Items.Count; i++)
+                _toggles[i].SetValueWithoutNotify(_review.Items[i].Accepted);
         }
 
         public void Hide() => _root.style.display = DisplayStyle.None;

@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace AccessCalibration.Core
 {
+    /// <summary>Which calibration test a proposal came from.</summary>
+    public enum MeasurementKind { Reaction, Hold, Taps, Stability, Buttons }
+
     /// <summary>
     /// One proposed setting together with WHY it was proposed — the confirmation screen shows this
     /// to the player (e.g. "reaction median 620 ms → timing windows ×1.5").
@@ -18,6 +21,8 @@ namespace AccessCalibration.Core
         public string Setting;
         /// <summary>The proposed value, formatted for display, e.g. "1.5" or "Skippable".</summary>
         public string ProposedValue;
+        /// <summary>Which test the measurement came from.</summary>
+        public MeasurementKind Source;
         /// <summary>Which measurement triggered it, e.g. "reaction median".</summary>
         public string Measurement;
         public double MeasuredValue;
@@ -86,15 +91,15 @@ namespace AccessCalibration.Core
             {
                 result.Profile.timingMultiplier = config.VerySlowTimingMultiplier;
                 result.Profile.qteMode = QteMode.Skippable;
-                Add(result, r, "timingMultiplier", ProposedChange.Format(config.VerySlowTimingMultiplier),
+                Add(result, r, MeasurementKind.Reaction, "timingMultiplier", ProposedChange.Format(config.VerySlowTimingMultiplier),
                     "reaction median", r.MedianMs, "ms", verySlow, ">");
-                Add(result, r, "qteMode", nameof(QteMode.Skippable),
+                Add(result, r, MeasurementKind.Reaction, "qteMode", nameof(QteMode.Skippable),
                     "reaction median", r.MedianMs, "ms", verySlow, ">");
             }
             else if (r.MedianMs > slow)
             {
                 result.Profile.timingMultiplier = config.SlowTimingMultiplier;
-                Add(result, r, "timingMultiplier", ProposedChange.Format(config.SlowTimingMultiplier),
+                Add(result, r, MeasurementKind.Reaction, "timingMultiplier", ProposedChange.Format(config.SlowTimingMultiplier),
                     "reaction median", r.MedianMs, "ms", slow, ">");
             }
         }
@@ -106,7 +111,7 @@ namespace AccessCalibration.Core
             if (h.MaxHoldSeconds < t.HoldMinSeconds)
             {
                 result.Profile.holdToToggle = true;
-                Add(result, h, "holdToToggle", "true",
+                Add(result, h, MeasurementKind.Hold, "holdToToggle", "true",
                     "longest comfortable hold", h.MaxHoldSeconds, "s", t.HoldMinSeconds, "<");
             }
         }
@@ -120,7 +125,7 @@ namespace AccessCalibration.Core
             if (tap.PressesPerSecond < t.TapMinPerSecond)
             {
                 result.Profile.mashingMode = MashingMode.HoldInstead;
-                Add(result, tap, "mashingMode", nameof(MashingMode.HoldInstead),
+                Add(result, tap, MeasurementKind.Taps, "mashingMode", nameof(MashingMode.HoldInstead),
                     "repeated presses", tap.PressesPerSecond, "presses/s", t.TapMinPerSecond, "<");
             }
         }
@@ -133,9 +138,9 @@ namespace AccessCalibration.Core
             {
                 result.Profile.stickDeadzone = config.IncreasedStickDeadzone;
                 result.Profile.aimAssist = AimAssist.Medium;
-                Add(result, s, "stickDeadzone", ProposedChange.Format(config.IncreasedStickDeadzone),
+                Add(result, s, MeasurementKind.Stability, "stickDeadzone", ProposedChange.Format(config.IncreasedStickDeadzone),
                     "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
-                Add(result, s, "aimAssist", nameof(AimAssist.Medium),
+                Add(result, s, MeasurementKind.Stability, "aimAssist", nameof(AimAssist.Medium),
                     "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
             }
         }
@@ -148,25 +153,26 @@ namespace AccessCalibration.Core
             if (missed >= 1)
             {
                 result.Profile.remapSuggestions = new List<string>(b.UnpressedButtons);
-                Add(result, b, "remapSuggestions", string.Join(", ", b.UnpressedButtons),
+                Add(result, b, MeasurementKind.Buttons, "remapSuggestions", string.Join(", ", b.UnpressedButtons),
                     "buttons not pressed", missed, "buttons", 1, "≥");
             }
             // One-handed layout only makes sense when the game asked about at least 2 buttons.
             if (total >= 2 && missed * 2 >= total)
             {
                 result.Profile.suggestOneHandedLayout = true;
-                Add(result, b, "suggestOneHandedLayout", "true",
+                Add(result, b, MeasurementKind.Buttons, "suggestOneHandedLayout", "true",
                     "buttons not pressed", missed, "buttons", total / 2.0, "≥");
             }
         }
 
-        static void Add(RulesResult result, MeasurementBase source, string setting, string value,
+        static void Add(RulesResult result, MeasurementBase source, MeasurementKind kind, string setting, string value,
                         string measurement, double measured, string unit, double threshold, string comparison)
         {
             result.Changes.Add(new ProposedChange
             {
                 Setting = setting,
                 ProposedValue = value,
+                Source = kind,
                 Measurement = measurement,
                 MeasuredValue = measured,
                 Unit = unit,

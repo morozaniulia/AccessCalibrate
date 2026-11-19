@@ -61,7 +61,8 @@ namespace AccessCalibration
             }
         }
 
-        static AccessibilityProfile DefaultProfile() =>
+        /// <summary>The settings before any change: what "nothing proposed" means for this game.</summary>
+        public static AccessibilityProfile DefaultProfile() =>
             new AccessibilityProfile { stickDeadzone = Config.DefaultStickDeadzone };
 
         /// <summary>

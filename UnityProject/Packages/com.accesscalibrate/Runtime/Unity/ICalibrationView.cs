@@ -1,6 +1,5 @@
 // Copyright 2026 Morozan Iulia. Licensed under the Apache License, Version 2.0.
 
-using System.Collections.Generic;
 using AccessCalibration.Core;
 
 namespace AccessCalibration
@@ -26,8 +25,16 @@ namespace AccessCalibration
         /// <summary>Stability test: show/hide the circle; cursor offset is in units of the circle radius.</summary>
         void ShowStabilityArena(bool visible);
         void SetCursor(float xInRadii, float yInRadii);
-        /// <summary>End of calibration (placeholder until the confirmation screen exists).</summary>
-        void ShowSummary(IReadOnlyList<ProposedChange> changes);
+        /// <summary>
+        /// The confirmation screen: one switch per proposal (with its reason, and a "check this"
+        /// note when uncertain), plus Accept / Redo calibration / Skip.
+        /// Rows are indexed 0…n−1, then n = Accept, n+1 = Redo, n+2 = Skip.
+        /// </summary>
+        void ShowConfirmation(ProposalReview review);
+        /// <summary>Highlight the row the keyboard / gamepad cursor is on.</summary>
+        void SetConfirmationSelection(int index);
+        /// <summary>Re-read the switches from the review (after a keyboard / gamepad toggle).</summary>
+        void RefreshConfirmation();
         void Hide();
     }
 
@@ -43,7 +50,9 @@ namespace AccessCalibration
         public void SetPrompt(string text) { }
         public void ShowStabilityArena(bool visible) { }
         public void SetCursor(float xInRadii, float yInRadii) { }
-        public void ShowSummary(IReadOnlyList<ProposedChange> changes) { }
+        public void ShowConfirmation(ProposalReview review) { }
+        public void SetConfirmationSelection(int index) { }
+        public void RefreshConfirmation() { }
         public void Hide() { }
     }
 }

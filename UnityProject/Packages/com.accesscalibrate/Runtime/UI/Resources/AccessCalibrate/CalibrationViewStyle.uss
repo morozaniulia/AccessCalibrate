@@ -60,8 +60,48 @@
 
 .ac-status { font-size: 36px; color: rgb(255, 255, 255); min-height: 50px; margin-top: 16px; }
 
-.ac-summary { margin-top: 16px; align-items: flex-start; }
-.ac-summary-row, #ac-summary-empty { font-size: 32px; color: rgb(255, 255, 255); margin: 6px 0; white-space: normal; }
+/* Confirmation screen: one row per proposal, then Accept / Redo / Skip. */
+.ac-confirm { width: 100%; max-width: 1300px; align-items: stretch; }
+.ac-confirm-list { max-height: 560px; }
+
+.ac-row {
+    padding: 14px 20px;
+    margin: 6px 0;
+    border-width: 4px;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 10px;
+    background-color: rgb(28, 28, 32);
+}
+.ac-row.ac-selected { border-color: rgb(255, 212, 0); }
+
+.ac-toggle { margin: 0; }
+.ac-toggle .unity-toggle__checkmark {
+    width: 40px; height: 40px; margin-right: 18px;
+    border-width: 3px; border-color: rgb(255, 255, 255); border-radius: 6px;
+    background-color: rgb(14, 14, 16);
+    -unity-background-image-tint-color: rgb(255, 212, 0);
+}
+.ac-toggle .unity-label, .ac-toggle .unity-toggle__text {
+    font-size: 32px; color: rgb(255, 255, 255); white-space: normal;
+}
+.ac-reason { font-size: 24px; color: rgb(200, 200, 205); margin-left: 58px; margin-top: 4px; white-space: normal; }
+.ac-uncertain {
+    font-size: 24px; color: rgb(255, 212, 0); -unity-font-style: bold;
+    margin-left: 58px; margin-top: 4px; white-space: normal;
+}
+
+.ac-confirm-buttons { flex-direction: row; justify-content: center; margin-top: 24px; }
+.ac-btn {
+    font-size: 32px; padding: 12px 36px; margin: 0 12px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(40, 40, 46);
+    border-width: 4px; border-color: rgb(255, 255, 255); border-radius: 10px;
+}
+.ac-btn--primary { background-color: rgb(255, 212, 0); color: rgb(0, 0, 0); border-color: rgb(255, 212, 0); -unity-font-style: bold; }
+.ac-btn.ac-selected { border-color: rgb(255, 255, 255); border-width: 6px; scale: 1.06 1.06; }
+.ac-btn--primary.ac-selected { border-color: rgb(255, 255, 255); }
+.ac-btn:hover { border-color: rgb(255, 212, 0); }
+.ac-reduce-motion .ac-btn.ac-selected { scale: 1 1; }
 
 .ac-footer { flex-direction: row; align-items: center; margin-top: 40px; }
 .ac-hint { font-size: 26px; color: rgb(200, 200, 205); margin-right: 24px; }
