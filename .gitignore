@@ -53,3 +53,6 @@ desktop.ini
 # Demo sample imported into the project for development (source of truth: Packages/com.accesscalibrate/Samples~/Demo)
 /UnityProject/Assets/Samples/
 /UnityProject/Assets/Samples.meta
+
+# Python caches (tools/)
+__pycache__/

@@ -51,6 +51,7 @@ namespace AccessCalibration.Demo.Tests
             if (_host != null) Object.Destroy(_host);
             if (_rt != null) _rt.Release();
             AccessCalibrate.ResetStaticState();
+            StudyMode.ResetStaticState();
             if (_dir != null && Directory.Exists(_dir)) Directory.Delete(_dir, recursive: true);
         }
 
@@ -134,6 +135,53 @@ namespace AccessCalibration.Demo.Tests
             yield return WaitFor(() => _game.CurrentPhase == DemoGame.Phase.Explore, 6f);
             Assert.AreEqual(DemoGame.Phase.Explore, _game.CurrentPhase, "the jump should happen by itself");
         }
+
+        [UnityTest, Timeout(60000)]
+        public IEnumerator StudyMode_SwitchedOnInTheHud_LogsEachCalibrationWithTheLabel()
+        {
+            yield return StartLevel(new AccessibilityProfile());
+            string logs = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs"));
+            StudyMode.FilePath = Path.Combine(logs, "study-e2e.csv");
+            if (File.Exists(StudyMode.FilePath)) File.Delete(StudyMode.FilePath);
+
+            _game.Hud.SetStudy(true, "gloves");
+            Assert.IsTrue(StudyMode.Enabled);
+            Assert.AreEqual("gloves", StudyMode.Label);
+            yield return Snapshot("6-study-mode");
+
+            // A finished calibration (measurements given directly) writes one row.
+            _game.Runner.ShowProposal(Session(620, 1.4, 18, 0.21, Confidence.Ok));
+            var lines = File.ReadAllLines(StudyMode.FilePath);
+            Assert.AreEqual(2, lines.Length);
+            StringAssert.Contains(",gloves,", lines[1]);
+
+            // More SYNTHETIC sessions (test data, not real people) so tools/plot_study.py
+            // can be checked end to end on a file written by this code.
+            StudyMode.Label = "gloves";
+            StudyMode.Record(Session(580, 1.8, 17, 0.18, Confidence.Ok), new AccessibilityProfile());
+            StudyMode.Record(Session(700, 1.2, 15, 0.25, Confidence.Uncertain), new AccessibilityProfile());
+            StudyMode.Label = "normal";
+            foreach (var (r, h, t, s) in new[] { (390.0, 5.0, 31, 0.06), (420.0, 4.6, 28, 0.08), (405.0, 5.0, 30, 0.05) })
+                StudyMode.Record(Session(r, h, t, s, Confidence.Ok), new AccessibilityProfile());
+            StudyMode.Label = "non-dominant hand";
+            foreach (var (r, h, t, s) in new[] { (470.0, 3.9, 21, 0.12), (510.0, 3.2, 19, 0.14) })
+                StudyMode.Record(Session(r, h, t, s, Confidence.Ok), new AccessibilityProfile());
+            Assert.AreEqual(9, File.ReadAllLines(StudyMode.FilePath).Length);
+        }
+
+        static Measurements Session(double reactionMs, double holdS, int taps, double spread, Confidence c) => new Measurements
+        {
+            Reaction = new ReactionMeasurement { MedianMs = reactionMs, ValidTrialCount = 5, Confidence = c },
+            Hold = new HoldMeasurement { MaxHoldSeconds = holdS, Confidence = Confidence.Ok },
+            Taps = new TapMeasurement { PressCount = taps, DurationSeconds = 5, Confidence = Confidence.Ok },
+            Stability = new StabilityMeasurement { Spread = spread, Confidence = c },
+            Buttons = new ButtonAccessMeasurement
+            {
+                RequestedButtons = { "Jump", "Action", "LB", "RB" },
+                UnpressedButtons = { },
+                Confidence = Confidence.Ok,
+            },
+        };
 
         [UnityTest, Timeout(60000)]
         public IEnumerator FirstLaunch_StartsTheCalibration()

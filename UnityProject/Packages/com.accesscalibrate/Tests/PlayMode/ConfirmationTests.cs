@@ -38,6 +38,7 @@ namespace AccessCalibration.PlayModeTests
         {
             base.TearDown();
             AccessCalibrate.ResetStaticState();
+            StudyMode.ResetStaticState();
             if (Directory.Exists(_dir)) Directory.Delete(_dir, recursive: true);
         }
 
@@ -168,6 +169,31 @@ namespace AccessCalibration.PlayModeTests
             for (int i = 0; i < 5; i++) _runner.SkipCurrent();
             Assert.IsTrue(_runner.IsReviewing);
             Assert.IsEmpty(_runner.Review.Items);
+        }
+
+        [Test]
+        public void StudyMode_On_LogsTheProposalWithTheLabel_BeforeThePlayerDecides()
+        {
+            StudyMode.Enabled = true;
+            StudyMode.Label = "non-dominant hand";
+            StudyMode.FilePath = Path.Combine(_dir, "study.csv");
+
+            _runner.ShowProposal(Sample());
+
+            var lines = File.ReadAllLines(StudyMode.FilePath);
+            Assert.AreEqual(2, lines.Length);
+            var row = StudyCsv.ParseLine(lines[1]);
+            Assert.AreEqual("non-dominant hand", row[System.Array.IndexOf(StudyCsv.Columns, "label")]);
+            Assert.AreEqual("1.5", row[System.Array.IndexOf(StudyCsv.Columns, "proposed_timingMultiplier")]);
+            Assert.AreEqual("true", row[System.Array.IndexOf(StudyCsv.Columns, "proposed_holdToToggle")]);
+        }
+
+        [Test]
+        public void StudyMode_Off_WritesNothing()
+        {
+            StudyMode.FilePath = Path.Combine(_dir, "study.csv");
+            _runner.ShowProposal(Sample());
+            Assert.IsFalse(File.Exists(StudyMode.FilePath));
         }
 
         [Test]

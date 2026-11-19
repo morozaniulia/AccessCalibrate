@@ -15,6 +15,11 @@ namespace AccessCalibration.Demo
     public sealed class DemoHud : MonoBehaviour
     {
         public event Action RedoClicked;
+        /// <summary>Study mode switch and label (bottom-right panel).</summary>
+        public event Action<bool> StudyToggled;
+        public event Action<string> StudyLabelChanged;
+        /// <summary>True while the label field has keyboard focus: game controls must ignore keys.</summary>
+        public bool IsTyping { get; private set; }
 
         public PanelSettings Panel { get; private set; }
         /// <summary>The prompt currently shown (null when hidden).</summary>
@@ -22,7 +27,9 @@ namespace AccessCalibration.Demo
         public string HintText => _hint?.text;
         public VisualElement Root { get; private set; }
 
-        Label _settings, _prompt, _hint, _toast, _controls;
+        Label _settings, _prompt, _hint, _toast, _controls, _studyPath;
+        Toggle _studyToggle;
+        TextField _studyLabel;
         VisualElement _bar, _barFill, _promptBox;
         float _toastUntil;
 
@@ -128,8 +135,54 @@ namespace AccessCalibration.Demo
             _controls.style.left = 24; _controls.style.bottom = 20;
             root.Add(_controls);
 
+            // Bottom-right: study mode (for comparing sessions; data stays on this device).
+            var study = Box();
+            study.style.position = Position.Absolute;
+            study.style.right = 24; study.style.bottom = 20;
+            study.style.width = 380;
+            _studyToggle = new Toggle { text = "Study mode (saves a local CSV)" };
+            _studyToggle.style.color = Ink;
+            _studyToggle.Q<Label>(className: "unity-toggle__text").style.fontSize = 20;
+            _studyToggle.Q<Label>(className: "unity-toggle__text").style.color = Ink;
+            _studyToggle.RegisterValueChangedCallback(e =>
+            {
+                _studyLabel.style.display = e.newValue ? DisplayStyle.Flex : DisplayStyle.None;
+                _studyPath.style.display = e.newValue ? DisplayStyle.Flex : DisplayStyle.None;
+                StudyToggled?.Invoke(e.newValue);
+            });
+            study.Add(_studyToggle);
+            _studyLabel = new TextField("Label") { value = "" };
+            _studyLabel.style.fontSize = 20;
+            _studyLabel.labelElement.style.color = Dim;
+            _studyLabel.labelElement.style.minWidth = 60;
+            _studyLabel.textEdition.placeholder = "e.g. normal, gloves";
+            _studyLabel.RegisterValueChangedCallback(e => StudyLabelChanged?.Invoke(e.newValue));
+            _studyLabel.RegisterCallback<FocusInEvent>(_ => IsTyping = true);
+            _studyLabel.RegisterCallback<FocusOutEvent>(_ => IsTyping = false);
+            _studyLabel.RegisterCallback<KeyDownEvent>(e =>
+            {
+                if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter || e.keyCode == KeyCode.Escape)
+                    _studyLabel.Blur();
+            }, TrickleDown.TrickleDown);
+            study.Add(_studyLabel);
+            _studyPath = Text("", 15, Dim);
+            study.Add(_studyPath);
+            _studyLabel.style.display = DisplayStyle.None;
+            _studyPath.style.display = DisplayStyle.None;
+            root.Add(study);
+
             SetPrompt(null);
             _toast.style.display = DisplayStyle.None;
+        }
+
+        /// <summary>Shows where the study CSV is written.</summary>
+        public void ShowStudyPath(string path) => _studyPath.text = "Saved locally to:\n" + path;
+
+        /// <summary>For tests: switch study mode and set the label as if typed.</summary>
+        public void SetStudy(bool on, string label)
+        {
+            _studyLabel.value = label;
+            _studyToggle.value = on;
         }
 
         static VisualElement Box()

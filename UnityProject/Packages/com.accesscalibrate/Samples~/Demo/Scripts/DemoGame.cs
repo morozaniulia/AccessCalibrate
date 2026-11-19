@@ -92,6 +92,11 @@ namespace AccessCalibration.Demo
             _hud = DemoHud.Create(transform);
             _hud.RedoClicked += Redo;
 
+            // Study mode: the demo is where a researcher switches it on and types the session label.
+            _hud.StudyToggled += on => { StudyMode.Enabled = on; _hud.ShowStudyPath(StudyMode.FilePath); };
+            _hud.StudyLabelChanged += label => StudyMode.Label = label;
+            StudyMode.Recorded += OnStudyRecorded;
+
             AccessCalibrate.OnProfileChanged += OnProfileChanged;
             OnProfileChanged(AccessCalibrate.Profile);
             if (!Has3DRenderer)
@@ -107,6 +112,7 @@ namespace AccessCalibration.Demo
         void OnDestroy()
         {
             AccessCalibrate.OnProfileChanged -= OnProfileChanged;
+            StudyMode.Recorded -= OnStudyRecorded;
             _input?.Dispose();
         }
 
@@ -117,6 +123,12 @@ namespace AccessCalibration.Demo
         }
 
         void OnCalibrationClosed() => _hud.Toast("Settings saved. Have fun!");
+
+        void OnStudyRecorded(string path)
+        {
+            string label = string.IsNullOrWhiteSpace(StudyMode.Label) ? "(no label)" : StudyMode.Label;
+            _hud.Toast($"Study row saved: {label}", 4f);
+        }
 
         void Redo()
         {
@@ -323,6 +335,7 @@ namespace AccessCalibration.Demo
             _hud.SetVisible(!paused);
             foreach (var s in _spinners) s.Rotate(0, 90f * Time.deltaTime, 0, Space.World);
             if (paused) return;
+            if (_hud.IsTyping) { UpdateCamera(Time.deltaTime); return; }   // keys go to the label field
 
             if (_input.Redo.WasPressedThisFrame()) { Redo(); return; }
             if (_timerRunning) _levelTime += Time.deltaTime;

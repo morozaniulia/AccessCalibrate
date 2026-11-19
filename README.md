@@ -31,6 +31,26 @@ The demo needs URP with a **Universal (3D) renderer** in the pipeline asset's re
 
 3D models: [Ultimate Platformer Pack](https://quaternius.com) by Quaternius, CC0 1.0 (public domain). Only the models the demo uses are included.
 
+## Study mode
+
+Study mode compares sessions, for example the same person with the dominant hand, the non-dominant hand and gloves. It is off by default. Turn it on in the demo (bottom-right panel) or in code:
+
+```csharp
+StudyMode.Enabled = true;
+StudyMode.Label = "non-dominant hand";
+```
+
+Each finished calibration then appends one row to a local CSV file at `Application.persistentDataPath/AccessCalibrate/study/study.csv`. A row holds the raw trials, the device and confidence of each test, the proposed profile and the label. The row is written before the player decides, so it records what was *proposed*. The data never leaves the device.
+
+To compare one or more CSV files, run:
+
+```bash
+pip install matplotlib
+python tools/plot_study.py study.csv other-device.csv -o study.png
+```
+
+The script prints a table of medians per label, then draws one small chart per measurement. Each chart shows one dot per session, a line at each label's median, and the rule threshold as a dashed line. Uncertain measurements appear as hollow dots, and skipped ones are left out. Use `--table-only` to skip the chart (then matplotlib isn't needed). To run the script's tests: `cd tools && python -m unittest test_plot_study.py`.
+
 ## Translating the texts
 
 Every text the player sees lives in `CalibrationTexts` (static strings). To translate it, assign your own values once at startup, before the calibration runs:

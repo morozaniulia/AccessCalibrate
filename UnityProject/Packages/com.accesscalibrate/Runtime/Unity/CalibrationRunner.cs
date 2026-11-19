@@ -249,6 +249,9 @@ namespace AccessCalibration
             _moveRequested = 0;
             _submitRequested = false;
 
+            // Study mode: log what was measured and proposed, before the player decides.
+            if (StudyMode.Enabled) StudyMode.Record(measurements, LastResult.Profile);
+
             View.ShowConfirmation(Review);
             Selection = AcceptIndex;   // the most common action is one press away
             View.SetConfirmationSelection(Selection);
