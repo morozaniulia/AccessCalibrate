@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <!-- Placeholder layout. Styles: CalibrationView.uss (loaded from code). -->
+    <!-- Placeholder layout. Styles: CalibrationViewStyle.uss (loaded from code). -->
     <ui:VisualElement name="ac-root" class="ac-root">
         <ui:VisualElement name="ac-card" class="ac-card">
             <ui:Label name="ac-counter" class="ac-counter" />

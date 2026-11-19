@@ -23,9 +23,13 @@ namespace AccessCalibration
         UIDocument _doc;
         AudioSource _audio;
         AudioClip _cue;
-        VisualElement _root, _stimulus, _arena, _target, _cursor, _summary;
+        VisualElement _root, _stage, _stimulus, _arena, _target, _cursor, _summary;
         Label _counter, _title, _instructions, _status, _prompt, _hint;
         Button _skip;
+
+        /// <summary>The panel this view draws into (e.g. to render it into a texture).</summary>
+        public PanelSettings Panel => _doc != null ? _doc.panelSettings : null;
+        internal VisualElement Root => _root;
 
         public static UIToolkitCalibrationView Create(CalibrationRunner runner)
         {
@@ -59,7 +63,7 @@ namespace AccessCalibration
         void Bind(bool reduceMotion)
         {
             _root = _doc.rootVisualElement;
-            var sheet = Resources.Load<StyleSheet>(ResourceFolder + "CalibrationView");
+            var sheet = Resources.Load<StyleSheet>(ResourceFolder + "CalibrationViewStyle");
             if (sheet != null) _root.styleSheets.Add(sheet);
             _root.EnableInClassList("ac-reduce-motion", reduceMotion);
 
@@ -69,6 +73,7 @@ namespace AccessCalibration
             _status = _root.Q<Label>("ac-status");
             _prompt = _root.Q<Label>("ac-prompt");
             _hint = _root.Q<Label>("ac-hint");
+            _stage = _root.Q("ac-stage");
             _stimulus = _root.Q("ac-stimulus");
             _arena = _root.Q("ac-arena");
             _target = _root.Q("ac-target");
@@ -91,7 +96,9 @@ namespace AccessCalibration
             SetStatus("");
             _summary.style.display = DisplayStyle.None;
             _summary.Clear();
+            _stage.style.display = DisplayStyle.Flex;
             _skip.style.display = DisplayStyle.Flex;
+            _hint.style.display = DisplayStyle.Flex;
         }
 
         public void ShowIntro(int index, int count, string title, string instructions)
@@ -143,7 +150,9 @@ namespace AccessCalibration
         public void ShowSummary(IReadOnlyList<ProposedChange> changes)
         {
             ResetStage();
+            _stage.style.display = DisplayStyle.None;
             _skip.style.display = DisplayStyle.None;
+            _hint.style.display = DisplayStyle.None;
             _counter.text = "";
             _title.text = CalibrationTexts.SummaryTitle;
             _instructions.text = "";
