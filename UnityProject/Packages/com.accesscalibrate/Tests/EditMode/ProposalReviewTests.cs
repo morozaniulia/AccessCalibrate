@@ -68,6 +68,20 @@ namespace AccessCalibration.Core.Tests
         }
 
         [Test]
+        public void MouseSmoothing_IsAppliedWhenAccepted()
+        {
+            var m = new Measurements
+            {
+                Stability = new StabilityMeasurement { Spread = 0.4, Confidence = Confidence.Ok, Device = InputDeviceKind.Mouse },
+            };
+            var review = new ProposalReview(RulesEngine.Evaluate(m, Config));
+            Assert.IsTrue(review.BuildProfile(new AccessibilityProfile()).mouseSmoothing);
+
+            Item(review, "mouseSmoothing").Accepted = false;
+            Assert.IsFalse(review.BuildProfile(new AccessibilityProfile()).mouseSmoothing);
+        }
+
+        [Test]
         public void EveryProposal_KnowsWhichTestItCameFrom()
         {
             var review = new ProposalReview(RulesEngine.Evaluate(Sample(), Config));

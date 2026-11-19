@@ -38,6 +38,10 @@
     --ac-trail: rgba(255, 255, 255, 0.30);
     --ac-cursor-halo: rgba(11, 12, 16, 0.85);
     --ac-uncertain-border: rgba(255, 255, 255, 0.34);
+    --ac-scrollbar: rgba(255, 255, 255, 0.30);
+    /* The list fades into this colour at its bottom edge: the panel colour itself, so over the
+       panel the fade ends looking like the panel (no band). */
+    --ac-fade: rgba(20, 22, 30, 0.88);
     --ac-transparent: rgba(0, 0, 0, 0);
     /* ---- shape ---- */
     --ac-radius-panel: 36px;
@@ -322,7 +326,57 @@
 .ac-page--confirm { padding: 36px 56px 0 56px; }
 .ac-confirm-header { flex-direction: row; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
 .ac-confirm-note { font-size: 15px; color: var(--ac-text-muted); -unity-text-align: lower-right; padding: 0; margin: 0 0 6px 0; }
-.ac-confirm-list { flex-grow: 1; flex-shrink: 1; margin-bottom: 36px; }
+.ac-confirm-list-wrap { flex-grow: 1; flex-shrink: 1; margin-bottom: 36px; }
+.ac-confirm-list { flex-grow: 1; flex-shrink: 1; }
+.ac-confirm-empty {
+    display: none;
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+    font-size: 21px;
+    color: var(--ac-text-secondary);
+    white-space: normal;
+    margin: 0;
+    padding: 0 48px;
+}
+.ac-confirm-list-wrap--empty .ac-confirm-empty { display: flex; }
+.ac-confirm-list-wrap--empty .ac-confirm-list { display: none; }
+
+/* Soft edge: the last visible row fades into the panel (48 px) while more rows are below. */
+.ac-list-fade {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 48px;
+    --ac-fade-c: var(--ac-fade);
+    opacity: 1;
+    transition-property: opacity;
+    transition-duration: 0.15s;
+}
+.ac-list-fade--hidden { opacity: 0; }
+
+/* Thin scrollbar: 4 px, round, white 30%, no arrows; shown only while scrolling or on hover. */
+.ac-confirm-list .unity-scroller--vertical {
+    width: 4px; min-width: 4px;
+    margin-left: 10px;
+    border-width: 0;
+    background-color: var(--ac-transparent);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+.ac-confirm-list:hover .unity-scroller--vertical,
+.ac-confirm-list.ac-scrolling .unity-scroller--vertical { opacity: 1; }
+.ac-confirm-list .unity-scroller__low-button,
+.ac-confirm-list .unity-scroller__high-button { display: none; }
+.ac-confirm-list .unity-scroller__slider { width: 4px; min-width: 4px; margin: 0; padding: 0; flex-grow: 1; }
+.ac-confirm-list .unity-base-slider__drag-container { width: 4px; margin: 0; padding: 0; }
+.ac-confirm-list .unity-base-slider__tracker {
+    width: 4px; left: 0; margin: 0; border-width: 0;
+    background-color: var(--ac-transparent);
+}
+.ac-confirm-list .unity-base-slider__dragger {
+    width: 4px; left: 0; margin: 0; border-width: 0;
+    border-radius: 2px;
+    background-color: var(--ac-scrollbar);
+}
+.ac-confirm-list .unity-base-slider__dragger-border { display: none; }
 .ac-row {
     height: 68px;
     flex-direction: row;
@@ -407,6 +461,8 @@
 .ac-reduce-motion .ac-panel,
 .ac-reduce-motion .ac-btn,
 .ac-reduce-motion .ac-switch,
-.ac-reduce-motion .ac-switch-knob { transition-duration: 0s; }
+.ac-reduce-motion .ac-switch-knob,
+.ac-reduce-motion .ac-list-fade,
+.ac-reduce-motion .ac-confirm-list .unity-scroller--vertical { transition-duration: 0s; }
 .ac-reduce-motion .ac-panel--enter { opacity: 1; translate: 0 0; }
 .ac-reduce-motion .ac-btn.ac-selected { scale: 1 1; }

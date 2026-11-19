@@ -27,7 +27,7 @@ namespace AccessCalibration.Core
             "buttons_device", "buttons_confidence", "buttons_requested", "buttons_unpressed",
             "proposed_timingMultiplier", "proposed_qteMode", "proposed_holdToToggle", "proposed_mashingMode",
             "proposed_stickDeadzone", "proposed_aimAssist", "proposed_remapSuggestions",
-            "proposed_suggestOneHandedLayout", "profile_version",
+            "proposed_suggestOneHandedLayout", "proposed_mouseSmoothing", "profile_version",
         };
 
         public static string Header => string.Join(",", Columns);
@@ -83,7 +83,7 @@ namespace AccessCalibration.Core
             {
                 Num(proposed.timingMultiplier), proposed.qteMode.ToString(), Bool(proposed.holdToToggle),
                 proposed.mashingMode.ToString(), Num(proposed.stickDeadzone), proposed.aimAssist.ToString(),
-                string.Join(";", proposed.remapSuggestions), Bool(proposed.suggestOneHandedLayout),
+                string.Join(";", proposed.remapSuggestions), Bool(proposed.suggestOneHandedLayout), Bool(proposed.mouseSmoothing),
                 proposed.version.ToString(CultureInfo.InvariantCulture),
             });
 

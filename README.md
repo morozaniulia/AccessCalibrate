@@ -30,7 +30,7 @@ Most games already offer accessibility options: longer timing windows, toggles i
 | | | median > 700 ms (+ 50 ms) | timing windows ×2 and skippable quick-time events |
 | Hold | longest of 2 comfortable holds, max 5 s | < 2 s | press once instead of holding |
 | Repeated presses | presses per second in a 5 s window from the first press | < 4 / s | hold instead of pressing rapidly |
-| Steadiness | spread of the cursor around the player's own average position (2D standard deviation, × circle radius) | > 0.15 | bigger stick deadzone and medium aim assist |
+| Steadiness | spread of the cursor around the player's own average position (2D standard deviation, × circle radius) | > 0.15 (mouse: > 0.10) | bigger stick deadzone (with a mouse: smooth small mouse movements) and medium aim assist |
 | Button reach | main buttons not pressed within 5 s each (configurable) | 1 or more | remap those buttons |
 | | | half or more | one-handed layout |
 
@@ -76,7 +76,7 @@ void Apply(AccessCalibration.Core.AccessibilityProfile p)
 {
     qteWindow = baseWindow * p.timingMultiplier;
     holdIsToggle = p.holdToToggle;
-    // p.qteMode, p.mashingMode, p.stickDeadzone, p.aimAssist, p.remapSuggestions, p.suggestOneHandedLayout
+    // p.qteMode, p.mashingMode, p.stickDeadzone, p.mouseSmoothing, p.aimAssist, p.remapSuggestions, p.suggestOneHandedLayout
 }
 ```
 
@@ -118,7 +118,9 @@ A few checks were also confirmed by **breaking the code on purpose**, to make su
 
 ## Results
 
-**No study with players has been run yet**, so there are no results about players to report. The work so far is technical, and the evidence for it is the test suite above. To run a study, use study mode (below). It saves one CSV row per calibration with a label for the condition ("normal", "non-dominant hand", "gloves"…), and `tools/plot_study.py` compares the conditions.
+A **first pilot** (one calibration per label: *normal*, *non-dominant hand*, *feet*) is in [`Docs/study-results.md`](Docs/study-results.md), with its chart. It is too small to generalise from: one session per label, and hypothetical thresholds. It shows the pipeline working end to end and the kind of differences the checks pick up. For example, reaction 290 → 628 ms and repeated presses 6.8 → 0.2 / s from hands to feet. It also exposed a rule that proposed a *stick* deadzone after a *mouse* measurement, which is now fixed.
+
+To run your own study, use study mode (below). It saves one CSV row per calibration with a label for the condition, and `tools/plot_study.py` compares the conditions.
 
 ## Limits
 

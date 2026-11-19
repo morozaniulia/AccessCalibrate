@@ -34,4 +34,6 @@
     --ac-trail: rgba(11, 12, 16, 0.30);
     --ac-cursor-halo: rgba(255, 255, 255, 0.90);
     --ac-uncertain-border: rgba(11, 12, 16, 0.40);
+    --ac-scrollbar: rgba(11, 12, 16, 0.30);
+    --ac-fade: rgba(250, 251, 253, 0.92);
 }

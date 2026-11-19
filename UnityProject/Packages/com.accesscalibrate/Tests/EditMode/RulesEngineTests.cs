@@ -208,6 +208,32 @@ namespace AccessCalibration.Core.Tests
         }
 
         [Test]
+        public void Stability_MeasuredWithMouse_ProposesMouseSmoothing_NotAStickDeadzone()
+        {
+            var m = AllSkipped();
+            m.Stability = new StabilityMeasurement { Spread = 0.42, Confidence = Confidence.Ok, Device = InputDeviceKind.Mouse };
+            var r = RulesEngine.Evaluate(m, _config);
+
+            Assert.IsTrue(r.Profile.mouseSmoothing);
+            Assert.IsTrue(r.Proposes("mouseSmoothing"));
+            Assert.IsFalse(r.Proposes("stickDeadzone"), "a stick deadzone means nothing to a mouse user");
+            Assert.AreEqual(_config.DefaultStickDeadzone, r.Profile.stickDeadzone);
+            Assert.AreEqual(AimAssist.Medium, r.Profile.aimAssist);   // aim assist helps either way
+        }
+
+        [Test]
+        public void Stability_MeasuredWithStick_ProposesDeadzone_NotMouseSmoothing()
+        {
+            var m = AllSkipped();
+            m.Stability = new StabilityMeasurement { Spread = 0.42, Confidence = Confidence.Ok, Device = InputDeviceKind.Gamepad };
+            var r = RulesEngine.Evaluate(m, _config);
+
+            Assert.IsTrue(r.Proposes("stickDeadzone"));
+            Assert.IsFalse(r.Proposes("mouseSmoothing"));
+            Assert.IsFalse(r.Profile.mouseSmoothing);
+        }
+
+        [Test]
         public void Stability_LargeMeanOffset_ButNoSpread_ProposesNothing()
         {
             // Mean offset is information only: no rule may act on it.

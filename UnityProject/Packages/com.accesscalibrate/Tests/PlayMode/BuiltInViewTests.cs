@@ -190,6 +190,52 @@ namespace AccessCalibration.PlayModeTests
         }
 
         [UnityTest, Timeout(60000)]
+        public IEnumerator Confirmation_LongListFadesAndScrolls_EmptyListIsCentred()
+        {
+            yield return StartRunner();
+            yield return UseDevice(_pad.dpad.left);
+
+            // Eight suggestions (steadiness measured with a mouse → mouse smoothing, not a deadzone).
+            _runner.ShowProposal(new Measurements
+            {
+                Reaction = new ReactionMeasurement { MedianMs = 820, Confidence = Confidence.Ok },
+                Hold = new HoldMeasurement { MaxHoldSeconds = 1.2, Confidence = Confidence.Ok },
+                Taps = new TapMeasurement { PressCount = 6, DurationSeconds = 5, Confidence = Confidence.Ok },
+                Stability = new StabilityMeasurement { Spread = 0.42, Confidence = Confidence.Ok, Device = Core.InputDeviceKind.Mouse },
+                Buttons = new ButtonAccessMeasurement
+                {
+                    RequestedButtons = { "Jump", "Action", "LB", "RB" }, UnpressedButtons = { "LB", "RB" }, Confidence = Confidence.Ok,
+                },
+            });
+            Assert.AreEqual(8, _runner.Review.Items.Count);
+            Assert.IsTrue(_runner.Review.Items.Any(i => i.Change.Setting == "mouseSmoothing"));
+            Assert.IsFalse(_runner.Review.Items.Any(i => i.Change.Setting == "stickDeadzone"));
+            yield return Snapshot("6b-confirmation-long");
+            Assert.IsTrue(_view.ListFadeVisible, "more rows below → the last visible row fades out");
+            var buttonsTop = _view.Root.Q<Button>("ac-apply").worldBound.y;
+
+            _view.ConfirmList.scrollOffset = new Vector2(0, 90);
+            yield return null;
+            Assert.IsTrue(_view.ConfirmList.ClassListContains("ac-scrolling"), "scrollbar shows while scrolling");
+            yield return Snapshot("6c-confirmation-scrolling");
+
+            _view.ConfirmList.scrollOffset = new Vector2(0, 10000);
+            yield return Snapshot("6d-confirmation-end");
+            Assert.IsFalse(_view.ListFadeVisible, "at the end of the list the fade goes away");
+            Assert.AreEqual(buttonsTop, _view.Root.Q<Button>("ac-apply").worldBound.y, 0.5f, "the buttons never move");
+
+            // Nothing to suggest: centred message, no "Turn on / off" hint.
+            _runner.Skip();
+            _runner.ShowProposal(new Measurements());
+            yield return Snapshot("6e-confirmation-empty");
+            Assert.AreEqual(0, _view.Root.Q("ac-hints").childCount, "no on/off hint without rows");
+            var empty = _view.Root.Q<Label>("ac-confirm-empty");
+            var wrap = _view.Root.Q("ac-confirm-list-wrap");
+            Assert.AreEqual(DisplayStyle.Flex, empty.resolvedStyle.display);
+            Assert.AreEqual(wrap.worldBound.center.y, empty.worldBound.center.y, 2f, "centred in the list area");
+        }
+
+        [UnityTest, Timeout(60000)]
         public IEnumerator Welcome_ScalesWithTheScreen()
         {
             foreach (var (w, h) in new[] { (1920, 1080), (2560, 1440) })

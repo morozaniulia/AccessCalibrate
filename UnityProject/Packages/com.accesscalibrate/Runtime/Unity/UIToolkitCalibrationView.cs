@@ -53,6 +53,10 @@ namespace AccessCalibration
         // confirmation
         Label _confirmEyebrow, _confirmTitle, _confirmNote;
         ScrollView _list;
+        VisualElement _listWrap;
+        Label _empty;
+        GradientFade _fade;
+        IVisualElementScheduledItem _hideScrollbar;
         Button _apply, _redo, _skipAll;
         GlyphBadge _applyGlyph;
         ProposalReview _review;
@@ -185,6 +189,16 @@ namespace AccessCalibration
             _confirmTitle = _root.Q<Label>("ac-confirm-title");
             _confirmNote = _root.Q<Label>("ac-confirm-note");
             _list = _root.Q<ScrollView>("ac-confirm-list");
+            _listWrap = _root.Q("ac-confirm-list-wrap");
+            _empty = _root.Q<Label>("ac-confirm-empty");
+            _empty.text = CalibrationTexts.ConfirmNothing;
+            _fade = new GradientFade();
+            _listWrap.Add(_fade);
+            _list.verticalScrollerVisibility = ScrollerVisibility.Auto;
+            _list.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            _list.verticalScroller.valueChanged += _ => { ShowScrollbarBriefly(); UpdateFade(); };
+            _list.contentContainer.RegisterCallback<GeometryChangedEvent>(_ => UpdateFade());
+            _list.contentViewport.RegisterCallback<GeometryChangedEvent>(_ => UpdateFade());
             _apply = _root.Q<Button>("ac-apply");
             _redo = _root.Q<Button>("ac-redo");
             _skipAll = _root.Q<Button>("ac-skip-all");
@@ -459,12 +473,8 @@ namespace AccessCalibration
             _switches.Clear();
             _selectable.Clear();
 
-            if (review.Items.Count == 0)
-            {
-                var none = new Label(CalibrationTexts.ConfirmNothing);
-                none.AddToClassList("ac-body");
-                _list.Add(none);
-            }
+            // Nothing proposed: a centred message instead of the list, and no "Turn on / off" hint.
+            _listWrap.EnableInClassList("ac-confirm-list-wrap--empty", review.Items.Count == 0);
             for (int i = 0; i < review.Items.Count; i++)
             {
                 var item = review.Items[i];
@@ -496,8 +506,36 @@ namespace AccessCalibration
             _selectable.Add(_redo);
             _selectable.Add(_skipAll);
             RefreshConfirmation();
-            // Apply already shows its own confirm glyph on the button, so the bar only shows on/off.
-            SetHints((PromptAction.Toggle, CalibrationTexts.ToggleHint, null));
+            _list.scrollOffset = Vector2.zero;
+            UpdateFade();
+            // Apply already shows its own confirm glyph on the button, so the bar only shows on/off;
+            // with nothing to switch, no hint at all.
+            if (review.Items.Count > 0) SetHints((PromptAction.Toggle, CalibrationTexts.ToggleHint, null));
+            else SetHints();
+        }
+
+        /// <summary>True while rows are hidden below the visible part of the list.</summary>
+        internal bool ListFadeVisible => !_fade.ClassListContains("ac-list-fade--hidden");
+        internal ScrollView ConfirmList => _list;
+
+        /// <summary>The fade shows only while the list overflows and isn't scrolled to the end.</summary>
+        void UpdateFade()
+        {
+            if (_list == null) return;
+            float content = _list.contentContainer.layout.height;
+            float viewport = _list.contentViewport.layout.height;
+            bool overflow = !float.IsNaN(content) && !float.IsNaN(viewport) && content > viewport + 1f;
+            bool atEnd = _list.scrollOffset.y >= content - viewport - 1f;
+            _fade.EnableInClassList("ac-list-fade--hidden", !overflow || atEnd);
+        }
+
+        /// <summary>The thin scrollbar appears while scrolling (and on hover, via USS), then fades out.</summary>
+        void ShowScrollbarBriefly()
+        {
+            _list.AddToClassList("ac-scrolling");
+            _hideScrollbar?.Pause();
+            _hideScrollbar = _list.schedule.Execute(() => _list.RemoveFromClassList("ac-scrolling"));
+            _hideScrollbar.ExecuteLater(900);
         }
 
         public void SetConfirmationSelection(int index)

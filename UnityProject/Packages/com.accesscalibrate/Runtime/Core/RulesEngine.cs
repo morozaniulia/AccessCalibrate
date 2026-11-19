@@ -138,10 +138,21 @@ namespace AccessCalibration.Core
             var t = config.For(s.Device);
             if (s.Spread > t.StabilityMaxSpread)
             {
-                result.Profile.stickDeadzone = config.IncreasedStickDeadzone;
+                // A stick deadzone means nothing to someone who aims with a mouse: measured with a
+                // mouse → smooth small mouse movements instead.
+                if (s.Device == InputDeviceKind.Mouse)
+                {
+                    result.Profile.mouseSmoothing = true;
+                    Add(result, s, MeasurementKind.Stability, "mouseSmoothing", "true",
+                        "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
+                }
+                else
+                {
+                    result.Profile.stickDeadzone = config.IncreasedStickDeadzone;
+                    Add(result, s, MeasurementKind.Stability, "stickDeadzone", ProposedChange.Format(config.IncreasedStickDeadzone),
+                        "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
+                }
                 result.Profile.aimAssist = AimAssist.Medium;
-                Add(result, s, MeasurementKind.Stability, "stickDeadzone", ProposedChange.Format(config.IncreasedStickDeadzone),
-                    "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
                 Add(result, s, MeasurementKind.Stability, "aimAssist", nameof(AimAssist.Medium),
                     "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
             }

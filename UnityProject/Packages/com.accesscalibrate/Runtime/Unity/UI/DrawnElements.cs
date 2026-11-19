@@ -220,6 +220,30 @@ namespace AccessCalibration.UI
         }
     }
 
+    /// <summary>
+    /// Vertical fade from transparent (top) to --ac-fade-c (bottom), so the last visible row of a
+    /// list softens into the panel instead of being cut off.
+    /// </summary>
+    public sealed class GradientFade : DrawnElement
+    {
+        public GradientFade() : base("ac-list-fade", "--ac-fade-c") { }
+
+        protected override void Draw(MeshGenerationContext ctx)
+        {
+            var r = contentRect;
+            if (r.width <= 0 || r.height <= 0) return;
+            var bottom = C("--ac-fade-c");
+            var top = new Color(bottom.r, bottom.g, bottom.b, 0f);
+            var mesh = ctx.Allocate(4, 6);
+            mesh.SetNextVertex(new Vertex { position = new Vector3(r.xMin, r.yMin, Vertex.nearZ), tint = top });
+            mesh.SetNextVertex(new Vertex { position = new Vector3(r.xMax, r.yMin, Vertex.nearZ), tint = top });
+            mesh.SetNextVertex(new Vertex { position = new Vector3(r.xMax, r.yMax, Vertex.nearZ), tint = bottom });
+            mesh.SetNextVertex(new Vertex { position = new Vector3(r.xMin, r.yMax, Vertex.nearZ), tint = bottom });
+            mesh.SetNextIndex(0); mesh.SetNextIndex(1); mesh.SetNextIndex(2);
+            mesh.SetNextIndex(0); mesh.SetNextIndex(2); mesh.SetNextIndex(3);
+        }
+    }
+
     /// <summary>Small speaker icon (reaction test: "a soft tone plays").</summary>
     public sealed class SpeakerIcon : DrawnElement
     {

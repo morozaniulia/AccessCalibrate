@@ -21,6 +21,7 @@ namespace AccessCalibration
                 case "aimAssist": return CalibrationTexts.SettingAimAssist;
                 case "remapSuggestions": return CalibrationTexts.SettingRemap;
                 case "suggestOneHandedLayout": return CalibrationTexts.SettingOneHanded;
+                case "mouseSmoothing": return CalibrationTexts.SettingMouseSmoothing;
                 default: return c.Setting;
             }
         }

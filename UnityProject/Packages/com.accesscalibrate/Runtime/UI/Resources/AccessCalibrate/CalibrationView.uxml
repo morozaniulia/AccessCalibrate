@@ -95,7 +95,10 @@
                     </ui:VisualElement>
                     <ui:Label name="ac-confirm-note" class="ac-confirm-note" />
                 </ui:VisualElement>
-                <ui:ScrollView name="ac-confirm-list" class="ac-confirm-list" />
+                <ui:VisualElement name="ac-confirm-list-wrap" class="ac-confirm-list-wrap">
+                    <ui:ScrollView name="ac-confirm-list" class="ac-confirm-list" />
+                    <ui:Label name="ac-confirm-empty" class="ac-confirm-empty" />
+                </ui:VisualElement>
                 <ui:VisualElement class="ac-confirm-buttons">
                     <ui:Button name="ac-apply" class="ac-btn ac-btn--primary ac-btn--apply" />
                     <ui:Button name="ac-redo" class="ac-btn ac-btn--secondary" />

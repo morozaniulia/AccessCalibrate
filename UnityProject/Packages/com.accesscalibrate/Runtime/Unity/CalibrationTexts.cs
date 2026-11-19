@@ -124,6 +124,7 @@ namespace AccessCalibration
         public static string SettingAimAssist = "Aim assist";
         public static string SettingRemap = "Remap hard-to-reach buttons";
         public static string SettingOneHanded = "One-handed control layout";
+        public static string SettingMouseSmoothing = "Smooth small mouse movements";
 
         // Why: "<measurement> · <rule> → <effect>". {0} = measured value, {1} = rule threshold.
         public static string MeasureReaction = "Median reaction {0:0} ms";

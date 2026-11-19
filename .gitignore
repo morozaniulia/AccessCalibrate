@@ -56,3 +56,6 @@ desktop.ini
 
 # Python caches (tools/)
 __pycache__/
+
+# Study data stays on the device (only the chart and the medians table are published)
+study*.csv

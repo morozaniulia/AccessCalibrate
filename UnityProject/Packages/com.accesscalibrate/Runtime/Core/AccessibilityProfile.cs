@@ -30,6 +30,8 @@ namespace AccessCalibration.Core
         public AimAssist aimAssist = AimAssist.Off;
         public List<string> remapSuggestions = new List<string>();
         public bool suggestOneHandedLayout = false;
+        /// <summary>Smooth / filter small mouse movements (the mouse counterpart of a stick deadzone).</summary>
+        public bool mouseSmoothing = false;
         public int version = CurrentVersion;
 
         public AccessibilityProfile Clone()
@@ -50,6 +52,7 @@ namespace AccessCalibration.Core
                 && aimAssist == o.aimAssist
                 && remapSuggestions.SequenceEqual(o.remapSuggestions)
                 && suggestOneHandedLayout == o.suggestOneHandedLayout
+                && mouseSmoothing == o.mouseSmoothing
                 && version == o.version;
         }
 
@@ -73,7 +76,8 @@ namespace AccessCalibration.Core
             sb.Append("  \"remapSuggestions\": [")
               .Append(string.Join(", ", remapSuggestions.Select(MiniJson.Quote)))
               .Append("],\n");
-            sb.Append("  \"suggestOneHandedLayout\": ").Append(suggestOneHandedLayout ? "true" : "false").Append("\n");
+            sb.Append("  \"suggestOneHandedLayout\": ").Append(suggestOneHandedLayout ? "true" : "false").Append(",\n");
+            sb.Append("  \"mouseSmoothing\": ").Append(mouseSmoothing ? "true" : "false").Append("\n");
             sb.Append("}");
             return sb.ToString();
         }
@@ -98,6 +102,7 @@ namespace AccessCalibration.Core
             if (obj.TryGetValue("remapSuggestions", out v) && v is List<object> list)
                 p.remapSuggestions = list.OfType<string>().ToList();
             if (obj.TryGetValue("suggestOneHandedLayout", out v) && v is bool oh) p.suggestOneHandedLayout = oh;
+            if (obj.TryGetValue("mouseSmoothing", out v) && v is bool ms) p.mouseSmoothing = ms;
             return p;
         }
 

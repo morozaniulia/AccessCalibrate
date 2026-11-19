@@ -54,6 +54,7 @@ namespace AccessCalibration.Core
                     case "aimAssist": p.aimAssist = proposed.aimAssist; break;
                     case "remapSuggestions": p.remapSuggestions = new List<string>(proposed.remapSuggestions); break;
                     case "suggestOneHandedLayout": p.suggestOneHandedLayout = proposed.suggestOneHandedLayout; break;
+                    case "mouseSmoothing": p.mouseSmoothing = proposed.mouseSmoothing; break;
                     default: throw new InvalidOperationException($"Unknown setting '{item.Change.Setting}'.");
                 }
             }

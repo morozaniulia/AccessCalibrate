@@ -21,6 +21,7 @@ namespace AccessCalibration.Core.Tests
                 aimAssist = AimAssist.High,
                 remapSuggestions = new List<string> { "Jump", "Fire \"alt\"", "Ș\\ă" },
                 suggestOneHandedLayout = true,
+                mouseSmoothing = true,
             };
 
             var copy = AccessibilityProfile.FromJson(original.ToJson());
@@ -49,6 +50,14 @@ namespace AccessCalibration.Core.Tests
             Assert.IsTrue(p.holdToToggle);
             Assert.AreEqual(1f, p.timingMultiplier);
             Assert.AreEqual(QteMode.Normal, p.qteMode);
+        }
+
+        [Test]
+        public void FromJson_OlderProfileWithoutMouseSmoothing_DefaultsToOff()
+        {
+            var p = AccessibilityProfile.FromJson("{ \"version\": 1, \"holdToToggle\": true }");
+            Assert.IsFalse(p.mouseSmoothing);
+            Assert.IsTrue(p.holdToToggle);
         }
 
         [Test]

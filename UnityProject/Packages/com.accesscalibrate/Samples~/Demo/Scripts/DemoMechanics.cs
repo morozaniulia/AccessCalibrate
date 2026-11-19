@@ -62,6 +62,7 @@ namespace AccessCalibration.Demo
             };
             if (p.remapSuggestions.Count > 0) lines.Add("Remap suggested: " + string.Join(", ", p.remapSuggestions));
             if (p.suggestOneHandedLayout) lines.Add("One-handed layout suggested");
+            if (p.mouseSmoothing) lines.Add("Mouse smoothing: on");
             return lines.ToArray();
         }
     }
