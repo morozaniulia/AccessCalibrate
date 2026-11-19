@@ -60,24 +60,45 @@ namespace AccessCalibration.Core
         }
 
         /// <summary>
-        /// Root-mean-square distance of 2D samples from a centre point, divided by the radius
-        /// (so 1.0 means "on average at the edge of the circle").
+        /// 2D standard deviation of the samples around THEIR OWN mean point, divided by the radius:
+        /// sqrt(mean(|p − mean|²)) / radius. A player who holds perfectly still anywhere gets 0.
         /// </summary>
-        public static double RmsDeviation(IReadOnlyList<(double x, double y)> samples,
-                                          double centreX, double centreY, double radius)
+        public static double Spread2D(IReadOnlyList<(double x, double y)> samples, double radius)
         {
-            if (samples == null || samples.Count == 0)
-                throw new ArgumentException("RMS needs at least one sample.", nameof(samples));
-            if (radius <= 0)
-                throw new ArgumentOutOfRangeException(nameof(radius), "Radius must be positive.");
-
+            var (mx, my) = MeanPoint(samples);
+            CheckRadius(radius);
             double sumSquares = 0;
             foreach (var (x, y) in samples)
             {
-                double dx = x - centreX, dy = y - centreY;
+                double dx = x - mx, dy = y - my;
                 sumSquares += dx * dx + dy * dy;
             }
             return Math.Sqrt(sumSquares / samples.Count) / radius;
+        }
+
+        /// <summary>Distance from (centreX, centreY) to the samples' mean point, divided by the radius.</summary>
+        public static double MeanOffset(IReadOnlyList<(double x, double y)> samples,
+                                        double centreX, double centreY, double radius)
+        {
+            var (mx, my) = MeanPoint(samples);
+            CheckRadius(radius);
+            double dx = mx - centreX, dy = my - centreY;
+            return Math.Sqrt(dx * dx + dy * dy) / radius;
+        }
+
+        /// <summary>Average position of the samples. Throws if there are none.</summary>
+        public static (double x, double y) MeanPoint(IReadOnlyList<(double x, double y)> samples)
+        {
+            if (samples == null || samples.Count == 0)
+                throw new ArgumentException("Need at least one sample.", nameof(samples));
+            double sx = 0, sy = 0;
+            foreach (var (x, y) in samples) { sx += x; sy += y; }
+            return (sx / samples.Count, sy / samples.Count);
+        }
+
+        static void CheckRadius(double radius)
+        {
+            if (radius <= 0) throw new ArgumentOutOfRangeException(nameof(radius), "Radius must be positive.");
         }
     }
 

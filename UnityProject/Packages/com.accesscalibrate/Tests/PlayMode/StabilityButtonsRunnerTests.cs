@@ -21,43 +21,93 @@ namespace AccessCalibration.PlayModeTests
             _test.PreferredDevice = InputDeviceKind.Gamepad;
         }
 
-        /// <summary>Runs settle + 5 s of measuring at 10 frames/s, letting <paramref name="stickAt"/> pick the stick position per frame.</summary>
-        void RunFrames(System.Func<int, Vector2> stickAt)
+        /// <summary>
+        /// Plays frames every 0.1 s until the test ends. <paramref name="stickAt"/> gives the stick
+        /// position for each frame (frame 0 = first frame after Begin).
+        /// </summary>
+        void RunFrames(System.Func<int, Vector2> stickAt, int maxFrames = 300)
         {
-            int frame = 0;
-            for (double t = 10.0; t <= 10 + _test.SettleSeconds + _test.MeasureSeconds + 0.15; t += 0.1, frame++)
+            for (int frame = 0; frame < maxFrames && _test.IsRunning; frame++)
             {
                 Set(_gamepad.leftStick, stickAt(frame));
-                TickAt(_test, t);
+                TickAt(_test, 10.0 + 0.1 * frame);
             }
         }
 
+        Measurements Result()
+        {
+            Assert.IsTrue(_test.IsFinished, "test should have finished");
+            var m = new Measurements();
+            _test.WriteResult(m);
+            return m;
+        }
+
         [Test]
-        public void PerfectlyStill_OnTarget_GivesRmsZero()
+        public void PerfectlyStill_OnTarget_GivesSpreadZero()
         {
             _test.Begin();
             Assert.AreEqual(StabilityTest.Mode.Stick, _test.ActiveMode);
             RunFrames(_ => _test.StickTarget);
 
-            Assert.IsTrue(_test.IsFinished);
-            var m = new Measurements();
-            _test.WriteResult(m);
-            Assert.AreEqual(0, m.Stability.RmsDeviation, 1e-6);
+            var m = Result();
+            Assert.AreEqual(0, m.Stability.Spread, 1e-6);
+            Assert.AreEqual(0, m.Stability.MeanOffset, 1e-6);
             Assert.AreEqual(Confidence.Ok, m.Stability.Confidence);
             Assert.AreEqual(InputDeviceKind.Gamepad, m.Stability.Device);
         }
 
         [Test]
-        public void ShakingAroundTarget_GivesRmsInRadiusUnits()
+        public void PerfectlyStill_ButOffCentre_IsNotUnsteady_AndGetsNoAimAssist()
         {
             _test.Begin();
-            // ±0.05 stick units around the target; radius 0.25 → RMS = 0.2 radii.
-            RunFrames(f => _test.StickTarget + new Vector2(f % 2 == 0 ? 0.05f : -0.05f, 0));
+            // Held rock-steady at 0.6 of the radius to the right of the centre (still inside).
+            var offCentre = _test.StickTarget + new Vector2(0.6f * _test.StickRadius, 0);
+            RunFrames(_ => offCentre);
 
-            var m = new Measurements();
-            _test.WriteResult(m);
-            Assert.AreEqual(0.2, m.Stability.RmsDeviation, 1e-4);
+            var m = Result();
+            Assert.AreEqual(0, m.Stability.Spread, 1e-6);          // no wandering at all
+            Assert.AreEqual(0.6, m.Stability.MeanOffset, 1e-4);    // offset kept as information only
+            var p = RulesEngine.Evaluate(m, new RulesConfig()).Profile;
+            Assert.AreEqual(AimAssist.Off, p.aimAssist);
+            Assert.AreEqual(new RulesConfig().DefaultStickDeadzone, p.stickDeadzone);
+        }
+
+        [Test]
+        public void ShakingAroundOwnAverage_GivesSpreadInRadiusUnits()
+        {
+            _test.Begin();
+            // ±0.05 stick units around a point that is itself off-centre; radius 0.25 → spread 0.2.
+            var centre = _test.StickTarget + new Vector2(0, 0.1f);
+            RunFrames(f => centre + new Vector2(f % 2 == 0 ? 0.05f : -0.05f, 0));
+
+            var m = Result();
+            Assert.AreEqual(0.2, m.Stability.Spread, 1e-3);
+            Assert.AreEqual(0.4, m.Stability.MeanOffset, 1e-3);
             Assert.AreEqual(AimAssist.Medium, RulesEngine.Evaluate(m, new RulesConfig()).Profile.aimAssist);
+        }
+
+        [Test]
+        public void MeasuringStarts_OnlyAfterEnteringTheCircle_PlusSettleTime()
+        {
+            _test.Begin();
+            // Frames 0–19 (2 s): far outside the circle, moving wildly. Then inside and perfectly still.
+            RunFrames(f => f < 20 ? new Vector2(f % 2 == 0 ? -0.9f : 0.9f, -0.8f) : _test.StickTarget);
+
+            var m = Result();
+            Assert.AreEqual(0, m.Stability.Spread, 1e-6);   // the wild part outside was not measured
+            // 5 s of measuring at 10 frames/s ≈ 50 samples (settling frames not included).
+            Assert.That(_test.SampleCount, Is.InRange(49, 52));
+        }
+
+        [Test]
+        public void NeverReachingTheCircle_EndsAfterTimeout_AsUncertain_WithNoProposal()
+        {
+            _test.Begin();
+            RunFrames(_ => new Vector2(-0.9f, 0));
+
+            var m = Result();
+            Assert.AreEqual(Confidence.Uncertain, m.Stability.Confidence);
+            Assert.IsFalse(RulesEngine.Evaluate(m, new RulesConfig()).Proposes("aimAssist"));
         }
 
         [Test]
@@ -67,9 +117,7 @@ namespace AccessCalibration.PlayModeTests
             _test.PreferredDevice = InputDeviceKind.Keyboard;
             _test.Begin();
 
-            Assert.IsTrue(_test.IsFinished);
-            var m = new Measurements();
-            _test.WriteResult(m);
+            var m = Result();
             Assert.AreEqual(Confidence.Skipped, m.Stability.Confidence);
         }
     }
@@ -91,15 +139,15 @@ namespace AccessCalibration.PlayModeTests
         public void ButtonsNotPressedWithin5s_AreListed_AndDriveRemapProposal()
         {
             _test.Begin();
-            Assert.AreEqual("Sărit (A / Spațiu)", _test.CurrentPrompt.Name);
+            Assert.AreEqual(CalibrationTexts.ButtonJump, _test.CurrentPrompt.Name);
 
             Tap(_gamepad.buttonSouth, 10.5, 10.6);   // A: pressed
             TickAt(_test, 10.6);
-            Assert.AreEqual("Acțiune (X / E)", _test.CurrentPrompt.Name);
+            Assert.AreEqual(CalibrationTexts.ButtonAction, _test.CurrentPrompt.Name);
 
             Tap(_gamepad.buttonEast, 11.0, 11.1);    // wrong button: doesn't count for X
             TickAt(_test, 15.7);                      // X: 5 s passed → not pressed
-            Assert.AreEqual("Umăr stânga (LB / Q)", _test.CurrentPrompt.Name);
+            Assert.AreEqual(CalibrationTexts.ButtonLeftBumper, _test.CurrentPrompt.Name);
 
             Tap(_gamepad.leftShoulder, 16.0, 16.1);  // LB: pressed
             TickAt(_test, 16.1);
@@ -108,7 +156,7 @@ namespace AccessCalibration.PlayModeTests
 
             var m = new Measurements();
             _test.WriteResult(m);
-            CollectionAssert.AreEqual(new[] { "Acțiune (X / E)", "Umăr dreapta (RB / R)" }, m.Buttons.UnpressedButtons);
+            CollectionAssert.AreEqual(new[] { CalibrationTexts.ButtonAction, CalibrationTexts.ButtonRightBumper }, m.Buttons.UnpressedButtons);
             Assert.AreEqual(4, m.Buttons.RequestedButtons.Count);
 
             var p = RulesEngine.Evaluate(m, new RulesConfig()).Profile;

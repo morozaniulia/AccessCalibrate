@@ -129,14 +129,14 @@ namespace AccessCalibration.Core
         {
             if (s == null || !s.IsUsable) return;
             var t = config.For(s.Device);
-            if (s.RmsDeviation > t.StabilityMaxRms)
+            if (s.Spread > t.StabilityMaxSpread)
             {
                 result.Profile.stickDeadzone = config.IncreasedStickDeadzone;
                 result.Profile.aimAssist = AimAssist.Medium;
                 Add(result, s, "stickDeadzone", ProposedChange.Format(config.IncreasedStickDeadzone),
-                    "stability RMS", s.RmsDeviation, "× radius", t.StabilityMaxRms, ">");
+                    "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
                 Add(result, s, "aimAssist", nameof(AimAssist.Medium),
-                    "stability RMS", s.RmsDeviation, "× radius", t.StabilityMaxRms, ">");
+                    "stability spread", s.Spread, "× radius", t.StabilityMaxSpread, ">");
             }
         }
 

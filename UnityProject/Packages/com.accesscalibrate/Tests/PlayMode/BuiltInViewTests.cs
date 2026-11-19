@@ -78,7 +78,7 @@ namespace AccessCalibration.PlayModeTests
             yield return Snapshot("3-stability");
 
             view.ShowTest(CalibrationTexts.ButtonsTitle, CalibrationTexts.ButtonsInstructions);
-            view.SetPrompt(string.Format(CalibrationTexts.ButtonsPrompt, "Sărit (A / Spațiu)"));
+            view.SetPrompt(string.Format(CalibrationTexts.ButtonsPrompt, CalibrationTexts.ButtonJump));
             yield return Snapshot("4-buttons");
 
             var m = new Measurements

@@ -22,8 +22,13 @@ namespace AccessCalibration.Core
         public double HoldMinSeconds = 2.0;
         /// <summary>Presses per second below this → mashingMode = HoldInstead.</summary>
         public double TapMinPerSecond = 4.0;
-        /// <summary>RMS deviation (fraction of circle radius) above this → bigger deadzone + aim assist.</summary>
-        public double StabilityMaxRms = 0.15;
+        /// <summary>
+        /// Spread (2D standard deviation around the player's own average position, as a fraction of
+        /// the circle radius) above this → bigger deadzone + aim assist. Hypothesis: 0.15 means the
+        /// cursor typically wanders 15% of the radius — clearly visible jitter, well beyond the
+        /// small corrections of a steady hand.
+        /// </summary>
+        public double StabilityMaxSpread = 0.15;
 
         public DeviceThresholds Clone() => (DeviceThresholds)MemberwiseClone();
     }
@@ -67,13 +72,14 @@ namespace AccessCalibration.Core
         };
 
         /// <summary>
-        /// Mouse: clicking is quick, so reaction/hold/tap match keyboard. A mouse is far more precise
-        /// than a thumbstick, so a lower RMS threshold (0.10) counts as "unsteady".
+        /// Mouse: clicking is quick, so reaction/hold/tap match keyboard. A resting hand on a mouse is
+        /// steadier than a thumb holding a stick at partial deflection, so a lower spread (0.10)
+        /// already counts as "unsteady".
         /// </summary>
         public DeviceThresholds Mouse = new DeviceThresholds
         {
             TapMinPerSecond = 4.5,
-            StabilityMaxRms = 0.10,
+            StabilityMaxSpread = 0.10,
         };
 
         /// <summary>

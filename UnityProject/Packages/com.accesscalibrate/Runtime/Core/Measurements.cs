@@ -65,8 +65,19 @@ namespace AccessCalibration.Core
     /// <summary>Test 4 — keeping a cursor inside a circle.</summary>
     public sealed class StabilityMeasurement : MeasurementBase
     {
-        /// <summary>RMS distance from the circle centre, as a fraction of the circle radius (0 = perfectly centred).</summary>
-        public double RmsDeviation;
+        /// <summary>
+        /// How much the cursor wandered around the player's OWN average position: 2D standard
+        /// deviation, as a fraction of the circle radius (0 = perfectly still). Holding still
+        /// slightly off-centre is not unsteadiness, so the offset is not part of this number.
+        /// The stability rule uses this value.
+        /// </summary>
+        public double Spread;
+
+        /// <summary>
+        /// Distance from the circle centre to the player's average position, as a fraction of the
+        /// radius. Information only (raw data, study mode) — no rule uses it.
+        /// </summary>
+        public double MeanOffset;
     }
 
     /// <summary>Test 5 — can each main game button be pressed?</summary>

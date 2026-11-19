@@ -8,9 +8,16 @@ using UnityEngine.InputSystem;
 namespace AccessCalibration
 {
     /// <summary>
-    /// Test 4 — stability. Keep a cursor inside a circle for 5 s (left stick or mouse).
-    /// Result (v1) = RMS distance from the circle centre, in units of the circle radius.
-    /// No stick and no mouse (keyboard-only, touch) → the test is skipped automatically.
+    /// Test 4 — stability. Bring a cursor into a circle and keep it there as still as is
+    /// comfortable for 5 s (left stick or mouse).
+    ///
+    /// Phases: wait until the cursor first enters the circle → 0.5 s to settle → 5 s of measuring.
+    /// Result = spread: 2D standard deviation around the player's OWN average position, as a
+    /// fraction of the circle radius. Holding still a bit off-centre is not unsteadiness, so the
+    /// offset is stored separately (MeanOffset, information only, no rule).
+    ///
+    /// The cursor is never moved by code (no WarpCursorPosition — it doesn't work in WebGL):
+    /// the player brings it into the circle. No stick and no mouse (keyboard-only, touch) → skipped.
     ///
     /// Stick: the circle sits off-centre (default 0.5 to the right), so the player has to hold a
     /// partial deflection — at rest a stick sits at the centre by itself and would measure nothing.
@@ -19,8 +26,11 @@ namespace AccessCalibration
     public sealed class StabilityTest : CalibrationTest
     {
         public enum Mode { None, Stick, Mouse }
+        public enum Phase { WaitingToEnter, Settling, Measuring, Done }
 
-        public double SettleSeconds = 1.0;
+        /// <summary>Give up if the cursor never reaches the circle within this time (result Uncertain).</summary>
+        public double WaitToEnterSeconds = 10.0;
+        public double SettleSeconds = 0.5;
         public double MeasureSeconds = 5.0;
 
         /// <summary>Stick mode: circle centre and radius in stick units (−1…1).</summary>
@@ -31,12 +41,13 @@ namespace AccessCalibration
         public float MouseRadiusFraction = 0.08f;
 
         public Mode ActiveMode { get; private set; }
+        public Phase CurrentPhase { get; private set; }
         public int SampleCount => _samples.Count;
 
-        double _startedAt;
+        double _phaseStart;
         Vector2 _target;
         float _radius;
-        double _rms;
+        double _spread, _meanOffset;
         readonly List<(double x, double y)> _samples = new List<(double x, double y)>();
 
         public override string Title => CalibrationTexts.StabilityTitle;
@@ -61,8 +72,7 @@ namespace AccessCalibration
         protected override void OnBegin(double now)
         {
             _samples.Clear();
-            _rms = 0;
-            _startedAt = now;
+            _spread = _meanOffset = 0;
             ActiveMode = PickMode();
 
             if (ActiveMode == Mode.None)
@@ -82,12 +92,18 @@ namespace AccessCalibration
                 Device = InputDeviceKind.Mouse;
                 _target = new Vector2(Screen.width / 2f, Screen.height / 2f);
                 _radius = Mathf.Max(1f, Screen.height * MouseRadiusFraction);
-                Mouse.current.WarpCursorPosition(_target);
             }
 
+            SetPhase(Phase.WaitingToEnter, now);
             View.ShowTest(Title, Instructions);
             View.ShowStabilityArena(true);
-            View.SetStatus(CalibrationTexts.StabilityGetReady);
+            View.SetStatus(CalibrationTexts.StabilityBringIn);
+        }
+
+        void SetPhase(Phase phase, double now)
+        {
+            CurrentPhase = phase;
+            _phaseStart = now;
         }
 
         Vector2 ReadPosition()
@@ -104,20 +120,47 @@ namespace AccessCalibration
             Vector2 p = ReadPosition();
             Vector2 offset = (p - _target) / _radius;
             View.SetCursor(offset.x, offset.y);
+            bool inside = offset.sqrMagnitude <= 1f;
+            double inPhase = now - _phaseStart;
 
-            double t = now - _startedAt;
-            if (t < SettleSeconds) return;
-
-            if (t <= SettleSeconds + MeasureSeconds)
+            switch (CurrentPhase)
             {
-                if (_samples.Count == 0) View.SetStatus(CalibrationTexts.StabilityMeasuring);
-                _samples.Add((p.x, p.y));
-                return;
-            }
+                case Phase.WaitingToEnter:
+                    if (inside)
+                    {
+                        SetPhase(Phase.Settling, now);
+                        View.SetStatus(CalibrationTexts.StabilityGetReady);
+                    }
+                    else if (inPhase >= WaitToEnterSeconds)
+                    {
+                        Complete(); // never reached the circle: no data, result Uncertain
+                    }
+                    break;
 
-            _rms = _samples.Count > 0
-                ? SignalProcessing.RmsDeviation(_samples, _target.x, _target.y, _radius)
-                : 0;
+                case Phase.Settling:
+                    if (inPhase >= SettleSeconds)
+                    {
+                        SetPhase(Phase.Measuring, now);
+                        View.SetStatus(CalibrationTexts.StabilityMeasuring);
+                        _samples.Add((p.x, p.y));
+                    }
+                    break;
+
+                case Phase.Measuring:
+                    if (inPhase <= MeasureSeconds) _samples.Add((p.x, p.y));
+                    else Complete();
+                    break;
+            }
+        }
+
+        void Complete()
+        {
+            if (_samples.Count > 0)
+            {
+                _spread = SignalProcessing.Spread2D(_samples, _radius);
+                _meanOffset = SignalProcessing.MeanOffset(_samples, _target.x, _target.y, _radius);
+            }
+            CurrentPhase = Phase.Done;
             View.ShowStabilityArena(false);
             Finish();
         }
@@ -129,7 +172,8 @@ namespace AccessCalibration
             m.Stability = new StabilityMeasurement
             {
                 Device = Device,
-                RmsDeviation = _rms,
+                Spread = _spread,
+                MeanOffset = _meanOffset,
                 Confidence = WasSkipped ? Confidence.Skipped
                            : _samples.Count < 10 ? Confidence.Uncertain   // too few frames to trust
                            : Confidence.Ok,

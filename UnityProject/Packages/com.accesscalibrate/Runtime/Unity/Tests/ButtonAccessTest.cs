@@ -34,12 +34,13 @@ namespace AccessCalibration
         /// <summary>The game's main buttons. Defaults are only an example; games set their own.</summary>
         public List<ButtonPrompt> Buttons = DefaultButtons();
 
+        /// <summary>Example buttons. Names come from <see cref="CalibrationTexts"/> so they can be translated.</summary>
         public static List<ButtonPrompt> DefaultButtons() => new List<ButtonPrompt>
         {
-            new ButtonPrompt("Sărit (A / Spațiu)", "<Gamepad>/buttonSouth", "<Keyboard>/space"),
-            new ButtonPrompt("Acțiune (X / E)", "<Gamepad>/buttonWest", "<Keyboard>/e"),
-            new ButtonPrompt("Umăr stânga (LB / Q)", "<Gamepad>/leftShoulder", "<Keyboard>/q"),
-            new ButtonPrompt("Umăr dreapta (RB / R)", "<Gamepad>/rightShoulder", "<Keyboard>/r"),
+            new ButtonPrompt(CalibrationTexts.ButtonJump, "<Gamepad>/buttonSouth", "<Keyboard>/space"),
+            new ButtonPrompt(CalibrationTexts.ButtonAction, "<Gamepad>/buttonWest", "<Keyboard>/e"),
+            new ButtonPrompt(CalibrationTexts.ButtonLeftBumper, "<Gamepad>/leftShoulder", "<Keyboard>/q"),
+            new ButtonPrompt(CalibrationTexts.ButtonRightBumper, "<Gamepad>/rightShoulder", "<Keyboard>/r"),
         };
 
         int _index;

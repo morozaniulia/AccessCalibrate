@@ -83,26 +83,37 @@ namespace AccessCalibration.Core.Tests
         }
 
         [Test]
-        public void RmsDeviation_AllAtCentre_IsZero()
+        public void Spread2D_StillButOffCentre_IsZero()
         {
-            var samples = new List<(double, double)> { (5, 5), (5, 5) };
-            Assert.AreEqual(0, SignalProcessing.RmsDeviation(samples, 5, 5, 1), 1e-12);
+            // Perfectly still, far from any "centre": no spread at all.
+            var samples = new List<(double, double)> { (7, 3), (7, 3), (7, 3) };
+            Assert.AreEqual(0, SignalProcessing.Spread2D(samples, 1), 1e-12);
         }
 
         [Test]
-        public void RmsDeviation_IsNormalisedByRadius()
+        public void Spread2D_IsStandardDeviationAroundTheMean_NormalisedByRadius()
         {
-            // Distances 3 and 4 → RMS = sqrt((9 + 16) / 2) = 3.5355…; radius 10 → 0.35355…
-            var samples = new List<(double, double)> { (3, 0), (0, 4) };
-            Assert.AreEqual(Math.Sqrt(12.5) / 10, SignalProcessing.RmsDeviation(samples, 0, 0, 10), 1e-12);
+            // Points ±3 in x and ±4 in y around the mean (10, 10):
+            // squared distances 9, 9, 16, 16 → mean 12.5 → sqrt = 3.5355…; radius 10 → 0.35355…
+            var samples = new List<(double, double)> { (13, 10), (7, 10), (10, 14), (10, 6) };
+            Assert.AreEqual(Math.Sqrt(12.5) / 10, SignalProcessing.Spread2D(samples, 10), 1e-12);
         }
 
         [Test]
-        public void RmsDeviation_InvalidInput_Throws()
+        public void MeanOffset_IsDistanceFromCentreToTheMeanPoint()
         {
-            Assert.Throws<ArgumentException>(() => SignalProcessing.RmsDeviation(new List<(double, double)>(), 0, 0, 1));
+            // Mean point (3, 4) → distance 5 from origin; radius 10 → 0.5.
+            var samples = new List<(double, double)> { (2, 4), (4, 4) };
+            Assert.AreEqual(0.5, SignalProcessing.MeanOffset(samples, 0, 0, 10), 1e-12);
+        }
+
+        [Test]
+        public void Spread2D_And_MeanOffset_InvalidInput_Throw()
+        {
+            Assert.Throws<ArgumentException>(() => SignalProcessing.Spread2D(new List<(double, double)>(), 1));
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                SignalProcessing.RmsDeviation(new List<(double, double)> { (1, 1) }, 0, 0, 0));
+                SignalProcessing.Spread2D(new List<(double, double)> { (1, 1) }, 0));
+            Assert.Throws<ArgumentException>(() => SignalProcessing.MeanOffset(null, 0, 0, 1));
         }
     }
 }

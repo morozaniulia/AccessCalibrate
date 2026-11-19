@@ -191,7 +191,7 @@ namespace AccessCalibration.Core.Tests
         public void Stability_AboveThreshold_RaisesDeadzoneAndAimAssist()
         {
             var m = AllSkipped();
-            m.Stability = new StabilityMeasurement { RmsDeviation = 0.2, Confidence = Confidence.Ok };
+            m.Stability = new StabilityMeasurement { Spread = 0.2, Confidence = Confidence.Ok };
             var p = RulesEngine.Evaluate(m, _config).Profile;
             Assert.AreEqual(_config.IncreasedStickDeadzone, p.stickDeadzone);
             Assert.AreEqual(AimAssist.Medium, p.aimAssist);
@@ -201,17 +201,26 @@ namespace AccessCalibration.Core.Tests
         public void Stability_AtOrBelowThreshold_KeepsDefaults()
         {
             var m = AllSkipped();
-            m.Stability = new StabilityMeasurement { RmsDeviation = 0.15, Confidence = Confidence.Ok };
+            m.Stability = new StabilityMeasurement { Spread = 0.15, Confidence = Confidence.Ok };
             var p = RulesEngine.Evaluate(m, _config).Profile;
             Assert.AreEqual(_config.DefaultStickDeadzone, p.stickDeadzone);
             Assert.AreEqual(AimAssist.Off, p.aimAssist);
         }
 
         [Test]
+        public void Stability_LargeMeanOffset_ButNoSpread_ProposesNothing()
+        {
+            // Mean offset is information only: no rule may act on it.
+            var m = AllSkipped();
+            m.Stability = new StabilityMeasurement { Spread = 0, MeanOffset = 0.9, Confidence = Confidence.Ok };
+            Assert.IsEmpty(RulesEngine.Evaluate(m, _config).Changes);
+        }
+
+        [Test]
         public void Stability_MouseIsStricterThanGamepad()
         {
             var m = AllSkipped();
-            m.Stability = new StabilityMeasurement { RmsDeviation = 0.12, Confidence = Confidence.Ok, Device = InputDeviceKind.Mouse };
+            m.Stability = new StabilityMeasurement { Spread = 0.12, Confidence = Confidence.Ok, Device = InputDeviceKind.Mouse };
             Assert.AreEqual(AimAssist.Medium, RulesEngine.Evaluate(m, _config).Profile.aimAssist);
 
             m.Stability.Device = InputDeviceKind.Gamepad;
@@ -222,7 +231,7 @@ namespace AccessCalibration.Core.Tests
         public void Stability_Skipped_IsIgnored()
         {
             var m = AllSkipped();
-            m.Stability = new StabilityMeasurement { RmsDeviation = 0.9, Confidence = Confidence.Skipped };
+            m.Stability = new StabilityMeasurement { Spread = 0.9, Confidence = Confidence.Skipped };
             Assert.AreEqual(AimAssist.Off, RulesEngine.Evaluate(m, _config).Profile.aimAssist);
         }
 
@@ -308,7 +317,7 @@ namespace AccessCalibration.Core.Tests
                 Reaction = Reaction(800),
                 Hold = new HoldMeasurement { MaxHoldSeconds = 1, Confidence = Confidence.Ok },
                 Taps = new TapMeasurement { PressCount = 5, DurationSeconds = 5, Confidence = Confidence.Ok },
-                Stability = new StabilityMeasurement { RmsDeviation = 0.5, Confidence = Confidence.Ok },
+                Stability = new StabilityMeasurement { Spread = 0.5, Confidence = Confidence.Ok },
                 Buttons = Buttons(new[] { "A", "B" }, new[] { "B" }),
             };
             var r = RulesEngine.Evaluate(m, _config);

@@ -154,11 +154,11 @@ namespace AccessCalibration
             _skip.style.display = DisplayStyle.None;
             _hint.style.display = DisplayStyle.None;
             _counter.text = "";
-            _title.text = CalibrationTexts.SummaryTitle;
+            _title.text = CalibrationTexts.ConfirmTitle;
             _instructions.text = "";
             _summary.style.display = DisplayStyle.Flex;
             if (changes.Count == 0)
-                _summary.Add(new Label(CalibrationTexts.SummaryNothing) { name = "ac-summary-empty" });
+                _summary.Add(new Label(CalibrationTexts.ConfirmNothing) { name = "ac-summary-empty" });
             foreach (var c in changes)
             {
                 var row = new Label("• " + c.Summary);
