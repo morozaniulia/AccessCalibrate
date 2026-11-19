@@ -139,6 +139,48 @@ namespace AccessCalibration.Tests
             Assert.AreEqual(0.3f, AccessCalibrate.Profile.stickDeadzone);
         }
 
+        /// <summary>A store whose disk is full / read-only: every save fails.</summary>
+        sealed class FailingStore : IProfileStore
+        {
+            public System.Exception ToThrow;
+            public bool Exists => false;
+            public AccessibilityProfile Load() => null;
+            public void Save(AccessibilityProfile profile) => throw ToThrow;
+            public void Delete() { }
+        }
+
+        [Test]
+        public void SetProfile_WhenSavingFails_KeepsProfileInMemory_WarnsAndDoesNotThrow(
+            [Values("io", "access")] string failure)
+        {
+            AccessCalibrate.UseStore(new FailingStore
+            {
+                ToThrow = failure == "io"
+                    ? (System.Exception)new IOException("disk full")
+                    : new System.UnauthorizedAccessException("read-only"),
+            });
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Could not save"));
+
+            var p = new AccessibilityProfile { holdToToggle = true };
+            Assert.DoesNotThrow(() => AccessCalibrate.SetProfile(p));
+
+            Assert.IsTrue(AccessCalibrate.Profile.holdToToggle);   // still applied for this session
+            Assert.AreEqual(1, _changes.Count);                     // the game was still notified
+        }
+
+        [Test]
+        public void CorruptSavedFile_IsNotASavedProfile_SoCalibrationIsOfferedAgain()
+        {
+            Directory.CreateDirectory(_dir);
+            File.WriteAllText(_store.FilePath, "{ broken");
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Could not read"));
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Could not read"));
+
+            Assert.IsFalse(AccessCalibrate.HasSavedProfile);
+            Assert.IsTrue(AccessCalibrate.RunIfFirstLaunch());
+            Assert.AreEqual(1, _calibrationRequests);
+        }
+
         [Test]
         public void ImportInvalidJson_ChangesNothing_AndExplainsWhy()
         {

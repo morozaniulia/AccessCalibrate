@@ -66,9 +66,13 @@ namespace AccessCalibration
             // Write to a temporary file first, then swap it in, so a crash mid-write
             // can't leave a half-written profile behind.
             string tmp = FilePath + ".tmp";
+            if (File.Exists(tmp)) File.Delete(tmp); // leftover from an earlier crash
             File.WriteAllText(tmp, profile.ToJson());
-            if (File.Exists(FilePath)) File.Delete(FilePath);
-            File.Move(tmp, FilePath);
+
+            if (File.Exists(FilePath))
+                File.Replace(tmp, FilePath, null);   // one step: the old profile never disappears
+            else
+                File.Move(tmp, FilePath);
         }
 
         public void Delete()

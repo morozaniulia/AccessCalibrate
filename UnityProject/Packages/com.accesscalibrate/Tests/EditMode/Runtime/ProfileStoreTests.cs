@@ -65,6 +65,29 @@ namespace AccessCalibration.Tests
         }
 
         [Test]
+        public void Save_CleansUpALeftoverTempFile_FromAnEarlierCrash()
+        {
+            Directory.CreateDirectory(_dir);
+            File.WriteAllText(_store.FilePath + ".tmp", "half-written garbage");
+            _store.Save(new AccessibilityProfile { timingMultiplier = 1.5f });
+
+            Assert.IsFalse(File.Exists(_store.FilePath + ".tmp"));
+            Assert.AreEqual(1.5f, _store.Load().timingMultiplier);
+        }
+
+        [Test]
+        public void Save_WhenWritingFails_TheOldProfileIsStillThere()
+        {
+            _store.Save(new AccessibilityProfile { timingMultiplier = 1.5f });
+            // Block the temp file path with a folder so the new write cannot happen.
+            Directory.CreateDirectory(_store.FilePath + ".tmp");
+
+            Assert.That(() => _store.Save(new AccessibilityProfile { timingMultiplier = 2f }),
+                        Throws.InstanceOf<IOException>().Or.InstanceOf<System.UnauthorizedAccessException>());
+            Assert.AreEqual(1.5f, _store.Load().timingMultiplier);
+        }
+
+        [Test]
         public void Load_CorruptFile_ReturnsNull_AndWarns()
         {
             Directory.CreateDirectory(_dir);

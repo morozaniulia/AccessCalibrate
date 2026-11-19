@@ -46,3 +46,6 @@ TestResults*.xml
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Third-party asset archive (used in Step 5, not redistributed)
+/Ultimate Platformer Pack by Quaternius.zip

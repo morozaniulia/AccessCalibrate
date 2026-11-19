@@ -38,8 +38,11 @@ namespace AccessCalibration
 
         static IProfileStore Store => s_Store ?? (s_Store = new ProfileStore());
 
-        /// <summary>True once the player has accepted or skipped a calibration (a profile is saved).</summary>
-        public static bool HasSavedProfile => Store.Exists;
+        /// <summary>
+        /// True once the player has accepted or skipped a calibration and that profile can actually
+        /// be read back. A damaged file counts as "no profile", so the calibration is offered again.
+        /// </summary>
+        public static bool HasSavedProfile => Store.Load() != null;
 
         /// <summary>
         /// The current settings. Returns a copy: change settings with <see cref="SetProfile"/>
@@ -80,12 +83,24 @@ namespace AccessCalibration
             OnCalibrationRequested?.Invoke();
         }
 
-        /// <summary>Saves the settings the player confirmed and notifies the game.</summary>
+        /// <summary>
+        /// Saves the settings the player confirmed and notifies the game.
+        /// If the disk can't be written (full, read-only…), the settings still apply for this
+        /// session and a warning is logged — the game never crashes because of it.
+        /// </summary>
         public static void SetProfile(AccessibilityProfile profile)
         {
             if (profile == null) throw new ArgumentNullException(nameof(profile));
             s_Current = profile.Clone();
-            Store.Save(s_Current);
+            try
+            {
+                Store.Save(s_Current);
+            }
+            catch (Exception e) when (e is System.IO.IOException || e is UnauthorizedAccessException)
+            {
+                Debug.LogWarning($"[AccessCalibrate] Could not save the profile: {e.Message}. " +
+                                 "The settings apply for this session only.");
+            }
             OnProfileChanged?.Invoke(s_Current.Clone());
         }
 
