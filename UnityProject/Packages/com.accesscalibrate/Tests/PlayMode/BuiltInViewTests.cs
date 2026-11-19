@@ -83,6 +83,19 @@ namespace AccessCalibration.PlayModeTests
             Object.Destroy(tex);
         }
 
+        /// <summary>
+        /// Same screen with keyboard glyphs ("Enter", "Space"), saved as ui-&lt;name&gt;-keyboard.png:
+        /// the README images. The family is restored afterwards, so the test goes on as before.
+        /// </summary>
+        IEnumerator KeyboardSnapshot(string name)
+        {
+            var family = _view.GlyphFamily;
+            _view.ForceGlyphFamily(GlyphFamily.Keyboard);
+            yield return Snapshot(name + "-keyboard");
+            _view.ForceGlyphFamily(family);
+            yield return null;
+        }
+
         /// <summary>A press nothing on the current screen reacts to, so only the glyph family changes.</summary>
         IEnumerator UseDevice(UnityEngine.InputSystem.Controls.ButtonControl button)
         {
@@ -106,6 +119,7 @@ namespace AccessCalibration.PlayModeTests
             Assert.AreEqual(CalibrationTexts.WelcomeTitle, Q("ac-intro-title").text);
             Assert.AreEqual(54f, Q("ac-intro-title").resolvedStyle.fontSize, "USS tokens not applied");
             yield return Snapshot("1-welcome");
+            yield return KeyboardSnapshot("1-welcome");
 
             // 2. Check intro
             _runner.WelcomeStart();
@@ -118,6 +132,7 @@ namespace AccessCalibration.PlayModeTests
             _runner.Reaction.Tick(_now);
             Assert.IsTrue(_runner.Reaction.StimulusVisible);
             yield return Snapshot("3-reaction");
+            yield return KeyboardSnapshot("3-reaction");
 
             // 4. Hold, 2.4 s into a press
             _runner.SkipCurrent();
@@ -129,6 +144,7 @@ namespace AccessCalibration.PlayModeTests
             for (float t = 0; t < 0.5f; t += Time.unscaledDeltaTime) yield return null;   // ring animates
             Assert.AreEqual("2.4", Q("ac-hold-seconds").text);
             yield return Snapshot("4-hold");
+            yield return KeyboardSnapshot("4-hold");
             Release(_keyboard.spaceKey, time: _now);
             yield return null;
 
@@ -152,6 +168,7 @@ namespace AccessCalibration.PlayModeTests
             var measuring = Q("ac-stability-measuring");
             var left = Q("ac-stability-left");
             yield return Snapshot("5-steadiness");
+            yield return KeyboardSnapshot("5-steadiness");
             Assert.AreEqual(measuring.worldBound.center.y, left.worldBound.center.y, 4f, "\"Measuring\" and \"s left\" on one line");
             Assert.Greater(left.worldBound.xMin, measuring.worldBound.xMax, "at opposite ends");
 
@@ -173,6 +190,7 @@ namespace AccessCalibration.PlayModeTests
             Assert.AreEqual(1, _view.Root.Query(className: "ac-row--uncertain").ToList().Count);
             Assert.AreEqual(1, _view.Root.Query<DashedOutline>().ToList().Count);
             yield return Snapshot("6-confirmation");
+            yield return KeyboardSnapshot("6-confirmation");
             Assert.IsFalse(_view.ListFadeVisible, "everything fits: no edge is faded");
             Assert.IsTrue(_view.Root.Query(className: "ac-row").ToList().All(r => r.resolvedStyle.opacity > 0.999f));
             var apply = _view.Root.Q<Button>("ac-apply");
@@ -183,8 +201,10 @@ namespace AccessCalibration.PlayModeTests
             // Themes switch live, without rebuilding the screen
             AccessCalibrate.UseTheme(ThemePreset.GlassLight);
             yield return Snapshot("7-confirmation-glass-light");
+            yield return KeyboardSnapshot("7-confirmation-glass-light");
             AccessCalibrate.UseTheme(ThemePreset.HighContrast);
             yield return Snapshot("8-confirmation-high-contrast");
+            yield return KeyboardSnapshot("8-confirmation-high-contrast");
             AccessCalibrate.UseTheme(ThemePreset.GlassDark);
 
             // PlayStation glyphs (drawn shapes). Device → family is covered by GlyphFamilyTests.

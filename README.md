@@ -4,15 +4,15 @@
 
 AccessCalibrate is an open-source Unity toolkit that applies ideas from **ability-based design** to a 60-second motor calibration with **transparent rules**. On first launch a player goes through five short checks: reaction, comfortable hold, repeated presses, steadiness and button reach. The game then suggests accessibility settings: longer timing windows, skippable quick-time events, hold-to-toggle, holding instead of mashing, a bigger stick deadzone, aim assist and button remapping. Each suggestion comes with the measurement and the rule behind it. **The player decides:** every suggestion is a switch, uncertain ones start off, and nothing changes until the player presses *Apply*.
 
+
 **[Install](#install) · [Demo](#demo) · [Results](#results) · [Design spec](Docs/DESIGN_SPEC.md)**
 
 | | | |
 |---|---|---|
 | ![Welcome screen](Docs/images/ui-1-welcome.png) | ![Reaction check](Docs/images/ui-3-reaction.png) | ![Hold check](Docs/images/ui-4-hold.png) |
-| ![Steadiness check](Docs/images/ui-5-steadiness.png) | ![Suggested settings](Docs/images/ui-6-confirmation.png) | ![High Contrast theme](Docs/images/ui-8-confirmation-high-contrast.png) |
-| ![Demo: quick-time event](Docs/images/demo-2-quick-time.png) | ![Demo: lever](Docs/images/demo-3-lever.png) | |
+| ![Steadiness check](Docs/images/ui-5-steadiness.png) | ![Suggested settings](Docs/images/ui-6-confirmation.png) | |
 
-*All images are rendered by the automated tests (`BuiltInViewTests`, `DemoLevelTests`); the measurements shown are test inputs, not data from players.*
+*All images are rendered by the automated tests (`BuiltInViewTests`); the measurements shown are test inputs, not data from players.*
 
 ## Why
 
@@ -191,6 +191,11 @@ There are three presets: **Glass Dark** (default), **Glass Light** and **High Co
 ```csharp
 AccessCalibrate.UseTheme(ThemePreset.HighContrast);
 ```
+
+| | | |
+|---|---|---|
+| ![Suggested settings, Glass Dark](Docs/images/ui-6-confirmation.png) | ![Suggested settings, Glass Light](Docs/images/ui-7-confirmation-glass-light.png) | ![Suggested settings, High Contrast](Docs/images/ui-8-confirmation-high-contrast.png) |
+| Glass Dark | Glass Light | High Contrast |
 
 A theme USS only overrides variables, and it is applied after the default stylesheet:
 
