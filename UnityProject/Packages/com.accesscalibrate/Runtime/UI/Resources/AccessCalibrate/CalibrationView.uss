@@ -1,0 +1,77 @@
+/* Placeholder style: big text, high contrast (white / yellow on near-black), simple shapes. */
+
+.ac-root {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background-color: rgb(14, 14, 16);
+    align-items: center;
+    justify-content: center;
+}
+
+.ac-card {
+    width: 1400px;
+    max-width: 92%;
+    align-items: center;
+}
+
+.ac-counter { font-size: 30px; color: rgb(200, 200, 205); margin-bottom: 8px; }
+.ac-title { font-size: 72px; color: rgb(255, 255, 255); -unity-font-style: bold; margin-bottom: 16px; }
+.ac-instructions {
+    font-size: 40px; color: rgb(255, 255, 255);
+    white-space: normal; -unity-text-align: middle-center;
+    max-width: 1200px; margin-bottom: 24px;
+}
+
+.ac-stage { height: 420px; width: 100%; align-items: center; justify-content: center; }
+
+/* Reaction / hold / tap signal: a big solid yellow circle. It appears, it never flashes. */
+.ac-stimulus {
+    width: 320px; height: 320px;
+    border-radius: 160px;
+    background-color: rgb(255, 212, 0);
+    border-width: 8px;
+    border-color: rgb(255, 255, 255);
+    opacity: 0;
+    scale: 0.85 0.85;
+    transition-property: scale;
+    transition-duration: 0.12s;
+}
+.ac-stimulus--on { opacity: 1; scale: 1 1; }
+
+/* Stability arena: 400 px square, target circle radius 100 px in the middle. */
+.ac-arena { position: absolute; width: 400px; height: 400px; }
+.ac-target {
+    position: absolute; left: 100px; top: 100px;
+    width: 200px; height: 200px; border-radius: 100px;
+    border-width: 6px; border-color: rgb(255, 255, 255);
+}
+.ac-target--inside { border-color: rgb(255, 212, 0); }
+.ac-cursor {
+    position: absolute; left: 186px; top: 186px;
+    width: 28px; height: 28px; border-radius: 14px;
+    background-color: rgb(255, 212, 0);
+    border-width: 3px; border-color: rgb(0, 0, 0);
+}
+
+.ac-prompt {
+    font-size: 72px; color: rgb(255, 212, 0); -unity-font-style: bold;
+    -unity-text-align: middle-center; white-space: normal;
+}
+
+.ac-status { font-size: 36px; color: rgb(255, 255, 255); min-height: 50px; margin-top: 16px; }
+
+.ac-summary { margin-top: 16px; align-items: flex-start; }
+.ac-summary-row, #ac-summary-empty { font-size: 32px; color: rgb(255, 255, 255); margin: 6px 0; white-space: normal; }
+
+.ac-footer { flex-direction: row; align-items: center; margin-top: 40px; }
+.ac-hint { font-size: 26px; color: rgb(200, 200, 205); margin-right: 24px; }
+.ac-skip {
+    font-size: 30px; padding: 10px 28px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(40, 40, 46);
+    border-width: 3px; border-color: rgb(255, 255, 255); border-radius: 8px;
+}
+.ac-skip:hover, .ac-skip:focus { border-color: rgb(255, 212, 0); }
+
+/* Reduce motion: no transitions at all. */
+.ac-reduce-motion .ac-stimulus { transition-duration: 0s; scale: 1 1; }

@@ -1,0 +1,24 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <!-- Placeholder layout. Styles: CalibrationView.uss (loaded from code). -->
+    <ui:VisualElement name="ac-root" class="ac-root">
+        <ui:VisualElement name="ac-card" class="ac-card">
+            <ui:Label name="ac-counter" class="ac-counter" />
+            <ui:Label name="ac-title" class="ac-title" />
+            <ui:Label name="ac-instructions" class="ac-instructions" />
+            <ui:VisualElement name="ac-stage" class="ac-stage">
+                <ui:VisualElement name="ac-stimulus" class="ac-stimulus" />
+                <ui:VisualElement name="ac-arena" class="ac-arena">
+                    <ui:VisualElement name="ac-target" class="ac-target" />
+                    <ui:VisualElement name="ac-cursor" class="ac-cursor" />
+                </ui:VisualElement>
+                <ui:Label name="ac-prompt" class="ac-prompt" />
+            </ui:VisualElement>
+            <ui:Label name="ac-status" class="ac-status" />
+            <ui:VisualElement name="ac-summary" class="ac-summary" />
+            <ui:VisualElement class="ac-footer">
+                <ui:Label name="ac-hint" class="ac-hint" />
+                <ui:Button name="ac-skip" class="ac-skip" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

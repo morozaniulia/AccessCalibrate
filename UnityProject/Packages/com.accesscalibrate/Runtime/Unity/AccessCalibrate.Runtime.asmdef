@@ -2,7 +2,8 @@
     "name": "AccessCalibrate.Runtime",
     "rootNamespace": "AccessCalibration",
     "references": [
-        "AccessCalibrate.Core"
+        "AccessCalibrate.Core",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
