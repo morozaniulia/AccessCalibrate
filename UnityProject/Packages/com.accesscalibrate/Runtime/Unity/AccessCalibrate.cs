@@ -30,6 +30,25 @@ namespace AccessCalibration
         /// </summary>
         public static event Action OnCalibrationRequested;
 
+        /// <summary>Raised when <see cref="UseTheme(CalibrationTheme)"/> switches the look of the calibration screens.</summary>
+        public static event Action<CalibrationTheme> OnThemeChanged;
+
+        /// <summary>
+        /// The theme chosen at runtime (e.g. the game's own "high contrast" setting). When null, each
+        /// CalibrationRunner uses its own theme field, and an empty field means Glass Dark.
+        /// </summary>
+        public static CalibrationTheme Theme { get; private set; }
+
+        /// <summary>Switch the calibration screens' theme; open screens update immediately.</summary>
+        public static void UseTheme(CalibrationTheme theme)
+        {
+            Theme = theme;
+            OnThemeChanged?.Invoke(theme);
+        }
+
+        /// <summary>Switch to one of the built-in presets (Glass Dark, Glass Light, High Contrast).</summary>
+        public static void UseTheme(ThemePreset preset) => UseTheme(CalibrationTheme.FromPreset(preset));
+
         /// <summary>The thresholds used by the rules engine. Games may replace or edit it before calibrating.</summary>
         public static RulesConfig Config { get; set; } = new RulesConfig();
 
@@ -155,6 +174,8 @@ namespace AccessCalibration
         {
             OnProfileChanged = null;
             OnCalibrationRequested = null;
+            OnThemeChanged = null;
+            Theme = null;
             Config = new RulesConfig();
             s_Store = null;
             s_Current = null;

@@ -1,0 +1,37 @@
+/* Glass Light: dark text on a light translucent panel. Overrides tokens only. */
+.ac-root {
+    --ac-overlay: rgba(236, 239, 245, 0.45);
+    --ac-panel: rgba(250, 251, 253, 0.92);
+    --ac-panel-blurred: rgba(250, 251, 253, 0.70);
+    --ac-panel-border: rgba(11, 12, 16, 0.12);
+    --ac-panel-highlight: rgba(255, 255, 255, 0.90);
+    --ac-divider: rgba(11, 12, 16, 0.10);
+    --ac-glass-border: rgba(11, 12, 16, 0.14);
+    --ac-glass-highlight: rgba(255, 255, 255, 0.95);
+    --ac-text: #0B0C10;
+    --ac-text-secondary: rgba(11, 12, 16, 0.78);
+    --ac-text-muted: rgba(11, 12, 16, 0.64);
+    --ac-text-upcoming: rgba(11, 12, 16, 0.88);
+    --ac-text-hint: rgba(11, 12, 16, 0.72);
+    --ac-text-reason: rgba(11, 12, 16, 0.68);
+    --ac-surface: rgba(11, 12, 16, 0.05);
+    --ac-surface-row: rgba(11, 12, 16, 0.035);
+    --ac-surface-row-border: rgba(11, 12, 16, 0.12);
+    --ac-surface-uncertain: rgba(11, 12, 16, 0.015);
+    --ac-surface-focus: rgba(11, 12, 16, 0.08);
+    --ac-focus-border: rgba(11, 12, 16, 0.60);
+    --ac-focus-highlight: rgba(255, 255, 255, 0.95);
+    --ac-track: rgba(11, 12, 16, 0.16);
+    --ac-focus: #0B0C10;
+    --ac-focus-soft: rgba(11, 12, 16, 0.50);
+    --ac-on-focus: #FFFFFF;
+    --ac-primary-halo: rgba(11, 12, 16, 0.18);
+    --ac-ring: rgba(11, 12, 16, 0.22);
+    --ac-knob-off: #FFFFFF;
+    --ac-arena-fill: rgba(11, 12, 16, 0.04);
+    --ac-arena-border: rgba(11, 12, 16, 0.16);
+    --ac-crosshair: rgba(11, 12, 16, 0.10);
+    --ac-trail: rgba(11, 12, 16, 0.30);
+    --ac-cursor-halo: rgba(255, 255, 255, 0.90);
+    --ac-uncertain-border: rgba(11, 12, 16, 0.40);
+}

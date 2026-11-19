@@ -34,6 +34,8 @@ namespace AccessCalibration.Core
         public string Comparison;
         /// <summary>The measurement had too few valid trials; the player should double-check this one.</summary>
         public bool IsUncertain;
+        /// <summary>Button proposals: how many buttons the game asked about (for "2 of 4 buttons…").</summary>
+        public int Total;
 
         /// <summary>Plain technical summary, e.g. "reaction median 620 ms > 500 ms → timingMultiplier = 1.5".</summary>
         public string Summary =>
@@ -155,6 +157,7 @@ namespace AccessCalibration.Core
                 result.Profile.remapSuggestions = new List<string>(b.UnpressedButtons);
                 Add(result, b, MeasurementKind.Buttons, "remapSuggestions", string.Join(", ", b.UnpressedButtons),
                     "buttons not pressed", missed, "buttons", 1, "≥");
+                result.Changes[result.Changes.Count - 1].Total = total;
             }
             // One-handed layout only makes sense when the game asked about at least 2 buttons.
             if (total >= 2 && missed * 2 >= total)
@@ -162,6 +165,7 @@ namespace AccessCalibration.Core
                 result.Profile.suggestOneHandedLayout = true;
                 Add(result, b, MeasurementKind.Buttons, "suggestOneHandedLayout", "true",
                     "buttons not pressed", missed, "buttons", total / 2.0, "≥");
+                result.Changes[result.Changes.Count - 1].Total = total;
             }
         }
 

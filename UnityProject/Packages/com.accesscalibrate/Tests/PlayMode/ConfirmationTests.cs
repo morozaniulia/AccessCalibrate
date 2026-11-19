@@ -197,12 +197,31 @@ namespace AccessCalibration.PlayModeTests
         }
 
         [Test]
+        public void ButtonReasons_SayHowManyOfHowMany()
+        {
+            _runner.ShowProposal(new Measurements
+            {
+                Buttons = new ButtonAccessMeasurement
+                {
+                    RequestedButtons = { "A", "B", "X", "Y" }, UnpressedButtons = { "X", "Y" }, Confidence = Confidence.Ok,
+                },
+            });
+            Assert.AreEqual("2 of 4 buttons not reached in time → X, Y",
+                ProposalTexts.Reason(_runner.Review.Items[IndexOf("remapSuggestions")].Change));
+            Assert.AreEqual("Half of the buttons not reached in time",
+                ProposalTexts.Reason(_runner.Review.Items[IndexOf("suggestOneHandedLayout")].Change));
+        }
+
+        [Test]
         public void ProposalTexts_ShowValueAndReason_InPlainWords()
         {
             _runner.ShowProposal(Sample());
             var timing = _runner.Review.Items[IndexOf("timingMultiplier")].Change;
-            Assert.AreEqual("More time for quick moments (timing windows ×1.5)", ProposalTexts.Title(timing));
-            Assert.AreEqual("Median reaction time 600 ms (rule: above 450 ms)", ProposalTexts.Reason(timing));
+            Assert.AreEqual("More time for quick moments", ProposalTexts.Title(timing));
+            Assert.AreEqual("Median reaction 600 ms · rule: above 450 ms → timing windows ×1.5", ProposalTexts.Reason(timing));
+
+            var hold = _runner.Review.Items[IndexOf("holdToToggle")].Change;   // uncertain
+            Assert.AreEqual("Longest hold 1.2 s · not measured reliably, so it starts off", ProposalTexts.Reason(hold));
         }
     }
 }

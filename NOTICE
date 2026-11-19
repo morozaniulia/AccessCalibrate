@@ -13,3 +13,12 @@ uses 3D models from "Ultimate Platformer Pack" by Quaternius (https://quaternius
 released under CC0 1.0 Universal (Public Domain Dedication):
 https://creativecommons.org/publicdomain/zero/1.0/
 Only the models used by the demo are included; they are unmodified.
+
+Font
+----
+The calibration screens use the Manrope typeface (Copyright 2018 The Manrope Project
+Authors, https://github.com/googlefonts/manrope), licensed under the SIL Open Font License,
+Version 1.1. The license text is included next to the font files:
+Packages/com.accesscalibrate/Runtime/UI/Resources/AccessCalibrate/Fonts/OFL.txt
+The included files are static instances (weights 500, 600, 700, 800) generated with
+fontTools from the variable font published in the Google Fonts repository; glyphs are unchanged.

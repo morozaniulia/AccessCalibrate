@@ -22,12 +22,28 @@ namespace AccessCalibration
     public static class CalibrationTexts
     {
         // ------------------------------------------------------------- general
-        public static string IntroPressToStart = "Press any button when you're ready.";
-        public static string SkipHint = "You can skip at any time (Esc / Select).";
+        public static string IntroPressToStart = "Press any button when you're ready";
+        public static string WaitingForInput = "Waiting for input";
+        public static string SkipHint = "Skip";
+        public static string SkipCheckHint = "Skip this check";
+        public static string MoveHint = "Move";
         public static string SkipButton = "Skip";
         public static string TestCounter = "Test {0} of {1}";
+        /// <summary>Chip in the top bar of a running check: "01 / 05".</summary>
+        public static string Chip = "{0:00} / {1:00}";
+        public static string StepOf = "Step {0} of {1}";
         /// <summary>A button is still held when a test starts (e.g. from the intro card).</summary>
         public static string LetGoToBegin = "Let go of the button to begin.";
+
+        // ------------------------------------------------------------- welcome + rail
+        public static string RailEyebrow = "CONTROL SETUP";
+        public static string RailNoteWelcome = "About 1 minute. You can redo it anytime from Options.";
+        public static string RailNoteIntro = "There's no right or wrong result.";
+        public static string WelcomeTitle = "Set up the controls around how you play";
+        public static string WelcomeBody = "Five quick checks, no score. We'll suggest settings, and you choose which ones to keep.";
+        public static string WelcomeStart = "Start";
+        public static string WelcomeNotNow = "Not now";
+        public static string WelcomeNotNowNote = "Uses default settings";
 
         // ------------------------------------------------------------- 1. reaction
         public static string ReactionTitle = "Reaction";
@@ -37,6 +53,9 @@ namespace AccessCalibration
         public static string ReactionTooEarly = "A little early — no problem, let's continue.";
         public static string ReactionRetry = "Let's do one more short round.";
         public static string ReactionLetGo = "Let go of the button — the next signal comes after that.";
+        public static string ReactionSignal = "Press";
+        public static string ReactionLineBelow = "Any button, as soon as the circle appears";
+        public static string ToneNote = "A soft tone plays with each signal";
 
         // ------------------------------------------------------------- 2. hold
         public static string HoldTitle = "Hold";
@@ -46,12 +65,17 @@ namespace AccessCalibration
         public static string HoldMaxReached = "That's it, you can let go.";
         public static string HoldTrial = "Try {0} of {1}";
         public static string HoldLetGo = "Let go, then press and hold.";
+        public static string HoldSecondsOf = "seconds of {0:0}";
+        public static string HoldKeepHolding = "Keep holding";
+        public static string HoldLetGoWhen = "Let go when it stops feeling comfortable";
 
         // ------------------------------------------------------------- 3. repeated presses
         public static string TapsTitle = "Repeated presses";
         public static string TapsInstructions = "Press a button as many times as is comfortable, for 5 seconds. The timer starts at your first press.";
         public static string TapsWaiting = "Start whenever you like.";
         public static string TapsCounting = "Presses: {0}";
+        public static string TapsPresses = "presses";
+        public static string SecondsLeft = "{0:0.0} s left";
 
         // ------------------------------------------------------------- 4. stability
         public static string StabilityTitle = "Steadiness";
@@ -59,44 +83,63 @@ namespace AccessCalibration
         public static string StabilityInstructionsMouse = "Move the cursor into the circle, then keep it there as still as is comfortable.";
         public static string StabilityBringIn = "Bring the dot into the circle.";
         public static string StabilityGetReady = "Good — get settled…";
-        public static string StabilityMeasuring = "Keep it there…";
+        public static string StabilityMeasuring = "Measuring";
+        public static string StabilityHeadline = "Keep the dot in the circle";
+        public static string StabilityBody = "Hold it as still as is comfortable. It doesn't need to be centred: we only look at how much it moves.";
+        public static string DeviceLeftStick = "Left stick";
+        public static string DeviceMouse = "Mouse";
 
         // ------------------------------------------------------------- 5. button access
         public static string ButtonsTitle = "Button reach";
         public static string ButtonsInstructions = "Press the button shown. If one is hard to reach, just wait — we'll move on by ourselves.";
         public static string ButtonsPrompt = "Press: {0}";
+        public static string ButtonsSub = "Press it if you can reach it — or just wait";
+        public static string ButtonsCount = "{0} of {1}";
         public static string ButtonJump = "Jump (A / Space)";
         public static string ButtonAction = "Action (X / E)";
         public static string ButtonLeftBumper = "Left bumper (LB / Q)";
         public static string ButtonRightBumper = "Right bumper (RB / R)";
 
         // ------------------------------------------------------------- confirmation screen
+        public static string ConfirmEyebrow = "CONTROL SETUP · DONE";
         public static string ConfirmTitle = "Here's what we suggest";
-        public static string ConfirmIntro = "Turn on what you want. You can change these settings any time from the options menu.";
-        public static string ConfirmNothing = "No changes suggested. You can still adjust everything from the options menu.";
-        public static string ConfirmAccept = "Accept";
-        public static string ConfirmRedo = "Redo calibration";
-        public static string ConfirmSkip = "Skip";
-        /// <summary>Shown under a proposal whose measurement was uncertain (those start switched off).</summary>
-        public static string ConfirmUncertain = "Check this: we couldn't measure this reliably.";
+        public static string ConfirmNote = "Keep what helps. Change it anytime in Options.";
+        public static string ConfirmNothing = "No changes suggested. You can still adjust everything in Options.";
+        /// <summary>Primary button, live: N switched on / 1 / none.</summary>
+        public static string ConfirmApplyMany = "Apply {0} settings";
+        public static string ConfirmApplyOne = "Apply 1 setting";
+        public static string ConfirmApplyNone = "Continue without changes";
+        public static string ConfirmRedo = "Redo setup";
+        public static string ConfirmSkip = "Not now";
+        public static string ToggleHint = "Turn on / off";
+        /// <summary>Appended to the measurement of an uncertain proposal (those start switched off).</summary>
+        public static string ConfirmUncertain = "not measured reliably, so it starts off";
 
-        // One line per setting. {0} = proposed value.
-        public static string SettingTimingMultiplier = "More time for quick moments (timing windows ×{0})";
+        // One title per setting, in plain words.
+        public static string SettingTimingMultiplier = "More time for quick moments";
         public static string SettingQteSkippable = "Quick-time events can be skipped";
         public static string SettingHoldToToggle = "Press once instead of holding";
-        public static string SettingMashingHoldInstead = "Hold a button instead of pressing it rapidly";
-        public static string SettingStickDeadzone = "Ignore small stick movements (deadzone {0})";
-        public static string SettingAimAssist = "Aim assist: {0}";
-        public static string SettingRemap = "Suggest remapping: {0}";
-        public static string SettingOneHanded = "Suggest a one-handed control layout";
+        public static string SettingMashingHoldInstead = "Hold instead of pressing rapidly";
+        public static string SettingStickDeadzone = "Ignore small stick movements";
+        public static string SettingAimAssist = "Aim assist";
+        public static string SettingRemap = "Remap hard-to-reach buttons";
+        public static string SettingOneHanded = "One-handed control layout";
 
-        // Why each setting was suggested. {0} = measured value, {1} = rule threshold.
-        public static string ReasonReaction = "Median reaction time {0:0} ms (rule: above {1:0} ms)";
-        public static string ReasonHold = "Longest comfortable hold {0:0.0} s (rule: below {1:0.0} s)";
-        public static string ReasonTaps = "{0:0.0} presses per second (rule: below {1:0.0})";
-        public static string ReasonStability = "Cursor spread {0:0.00} of the circle radius (rule: above {1:0.00})";
-        public static string ReasonButtonsMissed = "{0:0} button(s) not pressed in time";
-        /// <summary>{0} = buttons not pressed, {1} = buttons asked for.</summary>
-        public static string ReasonButtonsHalf = "{0:0} of {1:0} buttons not pressed in time (rule: at least half)";
+        // Why: "<measurement> · <rule> → <effect>". {0} = measured value, {1} = rule threshold.
+        public static string MeasureReaction = "Median reaction {0:0} ms";
+        public static string MeasureHold = "Longest hold {0:0.0} s";
+        public static string MeasureTaps = "{0:0.0} presses per second";
+        public static string MeasureStability = "Cursor spread {0:0.00} of the circle";
+        /// <summary>{0} = buttons not reached, {1} = buttons asked for.</summary>
+        public static string MeasureButtonsMissed = "{0:0} of {1:0} buttons not reached in time";
+        public static string MeasureButtonsHalf = "Half of the buttons not reached in time";
+        public static string RuleAboveMs = "rule: above {0:0} ms";
+        public static string RuleBelowSeconds = "rule: below {0:0.#} s";
+        public static string RuleBelowPerSecond = "rule: below {0:0.#} per second";
+        public static string RuleAbove = "rule: above {0:0.00}";
+        public static string EffectTiming = "timing windows ×{0}";
+        public static string EffectDeadzone = "deadzone {0}";
+        public static string EffectAimAssist = "{0}";
+        public static string EffectRemap = "{0}";
     }
 }

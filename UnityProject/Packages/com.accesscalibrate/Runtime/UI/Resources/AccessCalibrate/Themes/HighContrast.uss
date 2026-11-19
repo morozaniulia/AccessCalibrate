@@ -1,0 +1,37 @@
+/* High Contrast: solid black panel, pure white text, yellow focus, no translucency. Overrides tokens only. */
+.ac-root {
+    --ac-overlay: rgba(0, 0, 0, 0.92);
+    --ac-panel: #000000;
+    --ac-panel-blurred: #000000;
+    --ac-panel-border: #FFFFFF;
+    --ac-panel-highlight: #FFFFFF;
+    --ac-divider: #FFFFFF;
+    --ac-glass-border: #FFFFFF;
+    --ac-glass-highlight: #FFFFFF;
+    --ac-text: #FFFFFF;
+    --ac-text-secondary: #FFFFFF;
+    --ac-text-muted: #E6E6E6;
+    --ac-text-upcoming: #FFFFFF;
+    --ac-text-hint: #FFFFFF;
+    --ac-text-reason: #E6E6E6;
+    --ac-surface: #141414;
+    --ac-surface-row: #0A0A0A;
+    --ac-surface-row-border: #BFBFBF;
+    --ac-surface-uncertain: #000000;
+    --ac-surface-focus: #1F1F1F;
+    --ac-focus-border: #FFE600;
+    --ac-focus-highlight: #FFE600;
+    --ac-track: #5C5C5C;
+    --ac-focus: #FFE600;
+    --ac-focus-soft: #B3A100;
+    --ac-on-focus: #000000;
+    --ac-primary-halo: #FFFFFF;
+    --ac-ring: #FFFFFF;
+    --ac-knob-off: #FFFFFF;
+    --ac-arena-fill: #0A0A0A;
+    --ac-arena-border: #FFFFFF;
+    --ac-crosshair: #5C5C5C;
+    --ac-trail: #B3B3B3;
+    --ac-cursor-halo: #000000;
+    --ac-uncertain-border: #FFFFFF;
+}

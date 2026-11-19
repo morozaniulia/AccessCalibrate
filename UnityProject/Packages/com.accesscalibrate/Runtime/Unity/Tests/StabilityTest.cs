@@ -44,6 +44,12 @@ namespace AccessCalibration
         public Phase CurrentPhase { get; private set; }
         public int SampleCount => _samples.Count;
 
+        // Read-only progress for screens (no effect on the measurement).
+        /// <summary>Seconds of measuring left (the full time before measuring starts).</summary>
+        public double SecondsLeft =>
+            CurrentPhase == Phase.Measuring ? System.Math.Max(0, MeasureSeconds - (Clock() - _phaseStart))
+            : CurrentPhase == Phase.Done ? 0 : MeasureSeconds;
+
         double _phaseStart;
         Vector2 _target;
         float _radius;

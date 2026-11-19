@@ -53,6 +53,11 @@ namespace AccessCalibration
         public override string Title => CalibrationTexts.ButtonsTitle;
         public override string Instructions => CalibrationTexts.ButtonsInstructions;
 
+        // Read-only progress for screens (no effect on the measurement).
+        /// <summary>0-based index of the button being asked for.</summary>
+        public int PromptIndex => Math.Max(0, _index);
+        public double PromptSecondsLeft => Math.Max(0, SecondsPerButton - (Clock() - _shownAt));
+
         /// <summary>The button currently asked for (null when done). Exposed for tests.</summary>
         public ButtonPrompt CurrentPrompt => IsRunning && _index < Buttons.Count ? Buttons[_index] : null;
 

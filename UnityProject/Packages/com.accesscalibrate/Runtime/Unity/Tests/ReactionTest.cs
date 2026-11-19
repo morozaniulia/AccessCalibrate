@@ -38,6 +38,10 @@ namespace AccessCalibration
         public double StimulusShownAt { get; private set; }
         public bool StimulusVisible => IsRunning && _state == State.Showing;
 
+        // Read-only progress for screens (no effect on the measurement).
+        /// <summary>The trial in progress, 1-based, within the current round.</summary>
+        public int TrialNumber => Math.Min(_round.Count + 1, Trials);
+
         public override string Title => CalibrationTexts.ReactionTitle;
         public override string Instructions => CalibrationTexts.ReactionInstructions;
 

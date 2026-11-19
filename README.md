@@ -51,6 +51,54 @@ python tools/plot_study.py study.csv other-device.csv -o study.png
 
 The script prints a table of medians per label, then draws one small chart per measurement. Each chart shows one dot per session, a line at each label's median, and the rule threshold as a dashed line. Uncertain measurements appear as hollow dots, and skipped ones are left out. Use `--table-only` to skip the chart (then matplotlib isn't needed). To run the script's tests: `cd tools && python -m unittest test_plot_study.py`.
 
+## Theming
+
+The built-in screens follow the "console overlay" design in [`Docs/DESIGN_SPEC.md`](Docs/DESIGN_SPEC.md): a translucent panel over the game, a step rail, a large white focus, and controller glyphs that follow the device in use (Xbox, PlayStation, Switch, keyboard). Every colour, radius and font in the stylesheet is a `--ac-…` variable defined on `.ac-root`.
+
+There are three presets: **Glass Dark** (default), **Glass Light** and **High Contrast** (solid black, white text, yellow focus). To use one, create a theme asset (**Assets → Create → AccessCalibrate → Theme**), pick a preset, optionally add your own USS and font, and assign it to `CalibrationRunner.Theme`. Changes show up live in Play mode. At runtime, for example when the game's own high-contrast option is on, call:
+
+```csharp
+AccessCalibrate.UseTheme(ThemePreset.HighContrast);
+```
+
+A theme USS only overrides variables, and it is applied after the default stylesheet:
+
+```css
+/* MyGameTheme.uss: warm accent, squarer corners */
+.ac-root {
+    --ac-focus: #FFB347;             /* primary button, current step, switches "on" */
+    --ac-on-focus: #1A1206;          /* text on the accent */
+    --ac-panel: rgba(28, 20, 12, 0.90);
+    --ac-panel-border: rgba(255, 179, 71, 0.30);
+    --ac-radius-panel: 12px;
+    --ac-radius-control: 8px;
+    --ac-radius-row: 6px;
+}
+```
+
+| Token | Glass Dark default | Used for |
+|---|---|---|
+| `--ac-overlay` | `rgba(8, 10, 14, 0.55)` | full-screen dim over the game |
+| `--ac-panel` | `rgba(20, 22, 30, 0.88)` | main panel |
+| `--ac-panel-border` / `--ac-panel-highlight` | white 14% / 22% | panel hairline / top-edge highlight |
+| `--ac-divider` | white 10% | rail divider |
+| `--ac-glass-border` / `--ac-glass-highlight` | white 16% / 20% | glass controls: border / top edge |
+| `--ac-text` | `#FFFFFF` | titles, labels |
+| `--ac-text-secondary` | white 78% | body text |
+| `--ac-text-muted` | white 62% | eyebrows, counters, notes |
+| `--ac-text-hint` / `--ac-text-reason` | white 72% / 68% | hint bar / reason lines |
+| `--ac-surface` / `--ac-surface-row` | white 7% / 5% | secondary buttons, chips / setting rows |
+| `--ac-surface-focus` / `--ac-focus-border` | white 10% / 55% | focused row background / border |
+| `--ac-focus` / `--ac-on-focus` | `#FFFFFF` / `#0B0C10` | primary button, current step, switch on, signal / text on it |
+| `--ac-track` | white 16% | progress tracks, switch off |
+| `--ac-uncertain-border` | white 34% | dashed outline of an uncertain row |
+| `--ac-radius-panel` / `-control` / `-row` | `36px` / `20px` / `16px` | corners |
+| `--ac-font-500` … `--ac-font-800` | Manrope Medium … ExtraBold | text weights |
+
+A test checks that every preset keeps text at **4.5:1 contrast or more** over a black, a white and a grey game behind the panel. Another test checks that the stylesheet uses no colour that isn't a token.
+
+Font: [Manrope](https://github.com/googlefonts/manrope), under the SIL Open Font License 1.1 (see `NOTICE` and `Fonts/OFL.txt`). A theme's `font` field replaces it everywhere.
+
 ## Translating the texts
 
 Every text the player sees lives in `CalibrationTexts` (static strings). To translate it, assign your own values once at startup, before the calibration runs:

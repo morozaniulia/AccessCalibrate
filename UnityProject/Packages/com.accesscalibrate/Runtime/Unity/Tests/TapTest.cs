@@ -1,5 +1,6 @@
 // Copyright 2026 Morozan Iulia. Licensed under the Apache License, Version 2.0.
 
+using System;
 using AccessCalibration.Core;
 using UnityEngine.InputSystem;
 
@@ -25,6 +26,10 @@ namespace AccessCalibration
         public override string Instructions => CalibrationTexts.TapsInstructions;
 
         public bool IsCounting => IsRunning && !double.IsNaN(_windowStart);
+
+        // Read-only progress for screens (no effect on the measurement).
+        public int PressCount => _count;
+        public double SecondsLeft => IsCounting ? Math.Max(0, WindowSeconds - (Clock() - _windowStart)) : WindowSeconds;
 
         protected override void OnBegin(double now)
         {

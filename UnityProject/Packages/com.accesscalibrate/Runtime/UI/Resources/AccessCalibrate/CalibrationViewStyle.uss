@@ -1,117 +1,408 @@
-/* Placeholder style: big text, high contrast (white / yellow on near-black), simple shapes. */
+/* AccessCalibrate — "console overlay" (Docs/DESIGN_SPEC.md). Reference size 1280×720.
+   Every colour, radius and font comes from a --ac-… token defined on .ac-root (Glass Dark).
+   Themes (Themes/*.uss or your own USS) override only these tokens. */
 
 .ac-root {
+    /* ---- colours ---- */
+    --ac-overlay: rgba(8, 10, 14, 0.55);
+    --ac-panel: rgba(20, 22, 30, 0.88);
+    --ac-panel-blurred: rgba(20, 22, 30, 0.62);
+    --ac-panel-border: rgba(255, 255, 255, 0.14);
+    --ac-panel-highlight: rgba(255, 255, 255, 0.22);
+    --ac-divider: rgba(255, 255, 255, 0.10);
+    --ac-glass-border: rgba(255, 255, 255, 0.16);
+    --ac-glass-highlight: rgba(255, 255, 255, 0.20);
+    --ac-text: #FFFFFF;
+    --ac-text-secondary: rgba(255, 255, 255, 0.78);
+    --ac-text-muted: rgba(255, 255, 255, 0.62);
+    --ac-text-upcoming: rgba(255, 255, 255, 0.88);
+    --ac-text-hint: rgba(255, 255, 255, 0.72);
+    --ac-text-reason: rgba(255, 255, 255, 0.68);
+    --ac-surface: rgba(255, 255, 255, 0.07);
+    --ac-surface-row: rgba(255, 255, 255, 0.05);
+    --ac-surface-row-border: rgba(255, 255, 255, 0.12);
+    --ac-surface-uncertain: rgba(255, 255, 255, 0.02);
+    --ac-surface-focus: rgba(255, 255, 255, 0.10);
+    --ac-focus-border: rgba(255, 255, 255, 0.55);
+    --ac-focus-highlight: rgba(255, 255, 255, 0.25);
+    --ac-track: rgba(255, 255, 255, 0.16);
+    --ac-focus: #FFFFFF;
+    --ac-focus-soft: rgba(255, 255, 255, 0.55);
+    --ac-on-focus: #0B0C10;
+    --ac-primary-halo: rgba(255, 255, 255, 0.22);
+    --ac-ring: rgba(255, 255, 255, 0.22);
+    --ac-knob-off: rgba(255, 255, 255, 0.75);
+    --ac-arena-fill: rgba(255, 255, 255, 0.04);
+    --ac-arena-border: rgba(255, 255, 255, 0.14);
+    --ac-crosshair: rgba(255, 255, 255, 0.10);
+    --ac-trail: rgba(255, 255, 255, 0.30);
+    --ac-cursor-halo: rgba(11, 12, 16, 0.85);
+    --ac-uncertain-border: rgba(255, 255, 255, 0.34);
+    --ac-transparent: rgba(0, 0, 0, 0);
+    /* ---- shape ---- */
+    --ac-radius-panel: 36px;
+    --ac-radius-control: 20px;
+    --ac-radius-row: 16px;
+    --ac-radius-chip: 10px;
+    --ac-radius-key: 8px;
+    /* ---- font (Manrope, SIL OFL 1.1) ---- */
+    --ac-font-500: url("Fonts/Manrope-Medium.ttf");
+    --ac-font-600: url("Fonts/Manrope-SemiBold.ttf");
+    --ac-font-700: url("Fonts/Manrope-Bold.ttf");
+    --ac-font-800: url("Fonts/Manrope-ExtraBold.ttf");
+
     position: absolute;
     left: 0; top: 0; right: 0; bottom: 0;
-    background-color: rgb(14, 14, 16);
+    background-color: var(--ac-overlay);
     align-items: center;
     justify-content: center;
+    -unity-font-definition: var(--ac-font-500);
+    color: var(--ac-text);
 }
 
-.ac-card {
-    width: 1400px;
-    max-width: 92%;
+/* ---------------------------------------------------------------- panel */
+.ac-panel {
+    width: 90%;
+    max-width: 1400px;
+    height: 82%;
+    background-color: var(--ac-panel);
+    border-radius: var(--ac-radius-panel);
+    border-width: 1px;
+    border-color: var(--ac-panel-border);
+    border-top-color: var(--ac-panel-highlight);
+    overflow: hidden;
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.2s, 0.2s;
+    transition-timing-function: ease-out, ease-out;
+}
+.ac-panel--enter { opacity: 0; translate: 0 12px; }
+.ac-root--blurred .ac-panel { background-color: var(--ac-panel-blurred); }
+
+.ac-page { flex-grow: 1; display: none; }
+.ac-page--shown { display: flex; }
+
+/* ---------------------------------------------------------------- text */
+.ac-eyebrow {
+    font-size: 13px;
+    -unity-font-definition: var(--ac-font-700);
+    letter-spacing: 1.8px;
+    color: var(--ac-text-muted);
+    margin: 0 0 16px 0;
+    padding: 0;
+}
+.ac-step-eyebrow {
+    font-size: 15px;
+    -unity-font-definition: var(--ac-font-700);
+    color: var(--ac-text-muted);
+    margin: 0 0 10px 0;
+    padding: 0;
+}
+.ac-h1 {
+    font-size: 54px;
+    -unity-font-definition: var(--ac-font-800);
+    letter-spacing: -1.3px;
+    color: var(--ac-text);
+    white-space: normal;
+    margin: 0 0 16px 0;
+    padding: 0;
+}
+.ac-h1--stage { font-size: 40px; letter-spacing: -0.8px; }
+.ac-h1--confirm { font-size: 40px; letter-spacing: -0.8px; margin-bottom: 0; }
+.ac-body {
+    font-size: 21px;
+    color: var(--ac-text-secondary);
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}
+.ac-muted-note { font-size: 15px; color: var(--ac-text-muted); margin-left: 16px; -unity-text-align: middle-left; }
+
+/* ---------------------------------------------------------------- rail */
+.ac-page--rail { flex-direction: row; }
+.ac-rail {
+    width: 360px;
+    flex-shrink: 0;
+    padding: 40px 24px;
+    border-right-width: 1px;
+    border-right-color: var(--ac-divider);
+}
+.ac-rail-list { flex-grow: 1; }
+.ac-rail-item {
+    height: 56px;
+    flex-direction: row;
     align-items: center;
+    padding: 0 18px;
+    margin-bottom: 4px;
+    border-radius: var(--ac-radius-row);
+}
+.ac-rail-num {
+    width: 26px;
+    margin-right: 14px;
+    font-size: 15px;
+    -unity-font-definition: var(--ac-font-700);
+    color: var(--ac-text-muted);
+    padding: 0;
+}
+.ac-rail-name { font-size: 19px; -unity-font-definition: var(--ac-font-600); color: var(--ac-text-upcoming); padding: 0; margin: 0; }
+.ac-rail-item--done .ac-rail-name { color: var(--ac-text-muted); }
+.ac-rail-item--current { background-color: var(--ac-focus); }
+.ac-rail-item--current .ac-rail-num,
+.ac-rail-item--current .ac-rail-name { color: var(--ac-on-focus); -unity-font-definition: var(--ac-font-700); }
+.ac-rail-check { width: 16px; height: 16px; margin-right: 24px; --ac-check-c: var(--ac-text-muted); }
+.ac-rail-note { font-size: 15px; color: var(--ac-text-muted); white-space: normal; margin: 0; padding: 0; }
+
+/* ---------------------------------------------------------------- intro / welcome */
+.ac-intro-main { flex-grow: 1; padding: 48px 56px 32px 56px; justify-content: space-between; }
+.ac-intro-content { flex-grow: 1; flex-direction: row; align-items: center; }
+.ac-intro-text { flex-grow: 1; flex-shrink: 1; max-width: 620px; }
+.ac-intro-glyph { width: 220px; height: 220px; flex-shrink: 0; margin-left: 32px; }
+.ac-welcome-buttons { margin-top: 36px; }
+.ac-welcome-secondary-row { flex-direction: row; align-items: center; margin-top: 12px; }
+.ac-ready-bar {
+    height: 72px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    background-color: var(--ac-surface);
+    border-radius: var(--ac-radius-control);
+    border-width: 1px;
+    border-color: var(--ac-glass-border);
+    border-top-color: var(--ac-glass-highlight);
+    margin-bottom: 52px;
+}
+.ac-ready-text { font-size: 20px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); padding: 0; margin: 0; }
+.ac-ready-wait { font-size: 15px; color: var(--ac-text-muted); padding: 0; margin: 0; }
+
+/* ---------------------------------------------------------------- buttons */
+.ac-btn {
+    height: 62px;
+    margin: 0;
+    padding: 0 26px;
+    border-radius: var(--ac-radius-control);
+    border-width: 1px;
+    font-size: 19px;
+    -unity-text-align: middle-left;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    scale: 1 1;
+    transition-property: scale, background-color, border-color;
+    transition-duration: 0.12s, 0.12s, 0.12s;
+}
+.ac-btn--wide { width: 420px; }
+.ac-btn--primary {
+    background-color: var(--ac-focus);
+    color: var(--ac-on-focus);
+    -unity-font-definition: var(--ac-font-800);
+    border-width: 4px;
+    border-color: var(--ac-primary-halo);
+}
+.ac-btn--secondary {
+    background-color: var(--ac-surface);
+    color: var(--ac-text);
+    -unity-font-definition: var(--ac-font-600);
+    border-color: var(--ac-glass-border);
+    border-top-color: var(--ac-glass-highlight);
+}
+/* Focused by keyboard / gamepad: scale 1.03. The primary keeps its white fill; a focused
+   secondary gets the focus surface + bright border (so there is never more than one white button). */
+.ac-btn.ac-selected { scale: 1.03 1.03; }
+.ac-btn--primary.ac-selected { border-color: var(--ac-focus-border); }
+.ac-btn--secondary.ac-selected {
+    background-color: var(--ac-surface-focus);
+    border-color: var(--ac-focus-border);
+    border-top-color: var(--ac-focus-highlight);
+    -unity-font-definition: var(--ac-font-700);
+}
+.ac-btn:hover { border-color: var(--ac-focus-border); }
+.ac-btn-glyph { margin-left: 12px; }
+/* Labels inside buttons (built in code) follow the button's weight and colour. */
+.ac-btn-label { padding: 0; margin: 0; font-size: 19px; }
+.ac-btn--primary .ac-btn-label { -unity-font-definition: var(--ac-font-800); color: var(--ac-on-focus); }
+
+/* ---------------------------------------------------------------- test page */
+.ac-page--test { padding: 32px 48px 0 48px; }
+.ac-topbar { flex-direction: row; align-items: center; height: 40px; }
+.ac-chip {
+    height: 32px;
+    padding: 0 12px;
+    -unity-text-align: middle-center;
+    border-radius: var(--ac-radius-chip);
+    background-color: var(--ac-surface);
+    border-width: 1px;
+    border-color: var(--ac-glass-border);
+    border-top-color: var(--ac-glass-highlight);
+    font-size: 15px;
+    -unity-font-definition: var(--ac-font-700);
+    color: var(--ac-text);
+    margin: 0 14px 0 0;
+}
+.ac-test-name { font-size: 20px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); padding: 0; margin: 0; }
+.ac-spacer { flex-grow: 1; }
+.ac-trial-label { font-size: 15px; color: var(--ac-text-muted); margin-right: 14px; padding: 0; }
+.ac-trial-bars { flex-direction: row; }
+.ac-trial-bar { width: 28px; height: 6px; border-radius: 3px; margin-left: 6px; background-color: var(--ac-track); }
+.ac-trial-bar--done { background-color: var(--ac-focus); }
+.ac-trial-bar--current { background-color: var(--ac-focus-soft); }
+
+.ac-stage { flex-grow: 1; align-items: center; justify-content: center; padding: 12px 0 20px 0; }
+.ac-stage-reaction, .ac-stage-hold, .ac-stage-stability, .ac-stage-generic { display: none; align-items: center; }
+.ac-stage--shown { display: flex; }
+.ac-status {
+    font-size: 19px;
+    color: var(--ac-text-secondary);
+    margin-top: 22px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    min-height: 28px;
 }
 
-.ac-counter { font-size: 30px; color: rgb(200, 200, 205); margin-bottom: 8px; }
-.ac-title { font-size: 72px; color: rgb(255, 255, 255); -unity-font-style: bold; margin-bottom: 16px; }
-.ac-instructions {
-    font-size: 40px; color: rgb(255, 255, 255);
-    white-space: normal; -unity-text-align: middle-center;
-    max-width: 1200px; margin-bottom: 24px;
+/* Reaction: 232 px signal inside a 280 px ring. Before the signal only the ring shows. */
+.ac-stim-ring {
+    width: 280px; height: 280px;
+    border-radius: 140px;
+    border-width: 1.5px;
+    border-color: var(--ac-ring);
+    align-items: center; justify-content: center;
 }
-
-.ac-stage { height: 420px; width: 100%; align-items: center; justify-content: center; }
-
-/* Reaction / hold / tap signal: a big solid yellow circle. It appears, it never flashes. */
-.ac-stimulus {
-    width: 320px; height: 320px;
-    border-radius: 160px;
-    background-color: rgb(255, 212, 0);
-    border-width: 8px;
-    border-color: rgb(255, 255, 255);
+.ac-stim {
+    width: 232px; height: 232px;
+    border-radius: 116px;
+    background-color: var(--ac-focus);
+    align-items: center; justify-content: center;
     opacity: 0;
-    scale: 0.85 0.85;
-    transition-property: scale;
+}
+.ac-stim--on { opacity: 1; }
+.ac-stim-label { font-size: 40px; -unity-font-definition: var(--ac-font-800); color: var(--ac-on-focus); padding: 0; margin: 0; }
+
+/* Hold: 280 px progress ring (drawn in code from --ac-ring-fill / --ac-ring-track) */
+.ac-hold-ring-host { width: 280px; height: 280px; align-items: center; justify-content: center; }
+.ac-progress-ring { position: absolute; left: 0; top: 0; right: 0; bottom: 0; --ac-ring-fill: var(--ac-focus); --ac-ring-track: var(--ac-track); }
+.ac-hold-center { align-items: center; }
+.ac-hold-seconds { font-size: 64px; -unity-font-definition: var(--ac-font-800); color: var(--ac-text); padding: 0; margin: 0; }
+.ac-hold-of { font-size: 17px; color: var(--ac-text-muted); padding: 0; margin: 0; }
+.ac-stage-headline { font-size: 26px; -unity-font-definition: var(--ac-font-800); color: var(--ac-text); margin-top: 26px; padding: 0; }
+
+/* Steadiness: 360 px arena (drawn in code) + text column */
+.ac-stage-stability { flex-direction: row; }
+.ac-arena-host { width: 360px; height: 360px; flex-shrink: 0; }
+.ac-arena {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    --ac-arena-fill-c: var(--ac-arena-fill);
+    --ac-arena-border-c: var(--ac-arena-border);
+    --ac-crosshair-c: var(--ac-crosshair);
+    --ac-target-c: var(--ac-uncertain-border);
+    --ac-cursor-c: var(--ac-focus);
+    --ac-cursor-halo-c: var(--ac-cursor-halo);
+    --ac-trail-c: var(--ac-trail);
+}
+.ac-stability-text { width: 460px; margin-left: 56px; }
+.ac-measuring { font-size: 17px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); margin-top: 28px; padding: 0; }
+.ac-time-left { font-size: 15px; color: var(--ac-text-muted); margin: 2px 0 10px 0; padding: 0; }
+.ac-bar { height: 6px; border-radius: 3px; background-color: var(--ac-track); overflow: hidden; }
+.ac-bar--wide { width: 420px; margin-top: 22px; }
+.ac-bar-fill { height: 100%; width: 0; background-color: var(--ac-focus); border-radius: 3px; }
+
+/* Repeated presses / button reach */
+.ac-generic-big { font-size: 64px; -unity-font-definition: var(--ac-font-800); color: var(--ac-text); -unity-text-align: middle-center; white-space: normal; padding: 0; margin: 0; }
+.ac-generic-sub { font-size: 19px; color: var(--ac-text-secondary); margin-top: 8px; -unity-text-align: middle-center; padding: 0; }
+
+.ac-test-footer { height: 72px; flex-direction: row; align-items: center; }
+.ac-tone-note { flex-direction: row; align-items: center; }
+.ac-speaker { width: 20px; height: 20px; margin-right: 10px; }
+.ac-speaker-icon { flex-grow: 1; --ac-icon-c: var(--ac-text-muted); }
+.ac-tone-text { font-size: 15px; color: var(--ac-text-muted); padding: 0; margin: 0; }
+
+/* ---------------------------------------------------------------- confirmation */
+.ac-page--confirm { padding: 36px 56px 0 56px; }
+.ac-confirm-header { flex-direction: row; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
+.ac-confirm-note { font-size: 15px; color: var(--ac-text-muted); -unity-text-align: lower-right; padding: 0; margin: 0 0 6px 0; }
+.ac-confirm-list { flex-grow: 1; flex-shrink: 1; margin-bottom: 36px; }
+.ac-row {
+    height: 68px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px 0 28px;
+    margin-bottom: 12px;
+    border-radius: var(--ac-radius-control);
+    background-color: var(--ac-surface-row);
+    border-width: 1px;
+    border-color: var(--ac-surface-row-border);
+    border-top-color: var(--ac-glass-highlight);
+}
+.ac-row.ac-selected {
+    background-color: var(--ac-surface-focus);
+    border-color: var(--ac-focus-border);
+    border-top-color: var(--ac-focus-highlight);
+}
+/* Uncertain: shape (dashed outline, drawn in code) + words, never colour alone */
+.ac-row--uncertain { background-color: var(--ac-surface-uncertain); border-color: var(--ac-transparent); }
+.ac-row--uncertain.ac-selected { background-color: var(--ac-surface-focus); }
+.ac-dashed { position: absolute; left: -1px; top: -1px; right: -1px; bottom: -1px; --ac-dash-c: var(--ac-uncertain-border); }
+.ac-row--uncertain.ac-selected .ac-dashed { --ac-dash-c: var(--ac-focus-border); }
+.ac-row-text { flex-shrink: 1; }
+.ac-row-title { font-size: 19px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); padding: 0; margin: 0; }
+.ac-row-reason { font-size: 15px; color: var(--ac-text-reason); padding: 0; margin: 2px 0 0 0; }
+
+/* Switch: 60×34 track, 28 px knob */
+.ac-switch {
+    width: 60px; height: 34px;
+    flex-shrink: 0;
+    border-radius: 17px;
+    background-color: var(--ac-track);
+    padding: 3px;
+    justify-content: center;
+    transition-property: background-color;
     transition-duration: 0.12s;
 }
-.ac-stimulus--on { opacity: 1; scale: 1 1; }
+.ac-switch-knob {
+    width: 28px; height: 28px;
+    border-radius: 14px;
+    background-color: var(--ac-knob-off);
+    translate: 0 0;
+    transition-property: translate, background-color;
+    transition-duration: 0.12s, 0.12s;
+}
+.ac-switch--on { background-color: var(--ac-focus); }
+.ac-switch--on .ac-switch-knob { background-color: var(--ac-on-focus); translate: 26px 0; }
 
-/* Stability arena: 400 px square, target circle radius 100 px in the middle. */
-.ac-arena { position: absolute; width: 400px; height: 400px; }
-.ac-target {
-    position: absolute; left: 100px; top: 100px;
-    width: 200px; height: 200px; border-radius: 100px;
-    border-width: 6px; border-color: rgb(255, 255, 255);
-}
-.ac-target--inside { border-color: rgb(255, 212, 0); }
-.ac-cursor {
-    position: absolute; left: 186px; top: 186px;
-    width: 28px; height: 28px; border-radius: 14px;
-    background-color: rgb(255, 212, 0);
-    border-width: 3px; border-color: rgb(0, 0, 0);
-}
+.ac-confirm-buttons { flex-direction: row; flex-shrink: 0; }
+.ac-confirm-buttons .ac-btn { margin-right: 14px; }
+.ac-btn--apply { min-width: 380px; }
 
-.ac-prompt {
-    font-size: 72px; color: rgb(255, 212, 0); -unity-font-style: bold;
-    -unity-text-align: middle-center; white-space: normal;
-}
+/* ---------------------------------------------------------------- hint bar */
+.ac-hints { flex-direction: row; justify-content: flex-end; align-items: center; height: 64px; padding: 0 48px 6px 48px; flex-shrink: 0; }
+.ac-hint { flex-direction: row; align-items: center; margin-left: 28px; }
+.ac-hint-text { font-size: 15px; -unity-font-definition: var(--ac-font-600); color: var(--ac-text-hint); margin-left: 10px; padding: 0; }
 
-.ac-status { font-size: 36px; color: rgb(255, 255, 255); min-height: 50px; margin-top: 16px; }
+/* Glyphs: round 26 px badge (gamepad face buttons) or key badge (keyboard, Select…) */
+.ac-glyph {
+    height: 26px;
+    min-width: 26px;
+    border-width: 1.5px;
+    border-color: var(--ac-text-hint);
+    border-radius: 13px;
+    align-items: center;
+    justify-content: center;
+    --ac-glyph-c: var(--ac-text-hint);
+}
+.ac-glyph--key { border-radius: var(--ac-radius-key); padding: 0 8px; }
+.ac-glyph-text { font-size: 13px; -unity-font-definition: var(--ac-font-800); color: var(--ac-text-hint); padding: 0; margin: 0; }
+.ac-glyph--on-focus { border-color: var(--ac-on-focus); background-color: var(--ac-on-focus); --ac-glyph-c: var(--ac-focus); }
+.ac-glyph--on-focus .ac-glyph-text { color: var(--ac-focus); }
+.ac-glyph--big { width: 220px; height: 220px; border-radius: 110px; border-width: 2px; border-color: var(--ac-ring); --ac-glyph-c: var(--ac-text); }
+.ac-glyph--big .ac-glyph-text { font-size: 84px; color: var(--ac-text); }
+.ac-glyph--big.ac-glyph--key { border-radius: 110px; }
+.ac-glyph--big-key .ac-glyph-text { font-size: 44px; }
 
-/* Confirmation screen: one row per proposal, then Accept / Redo / Skip. */
-.ac-confirm { width: 100%; max-width: 1300px; align-items: stretch; }
-.ac-confirm-list { max-height: 560px; }
-
-.ac-row {
-    padding: 14px 20px;
-    margin: 6px 0;
-    border-width: 4px;
-    border-color: rgba(0, 0, 0, 0);
-    border-radius: 10px;
-    background-color: rgb(28, 28, 32);
-}
-.ac-row.ac-selected { border-color: rgb(255, 212, 0); }
-
-.ac-toggle { margin: 0; }
-.ac-toggle .unity-toggle__checkmark {
-    width: 40px; height: 40px; margin-right: 18px;
-    border-width: 3px; border-color: rgb(255, 255, 255); border-radius: 6px;
-    background-color: rgb(14, 14, 16);
-    -unity-background-image-tint-color: rgb(255, 212, 0);
-}
-.ac-toggle .unity-label, .ac-toggle .unity-toggle__text {
-    font-size: 32px; color: rgb(255, 255, 255); white-space: normal;
-}
-.ac-reason { font-size: 24px; color: rgb(200, 200, 205); margin-left: 58px; margin-top: 4px; white-space: normal; }
-.ac-uncertain {
-    font-size: 24px; color: rgb(255, 212, 0); -unity-font-style: bold;
-    margin-left: 58px; margin-top: 4px; white-space: normal;
-}
-
-.ac-confirm-buttons { flex-direction: row; justify-content: center; margin-top: 24px; }
-.ac-btn {
-    font-size: 32px; padding: 12px 36px; margin: 0 12px;
-    color: rgb(255, 255, 255);
-    background-color: rgb(40, 40, 46);
-    border-width: 4px; border-color: rgb(255, 255, 255); border-radius: 10px;
-}
-.ac-btn--primary { background-color: rgb(255, 212, 0); color: rgb(0, 0, 0); border-color: rgb(255, 212, 0); -unity-font-style: bold; }
-.ac-btn.ac-selected { border-color: rgb(255, 255, 255); border-width: 6px; scale: 1.06 1.06; }
-.ac-btn--primary.ac-selected { border-color: rgb(255, 255, 255); }
-.ac-btn:hover { border-color: rgb(255, 212, 0); }
+/* ---------------------------------------------------------------- reduced motion */
+.ac-reduce-motion .ac-panel,
+.ac-reduce-motion .ac-btn,
+.ac-reduce-motion .ac-switch,
+.ac-reduce-motion .ac-switch-knob { transition-duration: 0s; }
+.ac-reduce-motion .ac-panel--enter { opacity: 1; translate: 0 0; }
 .ac-reduce-motion .ac-btn.ac-selected { scale: 1 1; }
-
-.ac-footer { flex-direction: row; align-items: center; margin-top: 40px; }
-.ac-hint { font-size: 26px; color: rgb(200, 200, 205); margin-right: 24px; }
-.ac-skip {
-    font-size: 30px; padding: 10px 28px;
-    color: rgb(255, 255, 255);
-    background-color: rgb(40, 40, 46);
-    border-width: 3px; border-color: rgb(255, 255, 255); border-radius: 8px;
-}
-.ac-skip:hover, .ac-skip:focus { border-color: rgb(255, 212, 0); }
-
-/* Reduce motion: no transitions at all. */
-.ac-reduce-motion .ac-stimulus { transition-duration: 0s; scale: 1 1; }

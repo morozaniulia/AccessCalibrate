@@ -24,8 +24,14 @@ namespace AccessCalibration
         [Tooltip("Turn off animations (respect the player's 'reduce motion' preference).")]
         public bool ReduceMotion;
 
-        [Tooltip("Create the placeholder UI Toolkit screen automatically.")]
+        [Tooltip("Create the built-in UI Toolkit screens automatically.")]
         public bool UseBuiltInView = true;
+
+        [Tooltip("Look of the built-in screens. Empty = Glass Dark. AccessCalibrate.UseTheme(...) overrides it at runtime.")]
+        public CalibrationTheme Theme;
+
+        /// <summary>On the Welcome screen, presses are ignored this long (a press that opened it can't choose).</summary>
+        public double WelcomeInputDelaySeconds = 0.3;
 
         /// <summary>
         /// On the confirmation screen, keyboard / gamepad presses are ignored for this long, so a
@@ -46,6 +52,8 @@ namespace AccessCalibration
         public event Action<AccessibilityProfile> Completed;
 
         public bool IsCalibrating { get; private set; }
+        /// <summary>On the Welcome screen (only with a view that has one).</summary>
+        public bool IsWelcoming { get; private set; }
         public bool InIntro { get; private set; }
         public bool IsReviewing { get; private set; }
         public CalibrationTest CurrentTest => IsCalibrating ? _tests[_index] : null;
@@ -75,7 +83,7 @@ namespace AccessCalibration
         bool _startRequested, _skipRequested;
         int _moveRequested;
         bool _submitRequested;
-        double _reviewShownAt;
+        double _reviewShownAt, _welcomeShownAt;
 
         void Awake()
         {
@@ -105,11 +113,11 @@ namespace AccessCalibration
             _skip.performed += OnSkipPressed;
 
             _up = CreateButtonAction("AccessCalibrate/Up", "<Gamepad>/dpad/up", "<Gamepad>/leftStick/up", "<Keyboard>/upArrow", "<Keyboard>/w");
-            _up.performed += _ => { if (IsReviewing) _moveRequested = -1; };
+            _up.performed += _ => { if (IsReviewing || IsWelcoming) _moveRequested = -1; };
             _down = CreateButtonAction("AccessCalibrate/Down", "<Gamepad>/dpad/down", "<Gamepad>/leftStick/down", "<Keyboard>/downArrow", "<Keyboard>/s");
-            _down.performed += _ => { if (IsReviewing) _moveRequested = +1; };
+            _down.performed += _ => { if (IsReviewing || IsWelcoming) _moveRequested = +1; };
             _submit = CreateButtonAction("AccessCalibrate/Submit", "<Gamepad>/buttonSouth", "<Keyboard>/enter", "<Keyboard>/numpadEnter", "<Keyboard>/space");
-            _submit.performed += _ => { if (IsReviewing) _submitRequested = true; };
+            _submit.performed += _ => { if (IsReviewing || IsWelcoming) _submitRequested = true; };
 
             foreach (var a in new[] { _start, _skip, _up, _down, _submit }) a.Enable();
         }
@@ -142,6 +150,7 @@ namespace AccessCalibration
             EnsureView();
             foreach (var t in _tests) if (t.IsRunning) t.Skip();
 
+            IsWelcoming = false;
             LastMeasurements = new Measurements();
             LastResult = null;
             Review = null;
@@ -151,7 +160,40 @@ namespace AccessCalibration
             _startRequested = _skipRequested = _submitRequested = false;
             _moveRequested = 0;
             ButtonAccess.Buttons = Buttons;
+
+            if (View is ICalibrationWelcomeView welcome)
+            {
+                IsWelcoming = true;
+                _welcomeShownAt = Clock();
+                Selection = 0;
+                welcome.ShowWelcome();
+                welcome.SetWelcomeSelection(0);
+                return;
+            }
             ShowIntro();
+        }
+
+        /// <summary>Welcome → "Start": go to the first check.</summary>
+        public void WelcomeStart()
+        {
+            if (!IsWelcoming) return;
+            IsWelcoming = false;
+            ShowIntro();
+        }
+
+        /// <summary>
+        /// Welcome → "Not now": close without calibrating. On first launch the defaults are saved so
+        /// the calibration isn't offered every time; an existing profile is kept.
+        /// </summary>
+        public void WelcomeNotNow()
+        {
+            if (!IsWelcoming) return;
+            IsWelcoming = false;
+            IsCalibrating = false;
+            InIntro = false;
+            if (!AccessCalibrate.HasSavedProfile) AccessCalibrate.SkipCalibration();
+            View.Hide();
+            Completed?.Invoke(AccessCalibrate.Profile);
         }
 
         void ShowIntro()
@@ -195,6 +237,25 @@ namespace AccessCalibration
         /// <summary>Handles queued input requests. Called from Update; tests call it directly.</summary>
         public void Tick()
         {
+            if (IsWelcoming)
+            {
+                bool ready = Clock() - _welcomeShownAt >= WelcomeInputDelaySeconds;
+                bool skip = _skipRequested;
+                int move = _moveRequested;
+                bool submit = _submitRequested;
+                _skipRequested = _startRequested = _submitRequested = false;
+                _moveRequested = 0;
+                if (!ready) return;
+                if (skip) { WelcomeNotNow(); return; }
+                if (move != 0)
+                {
+                    Selection = Selection == 0 ? 1 : 0;
+                    ((ICalibrationWelcomeView)View).SetWelcomeSelection(Selection);
+                }
+                if (submit) { if (Selection == 0) WelcomeStart(); else WelcomeNotNow(); }
+                return;
+            }
+
             if (_skipRequested)
             {
                 _skipRequested = _startRequested = false;

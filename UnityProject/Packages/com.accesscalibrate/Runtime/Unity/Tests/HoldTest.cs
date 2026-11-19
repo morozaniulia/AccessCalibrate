@@ -29,6 +29,15 @@ namespace AccessCalibration
         readonly List<double> _holds = new List<double>();
         InputAction _button;
 
+        // Read-only progress for screens (no effect on the measurement).
+        /// <summary>The trial in progress, 1-based.</summary>
+        public int TrialNumber => Math.Min(_holds.Count + 1, Trials);
+        public bool IsHolding => IsRunning && _state == State.Holding;
+        /// <summary>Seconds held so far in this trial (the last result between trials).</summary>
+        public double CurrentHoldSeconds =>
+            IsHolding ? Math.Min(Math.Max(0, Clock() - _pressedAt), MaxHoldSeconds)
+                      : _holds.Count > 0 ? _holds[_holds.Count - 1] : 0;
+
         public override string Title => CalibrationTexts.HoldTitle;
         protected override string LetGoText => CalibrationTexts.HoldLetGo;
         public override string Instructions => CalibrationTexts.HoldInstructions;

@@ -56,3 +56,17 @@ namespace AccessCalibration
         public void Hide() { }
     }
 }
+
+namespace AccessCalibration
+{
+    /// <summary>
+    /// Optional: a view that also has a Welcome screen (Start / Not now) before the first check.
+    /// The runner shows it only when its view implements this interface; other views go straight
+    /// to the first check, as before. Items: 0 = Start, 1 = Not now.
+    /// </summary>
+    public interface ICalibrationWelcomeView
+    {
+        void ShowWelcome();
+        void SetWelcomeSelection(int index);
+    }
+}
