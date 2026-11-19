@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.accesscalibrate": {
+      "version": "file:com.accesscalibrate",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.inputsystem": "1.20.1"
+      }
+    },
     "com.unity.2d.animation": {
       "version": "13.0.6",
       "depth": 0,

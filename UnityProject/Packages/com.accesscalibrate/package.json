@@ -1,0 +1,21 @@
+{
+  "name": "com.accesscalibrate",
+  "version": "0.1.0",
+  "displayName": "AccessCalibrate",
+  "description": "A ~60-second motor-ability calibration that proposes accessibility settings (timing, hold-to-toggle, mashing, deadzone, remapping) using transparent, developer-configured rules. The player always has the final say. Not a medical tool; thresholds are hypothetical and not clinically validated.",
+  "unity": "6000.3",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Morozan Iulia"
+  },
+  "keywords": [
+    "accessibility",
+    "motor",
+    "calibration",
+    "input",
+    "ability-based design"
+  ],
+  "dependencies": {
+    "com.unity.inputsystem": "1.20.1"
+  }
+}
