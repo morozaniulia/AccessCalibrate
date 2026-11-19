@@ -22,14 +22,15 @@ namespace AccessCalibration.PlayModeTests
         }
 
         /// <summary>
-        /// Plays frames every 0.1 s until the test ends. <paramref name="stickAt"/> gives the stick
-        /// position for each frame (frame 0 = first frame after Begin).
+        /// Plays frames every 0.1 s until the test ends. The stick starts at rest (centre, which is
+        /// outside the off-centre target) for <paramref name="restFrames"/> frames, like a real
+        /// player; then <paramref name="stickAt"/> gives the position for each later frame.
         /// </summary>
-        void RunFrames(System.Func<int, Vector2> stickAt, int maxFrames = 300)
+        void RunFrames(System.Func<int, Vector2> stickAt, int restFrames = 3, int maxFrames = 300)
         {
             for (int frame = 0; frame < maxFrames && _test.IsRunning; frame++)
             {
-                Set(_gamepad.leftStick, stickAt(frame));
+                Set(_gamepad.leftStick, frame < restFrames ? Vector2.zero : stickAt(frame));
                 TickAt(_test, 10.0 + 0.1 * frame);
             }
         }
@@ -42,31 +43,34 @@ namespace AccessCalibration.PlayModeTests
             return m;
         }
 
+        /// <summary>Small, real movement around a point (a steady but living hand).</summary>
+        static Vector2 Jitter(Vector2 around, int f, float amount = 0.01f) =>
+            around + new Vector2(f % 2 == 0 ? amount : -amount, f % 3 == 0 ? amount : 0);
+
         [Test]
-        public void PerfectlyStill_OnTarget_GivesSpreadZero()
+        public void SteadyHand_OnTarget_GivesASmallSpread_AndIsOk()
         {
             _test.Begin();
             Assert.AreEqual(StabilityTest.Mode.Stick, _test.ActiveMode);
-            RunFrames(_ => _test.StickTarget);
+            RunFrames(f => Jitter(_test.StickTarget, f));
 
             var m = Result();
-            Assert.AreEqual(0, m.Stability.Spread, 1e-6);
-            Assert.AreEqual(0, m.Stability.MeanOffset, 1e-6);
+            Assert.Less(m.Stability.Spread, 0.1);
+            Assert.Greater(m.Stability.Spread, _test.MinMeaningfulSpread);
             Assert.AreEqual(Confidence.Ok, m.Stability.Confidence);
             Assert.AreEqual(InputDeviceKind.Gamepad, m.Stability.Device);
         }
 
         [Test]
-        public void PerfectlyStill_ButOffCentre_IsNotUnsteady_AndGetsNoAimAssist()
+        public void SteadyButOffCentre_IsNotUnsteady_AndGetsNoAimAssist()
         {
             _test.Begin();
-            // Held rock-steady at 0.6 of the radius to the right of the centre (still inside).
             var offCentre = _test.StickTarget + new Vector2(0.6f * _test.StickRadius, 0);
-            RunFrames(_ => offCentre);
+            RunFrames(f => Jitter(offCentre, f));
 
             var m = Result();
-            Assert.AreEqual(0, m.Stability.Spread, 1e-6);          // no wandering at all
-            Assert.AreEqual(0.6, m.Stability.MeanOffset, 1e-4);    // offset kept as information only
+            Assert.Less(m.Stability.Spread, 0.1);
+            Assert.AreEqual(0.6, m.Stability.MeanOffset, 0.05);    // offset kept as information only
             var p = RulesEngine.Evaluate(m, new RulesConfig()).Profile;
             Assert.AreEqual(AimAssist.Off, p.aimAssist);
             Assert.AreEqual(new RulesConfig().DefaultStickDeadzone, p.stickDeadzone);
@@ -90,13 +94,56 @@ namespace AccessCalibration.PlayModeTests
         public void MeasuringStarts_OnlyAfterEnteringTheCircle_PlusSettleTime()
         {
             _test.Begin();
-            // Frames 0–19 (2 s): far outside the circle, moving wildly. Then inside and perfectly still.
-            RunFrames(f => f < 20 ? new Vector2(f % 2 == 0 ? -0.9f : 0.9f, -0.8f) : _test.StickTarget);
+            // Frames 0–19 (2 s): far outside, moving wildly. Then inside with a steady hand.
+            RunFrames(f => f < 20 ? new Vector2(f % 2 == 0 ? -0.9f : 0.9f, -0.8f) : Jitter(_test.StickTarget, f), restFrames: 0);
 
             var m = Result();
-            Assert.AreEqual(0, m.Stability.Spread, 1e-6);   // the wild part outside was not measured
+            Assert.Less(m.Stability.Spread, 0.1);   // the wild part outside was not measured
             // 5 s of measuring at 10 frames/s ≈ 50 samples (settling frames not included).
             Assert.That(_test.SampleCount, Is.InRange(49, 52));
+        }
+
+        [Test]
+        public void DotAlreadyInsideAtTheStart_DoesNotStartMeasuring_UntilBroughtInActively()
+        {
+            Set(_gamepad.leftStick, _test.StickTarget);   // already held in the circle when the check starts
+            _test.Begin();
+            // Held inside from the very first frame: never seen outside → no measuring.
+            RunFrames(f => Jitter(_test.StickTarget, f), restFrames: 0, maxFrames: 30);
+            Assert.AreEqual(StabilityTest.Phase.WaitingToEnter, _test.CurrentPhase);
+
+            // Out, then back in: now it counts.
+            for (int f = 30; f < 300 && _test.IsRunning; f++)
+            {
+                Set(_gamepad.leftStick, f < 33 ? Vector2.zero : Jitter(_test.StickTarget, f));
+                TickAt(_test, 10.0 + 0.1 * f);
+            }
+            Assert.AreEqual(Confidence.Ok, Result().Stability.Confidence);
+        }
+
+        [Test]
+        public void NoInputWhileMeasuring_IsUncertain_NotSteady()
+        {
+            _test.Begin();
+            // Brought in, then not a single change (hand off the stick / device asleep).
+            RunFrames(_ => _test.StickTarget);
+
+            var m = Result();
+            Assert.AreEqual(0, _test.MovedSamples);
+            Assert.AreEqual(Confidence.Uncertain, m.Stability.Confidence);
+            Assert.IsFalse(RulesEngine.Evaluate(m, new RulesConfig()).Proposes("aimAssist"));
+        }
+
+        [Test]
+        public void PracticallyZeroSpread_IsUncertain_EvenWithInput()
+        {
+            _test.Begin();
+            RunFrames(f => Jitter(_test.StickTarget, f, amount: 0.00005f));   // input arrives, but no real movement
+
+            var m = Result();
+            Assert.Greater(_test.MovedSamples, 0);
+            Assert.Less(m.Stability.Spread, _test.MinMeaningfulSpread);
+            Assert.AreEqual(Confidence.Uncertain, m.Stability.Confidence);
         }
 
         [Test]
@@ -119,6 +166,68 @@ namespace AccessCalibration.PlayModeTests
 
             var m = Result();
             Assert.AreEqual(Confidence.Skipped, m.Stability.Confidence);
+        }
+    }
+
+    public class StabilityMouseTests : CalibrationTestFixture
+    {
+        StabilityTest _test;
+        Mouse _mouse;
+
+        public override void Setup()
+        {
+            base.Setup();
+            _mouse = InputSystem.AddDevice<Mouse>();
+            _test = AddTest<StabilityTest>();
+            _test.PreferredDevice = InputDeviceKind.Mouse;
+        }
+
+        void MoveMouse(Vector2 to) => Set(_mouse.position, to);
+
+        [Test]
+        public void CursorInTheMiddle_TheCircleIsPlacedAway_SoTheCursorStartsOutside()
+        {
+            var centre = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            MoveMouse(centre);
+            _test.Begin();
+
+            Assert.AreEqual(StabilityTest.Mode.Mouse, _test.ActiveMode);
+            float distance = Vector2.Distance(centre, _test.Target);
+            Assert.GreaterOrEqual(distance, 2.5f * _test.Radius, "the cursor must start outside the circle");
+        }
+
+        [Test]
+        public void ParkedMouse_InsideTheCircle_IsUncertain()
+        {
+            MoveMouse(Vector2.zero);
+            _test.Begin();
+            var target = _test.Target;
+            MoveMouse(target);                          // brought in once…
+            for (int f = 0; f < 100 && _test.IsRunning; f++)
+                TickAt(_test, 10.0 + 0.1 * f);        // …then the hand leaves the mouse
+
+            var m = new Measurements();
+            _test.WriteResult(m);
+            Assert.IsTrue(_test.IsFinished);
+            Assert.AreEqual(0.0, m.Stability.Spread, 1e-9);
+            Assert.AreEqual(Confidence.Uncertain, m.Stability.Confidence, "a still mouse is not proof of a still hand");
+        }
+
+        [Test]
+        public void HandOnTheMouse_SmallMovements_IsOk()
+        {
+            MoveMouse(Vector2.zero);
+            _test.Begin();
+            var target = _test.Target;
+            for (int f = 0; f < 100 && _test.IsRunning; f++)
+            {
+                MoveMouse(target + new Vector2(f % 2 == 0 ? 2f : -2f, f % 3 == 0 ? 1f : 0f));   // a couple of pixels
+                TickAt(_test, 10.0 + 0.1 * f);
+            }
+            var m = new Measurements();
+            _test.WriteResult(m);
+            Assert.AreEqual(Confidence.Ok, m.Stability.Confidence);
+            Assert.AreEqual(InputDeviceKind.Mouse, m.Stability.Device);
         }
     }
 

@@ -139,9 +139,10 @@ namespace AccessCalibration.PlayModeTests
             _runner.BeginCurrent();           // steadiness
             Assert.AreEqual(StabilityTest.Mode.Stick, _runner.Stability.ActiveMode);
             var target = _runner.Stability.StickTarget;
-            for (int f = 0; f < 26; f++)
+            for (int f = 0; f < 28; f++)
             {
-                Set(_pad.leftStick, target + new Vector2(Mathf.Sin(f * 1.3f) * 0.09f, Mathf.Cos(f * 0.9f) * 0.07f + 0.04f));
+                Set(_pad.leftStick, f < 2 ? Vector2.zero   // starts at rest, outside the circle
+                    : target + new Vector2(Mathf.Sin(f * 1.3f) * 0.09f, Mathf.Cos(f * 0.9f) * 0.07f + 0.04f));
                 yield return null;
                 _now += 0.1;
                 _runner.Stability.Tick(_now);

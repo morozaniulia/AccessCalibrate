@@ -37,8 +37,20 @@ namespace AccessCalibration
         public Vector2 StickTarget = new Vector2(0.5f, 0f);
         public float StickRadius = 0.25f;
 
-        /// <summary>Mouse mode: circle radius as a fraction of the screen height (centre = screen centre).</summary>
+        /// <summary>Mouse mode: circle radius as a fraction of the screen height.</summary>
         public float MouseRadiusFraction = 0.08f;
+
+        /// <summary>
+        /// Mouse mode: the circle is placed at least this many radii away from where the cursor is
+        /// at the start (the cursor can't be moved by code), so the player has to bring it in.
+        /// </summary>
+        public float MouseStartDistanceInRadii = 3f;
+
+        /// <summary>
+        /// Below this spread (fraction of the radius) the result is "uncertain", not "steady":
+        /// a value that close to 0 usually means the hand wasn't on the device.
+        /// </summary>
+        public double MinMeaningfulSpread = 0.002;
 
         public Mode ActiveMode { get; private set; }
         public Phase CurrentPhase { get; private set; }
@@ -53,6 +65,15 @@ namespace AccessCalibration
         double _phaseStart;
         Vector2 _target;
         float _radius;
+        bool _seenOutside;
+        int _movedSamples;
+        Vector2 _lastSample;
+
+        /// <summary>Centre of the target circle (stick units, or screen pixels in mouse mode).</summary>
+        public Vector2 Target => _target;
+        public float Radius => _radius;
+        /// <summary>Samples during measuring where the position differed from the previous one (input arrived).</summary>
+        public int MovedSamples => _movedSamples;
         double _spread, _meanOffset;
         readonly List<(double x, double y)> _samples = new List<(double x, double y)>();
 
@@ -79,6 +100,8 @@ namespace AccessCalibration
         {
             _samples.Clear();
             _spread = _meanOffset = 0;
+            _seenOutside = false;
+            _movedSamples = 0;
             ActiveMode = PickMode();
 
             if (ActiveMode == Mode.None)
@@ -96,14 +119,44 @@ namespace AccessCalibration
             else
             {
                 Device = InputDeviceKind.Mouse;
-                _target = new Vector2(Screen.width / 2f, Screen.height / 2f);
                 _radius = Mathf.Max(1f, Screen.height * MouseRadiusFraction);
+                _target = PlaceMouseTarget(Mouse.current.position.ReadValue());
             }
+
+            // Where the dot is at the start counts as "seen": outside (the usual case) means any
+            // later entry is active; already inside means it has to go out and come back in.
+            _seenOutside = ((ReadPosition() - _target) / _radius).sqrMagnitude > 1f;
 
             SetPhase(Phase.WaitingToEnter, now);
             View.ShowTest(Title, Instructions);
             View.ShowStabilityArena(true);
             View.SetStatus(CalibrationTexts.StabilityBringIn);
+        }
+
+        /// <summary>
+        /// Screen centre, unless the cursor is already near it: then the circle goes the other way,
+        /// far enough that the cursor starts outside and has to be brought in.
+        /// </summary>
+        Vector2 PlaceMouseTarget(Vector2 cursor)
+        {
+            var size = new Vector2(Mathf.Max(1, Screen.width), Mathf.Max(1, Screen.height));
+            var centre = size / 2f;
+            float minDistance = MouseStartDistanceInRadii * _radius;
+            if (Vector2.Distance(cursor, centre) >= minDistance) return centre;
+
+            Vector2 away = centre - cursor;
+            Vector2 dir = away.sqrMagnitude > 1f ? away.normalized : Vector2.right;
+            Vector2 t = cursor + dir * minDistance;
+            float margin = _radius + 16f;
+            t.x = Mathf.Clamp(t.x, margin, size.x - margin);
+            t.y = Mathf.Clamp(t.y, margin, size.y - margin);
+            if (Vector2.Distance(cursor, t) < minDistance)   // squeezed by the screen edge: try the other side
+            {
+                t = cursor - dir * minDistance;
+                t.x = Mathf.Clamp(t.x, margin, size.x - margin);
+                t.y = Mathf.Clamp(t.y, margin, size.y - margin);
+            }
+            return t;
         }
 
         void SetPhase(Phase phase, double now)
@@ -132,7 +185,9 @@ namespace AccessCalibration
             switch (CurrentPhase)
             {
                 case Phase.WaitingToEnter:
-                    if (inside)
+                    // Only an active entry counts: the dot must have been outside first.
+                    if (!inside) _seenOutside = true;
+                    if (inside && _seenOutside)
                     {
                         SetPhase(Phase.Settling, now);
                         View.SetStatus(CalibrationTexts.StabilityGetReady);
@@ -149,11 +204,17 @@ namespace AccessCalibration
                         SetPhase(Phase.Measuring, now);
                         View.SetStatus(CalibrationTexts.StabilityMeasuring);
                         _samples.Add((p.x, p.y));
+                        _lastSample = p;
                     }
                     break;
 
                 case Phase.Measuring:
-                    if (inPhase <= MeasureSeconds) _samples.Add((p.x, p.y));
+                    if (inPhase <= MeasureSeconds)
+                    {
+                        if (p != _lastSample) _movedSamples++;
+                        _lastSample = p;
+                        _samples.Add((p.x, p.y));
+                    }
                     else Complete();
                     break;
             }
@@ -180,10 +241,21 @@ namespace AccessCalibration
                 Device = Device,
                 Spread = _spread,
                 MeanOffset = _meanOffset,
-                Confidence = WasSkipped ? Confidence.Skipped
-                           : _samples.Count < 10 ? Confidence.Uncertain   // too few frames to trust
-                           : Confidence.Ok,
+                Confidence = WasSkipped ? Confidence.Skipped : MeasuredConfidence(),
             };
+        }
+
+        /// <summary>
+        /// "Uncertain", not "steady", when the numbers can't tell steadiness from absence:
+        /// too few frames, no input at all while measuring (a parked mouse sends nothing), or a
+        /// spread so close to 0 that the hand most likely wasn't on the device.
+        /// </summary>
+        Confidence MeasuredConfidence()
+        {
+            if (_samples.Count < 10) return Confidence.Uncertain;
+            if (_movedSamples == 0) return Confidence.Uncertain;
+            if (_spread < MinMeaningfulSpread) return Confidence.Uncertain;
+            return Confidence.Ok;
         }
     }
 }

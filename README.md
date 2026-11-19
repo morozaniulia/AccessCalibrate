@@ -106,8 +106,8 @@ Docs/                DESIGN_SPEC.md, screenshots
 
 | Suite | Tests | What it covers |
 |---|---|---|
-| EditMode | 102 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for all presets, no literal colours in the USS |
-| PlayMode | 69 | each check with simulated keyboard / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input) |
+| EditMode | 106 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for all presets, no literal colours in the USS |
+| PlayMode | 76 | each check with simulated keyboard / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input) |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
 A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:
@@ -128,6 +128,7 @@ To run your own study, use study mode (below). It saves one CSV row per calibrat
 - **Display latency is unknown.** The moment a signal appears is recorded when the frame that shows it is *processed* (`Time.realtimeSinceStartupAsDouble`), not when the screen actually lights up. Rendering, the display's refresh and its internal processing add an unknown delay, which makes measured reactions slightly slower than the player really is. Reaction rules therefore only fire above *threshold + `ReactionLatencyMarginMs`* (50 ms by default), so display lag alone does not trigger them.
 - **Input timing comes from input events.** Press and release times come from `InputAction.CallbackContext.time`, not from `Update()`, so frame rate does not add to the measurement. The input device's own latency (USB / Bluetooth polling) is not measured.
 - **Steadiness is a spread, not a diagnosis.** The steadiness test measures how much the cursor wanders around the player's own average position (2D standard deviation, as a fraction of the circle radius). Holding still slightly off-centre is not counted as unsteadiness. The distance from the centre is stored for information only, and no rule uses it.
+- **A still cursor is not proof of a still hand.** Measuring starts only after the player actively brings the dot into the circle. If no input arrives while measuring, or the spread is practically 0, the result is marked *uncertain*, not *steady*: a parked mouse sends nothing. The pilot study found this case (see `Docs/study-results.md`).
 - **Short samples.** Each check lasts a few seconds. Fatigue, practice, the time of day, or an unfamiliar controller can change the results. That is why every suggestion stays editable, and the calibration can be repeated at any time.
 - **Motor abilities only.** Vision, hearing and cognitive needs are out of scope.
 - **UI Toolkit limits.** There is no real backdrop blur (the optional blur in the design spec isn't implemented, so the panel is more opaque instead). Gradients and shadows are approximated, and dashed outlines are drawn in code.
