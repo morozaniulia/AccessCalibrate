@@ -7,6 +7,9 @@ AccessCalibrate is an open-source Unity toolkit that applies ideas from **abilit
 
 https://github.com/user-attachments/assets/8f70c4d6-96d5-4ef4-8361-18aa85f9d0e8
 
+**[▶ Try it in the browser](https://morozaniulia.github.io/AccessCalibrate/)** · **[Download for Windows (v0.1.0, zip)](https://github.com/morozaniulia/AccessCalibrate/releases/download/v0.1.0/AccessCalibrate-0.1.0-Windows.zip)**  
+The calibration only, no Unity install needed. Keyboard, mouse or gamepad. At the end, *Copy results* gives you a plain-text summary to paste into [an issue](https://github.com/morozaniulia/AccessCalibrate/issues).
+
 
 
 **[Install](#install) · [Demo](#demo) · [Results](#results) · [Design spec](Docs/DESIGN_SPEC.md)**
@@ -111,7 +114,7 @@ Docs/                DESIGN_SPEC.md, screenshots
 | Suite | Tests | What it covers |
 |---|---|---|
 | EditMode | 106 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for all presets, no literal colours in the USS |
-| PlayMode | 77 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input) |
+| PlayMode | 81 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input), the playable build's summary, copied text and Redo |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
 A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:
