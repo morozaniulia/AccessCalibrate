@@ -71,8 +71,8 @@ namespace AccessCalibration
 
         // ------------------------------------------------------------- 3. repeated presses
         public static string TapsTitle = "Repeated presses";
-        public static string TapsInstructions = "Press a button as many times as is comfortable, for 5 seconds. The timer starts at your first press.";
-        public static string TapsWaiting = "Start whenever you like.";
+        public static string TapsInstructions = "Press a button as fast as you comfortably can, for 5 seconds. The timer starts at your first press.";
+        public static string TapsWaiting = "As fast as you comfortably can. The timer starts at your first press.";
         public static string TapsCounting = "Presses: {0}";
         public static string TapsPresses = "presses";
         public static string SecondsLeft = "{0:0.0} s left";
@@ -103,6 +103,7 @@ namespace AccessCalibration
         // ------------------------------------------------------------- confirmation screen
         public static string ConfirmEyebrow = "CONTROL SETUP · DONE";
         public static string ConfirmTitle = "Here's what we suggest";
+        public static string ConfirmTitleNothing = "No changes needed";
         public static string ConfirmNote = "Keep what helps. Change it anytime in Options.";
         public static string ConfirmNothing = "No changes suggested. You can still adjust everything in Options.";
         /// <summary>Primary button, live: N switched on / 1 / none.</summary>

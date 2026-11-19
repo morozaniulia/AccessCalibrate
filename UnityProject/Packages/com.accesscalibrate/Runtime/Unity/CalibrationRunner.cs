@@ -68,7 +68,9 @@ namespace AccessCalibration
         public int Selection { get; private set; }
         public int AcceptIndex => Review != null ? Review.Items.Count : -1;
         public int RedoIndex => AcceptIndex + 1;
-        public int SkipIndex => AcceptIndex + 2;
+        /// <summary>"Not now"; -1 when there is nothing to suggest (the button is hidden then:
+        /// it would do the same as "Continue without changes").</summary>
+        public int SkipIndex => Review != null && Review.Items.Count > 0 ? AcceptIndex + 2 : -1;
 
         public ReactionTest Reaction { get; private set; }
         public HoldTest Hold { get; private set; }
@@ -331,7 +333,7 @@ namespace AccessCalibration
         public void MoveSelection(int delta)
         {
             if (!IsReviewing) return;
-            int count = Review.Items.Count + 3;
+            int count = Review.Items.Count + (Review.Items.Count > 0 ? 3 : 2);   // no "Not now" when empty
             Selection = ((Selection + delta) % count + count) % count;
             View.SetConfirmationSelection(Selection);
         }

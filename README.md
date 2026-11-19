@@ -38,7 +38,7 @@ Most games already offer accessibility options: longer timing windows, toggles i
 | Reaction | median of 6 trials, first dropped, < 120 ms and > 2000 ms ignored | median > 450 ms (+ 50 ms latency margin) | timing windows ×1.5 |
 | | | median > 700 ms (+ 50 ms) | timing windows ×2 and skippable quick-time events |
 | Hold | longest of 2 comfortable holds, max 5 s | < 2 s | press once instead of holding |
-| Repeated presses | presses per second in a 5 s window from the first press | < 4 / s | hold instead of pressing rapidly |
+| Repeated presses | presses per second, as fast as comfortable, in a 5 s window from the first press | < 4 / s | hold instead of pressing rapidly |
 | Steadiness | spread of the cursor around the player's own average position (2D standard deviation, × circle radius) | > 0.15 (mouse: > 0.10) | bigger stick deadzone (with a mouse: smooth small mouse movements) and medium aim assist |
 | Button reach | main buttons not pressed within 5 s each (configurable) | 1 or more | remap those buttons |
 | | | half or more | one-handed layout |
@@ -114,7 +114,7 @@ Docs/                DESIGN_SPEC.md, screenshots
 | Suite | Tests | What it covers |
 |---|---|---|
 | EditMode | 106 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for all presets, no literal colours in the USS |
-| PlayMode | 82 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input), the playable build's summary, copied text and Redo |
+| PlayMode | 83 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input), the playable build's summary, copied text and Redo |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
 A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:

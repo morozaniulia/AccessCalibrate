@@ -84,6 +84,14 @@ namespace AccessCalibration.PlayModeTests
         }
 
         [Test]
+        public void Instructions_AskForSpeed()
+        {
+            // The rule compares presses per second, so the player has to know it's about speed.
+            StringAssert.Contains("as fast as you comfortably can", _test.Instructions);
+            StringAssert.Contains("as fast as you comfortably can", CalibrationTexts.TapsWaiting.ToLowerInvariant());
+        }
+
+        [Test]
         public void CountsPressesByEventTime_InA5sWindowFromTheFirstPress()
         {
             _test.Begin();

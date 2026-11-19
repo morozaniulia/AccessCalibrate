@@ -7,7 +7,8 @@ using UnityEngine.InputSystem;
 namespace AccessCalibration
 {
     /// <summary>
-    /// Test 3 — repeated presses. "Press as many times as is comfortable" for 5 s.
+    /// Test 3 — repeated presses. "Press as fast as you comfortably can" for 5 s (a speed:
+    /// the rule compares presses per second, so the instruction has to ask for speed).
     /// The 5 s window starts at the first press (so reaction time doesn't count) and presses
     /// are counted by their event time. Result = presses per second.
     /// </summary>

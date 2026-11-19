@@ -471,8 +471,12 @@ namespace AccessCalibration
             _switches.Clear();
             _selectable.Clear();
 
-            // Nothing proposed: a centred message instead of the list, and no "Turn on / off" hint.
-            _listWrap.EnableInClassList("ac-confirm-list-wrap--empty", review.Items.Count == 0);
+            // Nothing proposed: "No changes needed", a centred message instead of the list, no
+            // "Turn on / off" hint, and no "Not now" (it would do the same as "Continue without changes").
+            bool nothing = review.Items.Count == 0;
+            _listWrap.EnableInClassList("ac-confirm-list-wrap--empty", nothing);
+            _confirmTitle.text = nothing ? CalibrationTexts.ConfirmTitleNothing : CalibrationTexts.ConfirmTitle;
+            _skipAll.style.display = nothing ? DisplayStyle.None : DisplayStyle.Flex;
             for (int i = 0; i < review.Items.Count; i++)
             {
                 var item = review.Items[i];
@@ -502,7 +506,7 @@ namespace AccessCalibration
             }
             _selectable.Add(_apply);
             _selectable.Add(_redo);
-            _selectable.Add(_skipAll);
+            if (!nothing) _selectable.Add(_skipAll);
             RefreshConfirmation();
             _list.scrollOffset = Vector2.zero;
             UpdateFade();

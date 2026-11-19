@@ -297,10 +297,26 @@ namespace AccessCalibration.PlayModeTests
             Assert.AreEqual(1f, rows[0].resolvedStyle.opacity, 1e-3, "back at the top: nothing hidden above, no top fade");
             Assert.AreEqual(buttonsTop, _view.Root.Q<Button>("ac-apply").worldBound.y, 0.5f, "the buttons never move");
 
-            // Nothing to suggest: centred message, no "Turn on / off" hint.
+            Assert.AreEqual(CalibrationTexts.ConfirmTitle, Q("ac-confirm-title").text);
+            Assert.AreEqual(DisplayStyle.Flex, _view.Root.Q<Button>("ac-skip-all").resolvedStyle.display);
+
+            // Nothing to suggest: "No changes needed", centred message, no "Turn on / off" hint,
+            // no "Not now" (same as "Continue without changes"), "Redo setup" kept.
             _runner.Skip();
             _runner.ShowProposal(new Measurements());
             yield return Snapshot("6e-confirmation-empty");
+            Assert.AreEqual("No changes needed", Q("ac-confirm-title").text);
+            Assert.AreEqual(CalibrationTexts.ConfirmApplyNone, Q("ac-apply-label").text);
+            Assert.AreEqual(DisplayStyle.None, _view.Root.Q<Button>("ac-skip-all").resolvedStyle.display, "Not now hidden");
+            Assert.AreEqual(DisplayStyle.Flex, _view.Root.Q<Button>("ac-redo").resolvedStyle.display, "Redo setup kept");
+            Assert.AreEqual(-1, _runner.SkipIndex);
+            Assert.AreEqual(_runner.AcceptIndex, _runner.Selection);
+            _runner.MoveSelection(+1);
+            Assert.AreEqual(_runner.RedoIndex, _runner.Selection);
+            _runner.MoveSelection(+1);
+            Assert.AreEqual(_runner.AcceptIndex, _runner.Selection, "wraps between the two visible buttons");
+            _runner.MoveSelection(-1);
+            Assert.AreEqual(_runner.RedoIndex, _runner.Selection);
             Assert.AreEqual(0, _view.Root.Q("ac-hints").childCount, "no on/off hint without rows");
             var empty = _view.Root.Q<Label>("ac-confirm-empty");
             var wrap = _view.Root.Q("ac-confirm-list-wrap");
