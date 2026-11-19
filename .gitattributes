@@ -1,0 +1,8 @@
+* text=auto
+*.cs text eol=lf
+*.uxml text eol=lf
+*.uss text eol=lf
+*.png binary
+*.jpg binary
+*.psd binary
+*.tgz binary
