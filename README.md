@@ -7,7 +7,7 @@ AccessCalibrate is an open-source Unity toolkit that applies ideas from **abilit
 
 https://github.com/user-attachments/assets/8f70c4d6-96d5-4ef4-8361-18aa85f9d0e8
 
-**[▶ Try it in the browser](https://morozaniulia.github.io/AccessCalibrate/)** · **[Download for Windows (v0.1.0, zip)](https://github.com/morozaniulia/AccessCalibrate/releases/download/v0.1.0/AccessCalibrate-0.1.0-Windows.zip)**  
+**[▶ Try it in the browser](https://morozaniulia.github.io/AccessCalibrate/)** · **[Download for Windows (v0.2.0, zip)](https://github.com/morozaniulia/AccessCalibrate/releases/download/v0.2.0/AccessCalibrate-0.2.0-Windows.zip)**  
 The calibration only, no Unity install needed. Keyboard, mouse or gamepad. At the end, *Copy results* gives you a plain-text summary to paste into [an issue](https://github.com/morozaniulia/AccessCalibrate/issues).
 
 

@@ -157,6 +157,9 @@ namespace AccessCalibration
             _doc.rootVisualElement.pickingMode = PickingMode.Ignore;
             _reduceMotion = reduceMotion;
             _motion.Reduce = _dialogMotion.Reduce = reduceMotion;
+            // Motion runs on the calibration's clock: the intro and the moment the check starts
+            // measuring are on one time axis (and a recording at a fixed frame rate stays in step).
+            if (_runner != null) _motion.Clock = _dialogMotion.Clock = () => _runner.Clock();
             _motion.Blur = _dialogMotion.Blur = (_runner == null || _runner.MotionBlur) && !MotionTimeline.SlowDevice;
             // too slow on this device: both timelines drop the blur (opacity + scale stay)
             _motion.BlurFellBack += () => _dialogMotion.TurnOffBlur();
