@@ -33,15 +33,19 @@ namespace AccessCalibration.PlayModeTests
             AccessCalibrate.ResetStaticState();
         }
 
-        /// <summary>Skips to the given test's intro card, then presses Space there and KEEPS IT HELD.</summary>
+        /// <summary>
+        /// Presses Space and KEEPS IT HELD, then gets to the given check: it starts (with its intro)
+        /// while Space is still down — like a press left over from the previous check.
+        /// </summary>
         void StartTestWithSpaceHeld(int testIndex)
         {
+            Now = 10.1;
+            Press(Keyboard.spaceKey, time: 10.1);
             _runner.StartCalibration();
             for (int i = 0; i < testIndex; i++) _runner.SkipCurrent();
-            Now = 10.1;
-            Press(Keyboard.spaceKey, time: 10.1);   // the "press any button to start" press…
-            _runner.Tick();                          // …starts the test while Space is still down
+            _runner.Tick();
             Assert.IsTrue(_runner.CurrentTest.IsRunning);
+            Assert.IsTrue(_runner.CurrentTest.IsWaitingForRelease, "the check waits for the held key to be released");
         }
 
         [Test]

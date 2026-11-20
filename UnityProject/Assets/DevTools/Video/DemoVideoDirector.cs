@@ -255,7 +255,7 @@ public sealed class DemoVideoDirector : MonoBehaviour
 
     IEnumerator NextIntro(CalibrationTest test, float readSeconds = 1.2f)
     {
-        yield return Until(() => _runner.InIntro && _runner.CurrentTest == test);
+        yield return Until(() => _runner.CurrentTest == test);
         Mark("intro-" + test.GetType().Name);
         yield return Wait(readSeconds);
         yield return Tap(_keyboard.spaceKey);                    // "press any button when you're ready"

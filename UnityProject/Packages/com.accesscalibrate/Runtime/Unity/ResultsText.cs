@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using AccessCalibration.Core;
 
-namespace AccessCalibration.FeedbackApp
+namespace AccessCalibration
 {
     /// <summary>
-    /// The plain-text block "Copy results" puts on the clipboard, and the lines the summary screen
-    /// shows. Only what the calibration measured and suggested: no names, no machine or browser
-    /// details beyond the platform, nothing sent anywhere.
+    /// The plain-text block "Copy results" (Summary screen) puts on the clipboard. Only what the
+    /// calibration measured and suggested: no names, no machine or browser details beyond the
+    /// platform, nothing sent anywhere.
     /// </summary>
     public static class ResultsText
     {
@@ -69,6 +69,19 @@ namespace AccessCalibration.FeedbackApp
             return used.Count > 0 ? string.Join(", ", used) : "none";
         }
 
+        /// <summary>The platform, as the copied text names it.</summary>
+        public static string PlatformName()
+        {
+            switch (UnityEngine.Application.platform)
+            {
+                case UnityEngine.RuntimePlatform.WebGLPlayer: return "browser (WebGL)";
+                case UnityEngine.RuntimePlatform.WindowsPlayer: return "Windows";
+                case UnityEngine.RuntimePlatform.OSXPlayer: return "macOS";
+                case UnityEngine.RuntimePlatform.LinuxPlayer: return "Linux";
+                default: return UnityEngine.Application.isEditor ? "Unity editor" : UnityEngine.Application.platform.ToString();
+            }
+        }
+
         /// <summary>
         /// The clipboard block. <paramref name="review"/> may be null (calibration closed on the
         /// Welcome screen); <paramref name="applied"/> is false after "Not now".
@@ -100,7 +113,7 @@ namespace AccessCalibration.FeedbackApp
                     var c = item.Change;
                     sb.Append(item.Accepted ? "- [on]  " : "- [off] ")
                       .Append(ProposalTexts.Title(c))
-                      .Append(" (").Append(c.Setting).Append(" = ").Append(c.ProposedValue).Append(')');
+                      .Append(" (").Append(c.Setting).Append(" = ").Append(item.Value ?? c.ProposedValue).Append(')');
                     if (c.IsUncertain) sb.Append(", uncertain");
                     sb.Append('\n');
                 }

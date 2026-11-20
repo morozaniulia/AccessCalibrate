@@ -70,3 +70,48 @@ namespace AccessCalibration
         void SetWelcomeSelection(int index);
     }
 }
+
+namespace AccessCalibration
+{
+    /// <summary>The devices the player can pick in "What are you playing with?".</summary>
+    public enum DeviceChoice { Xbox, PlayStation, KeyboardMouse, Touch }
+
+    /// <summary>
+    /// Optional: a view that plays an intro at the start of each check. The runner waits this long
+    /// (plus the usual random pause) before the first Reaction signal, so it never comes during the intro.
+    /// </summary>
+    public interface ICalibrationIntroView
+    {
+        /// <summary>Length of a check's intro in seconds (0 with reduce motion).</summary>
+        double IntroSeconds { get; }
+    }
+
+    /// <summary>Optional: "What are you playing with?" (opened from "Change"). Items are the choices, in order.</summary>
+    public interface ICalibrationDeviceView
+    {
+        void ShowDevicePicker(System.Collections.Generic.IReadOnlyList<DeviceChoice> choices, DeviceChoice detected, int selected);
+        void SetDeviceSelection(int index);
+        void HideDevicePicker();
+        /// <summary>The player picked a device: glyphs and drawings follow it from now on.</summary>
+        void UseDevice(DeviceChoice choice);
+    }
+
+    /// <summary>Optional: the results after Apply. Items: 0 = Continue, 1 = Copy results, 2 = Redo.</summary>
+    public interface ICalibrationSummaryView
+    {
+        void ShowSummary(AccessCalibration.Core.Measurements measurements, AccessCalibration.Core.ProposalReview review, bool applied);
+        void SetSummarySelection(int index);
+        /// <summary>"Copy results" finished: true when the text is on the clipboard.</summary>
+        void ShowCopyResult(bool copied);
+    }
+
+    /// <summary>
+    /// Optional: on a touch screen, where a touch counts as a press. Touches that begin anywhere
+    /// else (Skip, Back, Change…) are never measured. Without it, every touch counts.
+    /// </summary>
+    public interface ICalibrationTouchView
+    {
+        /// <param name="screenPosition">Screen pixels, origin bottom-left (Input System).</param>
+        bool IsInPressArea(UnityEngine.Vector2 screenPosition);
+    }
+}

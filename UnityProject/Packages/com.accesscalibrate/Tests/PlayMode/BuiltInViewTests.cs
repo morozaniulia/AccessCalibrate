@@ -193,8 +193,8 @@ namespace AccessCalibration.PlayModeTests
             yield return Snapshot($"v2-{t}-05-hold-ready");
 
             // 02 Device picker, over the Hold check
-            _view.ForceTouchRow = true;
-            _view.ShowDevicePicker();
+            _runner.ForceTouchAvailable = true;
+            _runner.OpenDevicePicker();
             yield return null;
             Assert.IsTrue(HasText(ScreenTexts.DeviceTitle));
             Assert.IsTrue(HasText("Detected · " + ScreenTexts.DeviceXboxDetail));
@@ -202,7 +202,7 @@ namespace AccessCalibration.PlayModeTests
             Assert.AreEqual(1, _view.Root.Query(className: "ac-device--selected").ToList().Count);
             Assert.AreEqual(1f, _view.Root.Q(className: "ac-dialog").resolvedStyle.backgroundColor.a, 1e-3, "the dialog is opaque: nothing shows through");
             yield return Snapshot($"v2-{t}-02-change-device");
-            _view.ShowTest("", "");   // closes the picker
+            _runner.CloseDevicePicker();
 
             // 06 Hold, 2.4 s into a press
             Press(_pad.buttonSouth, time: _now);
@@ -292,6 +292,7 @@ namespace AccessCalibration.PlayModeTests
             Assert.AreEqual(3, _view.Root.Query<Label>().ToList().Count(l => l.text == ScreenTexts.ReachReached));
             Assert.IsTrue(HasText(ScreenTexts.ReachSkipButton) && HasText("wait 5 s"));
             Assert.IsTrue(_view.ReplayVisible);
+            Assert.Contains("Press Y", _view.Drawing.Texts.ToList(), "the drawing lights the button asked for");
             CollectionAssert.AreEqual(new[] { ScreenTexts.HintSkipCheck, ScreenTexts.HintBack, ScreenTexts.HintSkipAllHold }, HintTexts, "Back and Skip the whole setup live in the hints");
             yield return Snapshot($"v2-{t}-11-button-reach");
 
@@ -312,8 +313,9 @@ namespace AccessCalibration.PlayModeTests
             yield return Snapshot($"v2-{t}-12-suggestions");
 
             // 14 Summary after Apply
-            _view.ShowSummary(m, _runner.Review, applied: true);
+            _runner.Accept();
             yield return null;
+            Assert.IsTrue(_runner.IsShowingSummary);
             Assert.IsTrue(HasText(ScreenTexts.SummaryTitle) && HasText("650 ms") && HasText("rule: above 500 ms") && HasText("1 of 6"));
             Assert.IsTrue(HasText("Remap RB to an easier button"));
             Assert.AreEqual(5, _view.Root.Query(className: "ac-summary-row").ToList().Count);
@@ -438,6 +440,103 @@ namespace AccessCalibration.PlayModeTests
             AccessCalibrate.UseTheme(ThemePreset.HighContrast);
             yield return Snapshot("readme-8-suggestions-high-contrast");
             AccessCalibrate.UseTheme(ThemePreset.Dark);
+        }
+
+        [UnityTest, Timeout(120000)]
+        public IEnumerator ChosenDevice_PlayStation_Keyboard_Touch_DrawingsFollow()
+        {
+            yield return StartRunner();
+            _runner.ForceTouchAvailable = true;
+            _runner.WelcomeStart();
+            yield return null;
+
+            // PlayStation: the Xbox drawing with ✕ ○ □ △ drawn in place of the letters
+            _runner.SkipCurrent();                                   // Hold
+            _runner.ChooseDevice(DeviceChoice.PlayStation);
+            yield return null;
+            Assert.AreEqual(GlyphFamily.PlayStation, _view.GlyphFamily);
+            Assert.IsFalse(_view.Drawing.Texts.Any(x => x == "A" || x == "B" || x == "X" || x == "Y"), "no Xbox letters on a PlayStation drawing");
+            Assert.Contains("Hold " + ScreenTexts.PsCross, _view.Drawing.Texts.ToList());
+            Assert.IsEmpty(_view.Drawing.UnknownColours);
+            yield return Snapshot("v2-ps-05-hold-ready");
+
+            // The choice sticks: a press on another device does not switch the glyphs back
+            yield return UseDevice(_keyboard.leftCtrlKey);
+            Assert.AreEqual(GlyphFamily.PlayStation, _view.GlyphFamily);
+
+            // Button reach, live: the requested button lit, the reached ones pressed
+            _runner.SkipCurrent(); _runner.SkipCurrent(); _runner.SkipCurrent();
+            Assert.AreSame(_runner.ButtonAccess, _runner.CurrentTest);
+            yield return null; yield return null;
+            Assert.Contains("Press " + ScreenTexts.PsCross, _view.Drawing.Texts.ToList(), "first prompt: Jump = ✕");
+            _now += 0.8;                                             // the player takes 0.8 s to reach it
+            Press(_pad.buttonSouth); yield return null;
+            _runner.ButtonAccess.Tick(_now);
+            Release(_pad.buttonSouth); yield return null; yield return null;
+            Assert.AreEqual(0.8, _runner.ButtonAccess.ReachSeconds[0], 1e-6, "reach time = time from the prompt to the press");
+            Assert.IsTrue(HasText("0.8 s"));
+            Assert.Contains("Press " + ScreenTexts.PsSquare, _view.Drawing.Texts.ToList(), "second prompt: Action = □");
+            yield return Snapshot("v2-ps-11-button-reach");
+            _now += 0.3; Press(_pad.buttonWest); yield return null; _runner.ButtonAccess.Tick(_now); Release(_pad.buttonWest); yield return null;
+            yield return null;
+            Assert.Contains("Press L1", _view.Drawing.Texts.ToList(), "bumpers too");
+
+            // Keyboard & mouse: the keyboard with the key lit
+            _runner.ChooseDevice(DeviceChoice.KeyboardMouse);
+            yield return null; yield return null;
+            Assert.AreEqual("keyboard-ansi", _view.Drawing.DrawingName);
+            Assert.Contains("Press Space", _view.Drawing.Texts.ToList());
+            Assert.IsEmpty(_view.Drawing.UnknownColours);
+            yield return Snapshot("v2-keyboard-11-button-reach");
+
+            // Touch: Button reach is skipped; Hold and Repeated presses get a big press area
+            _runner.Back(); _runner.Back(); _runner.Back();
+            _runner.ChooseDevice(DeviceChoice.Touch);
+            yield return null;
+            Assert.AreSame(_runner.Hold, _runner.CurrentTest);
+            Assert.IsNotNull(Q<VisualElement>("ac-touch-area"));
+            Assert.IsTrue(HasText(ScreenTexts.HoldAreaTouch) && HasText(ScreenTexts.HoldReadyTouch));
+            Assert.IsTrue(HasText(ScreenTexts.DeviceTouch), "the top bar names the chosen device");
+            Assert.IsEmpty(HintTexts, "no key hints on touch");
+            Assert.IsFalse(HasText(ScreenTexts.ButtonsMatch));
+            Assert.AreEqual(0, _view.Root.Q("ac-col-right").Query<GlyphBadge>().ToList().Count, "options are plain buttons");
+            Assert.AreEqual(0, _view.Root.Q("ac-bottombar").Query<GlyphBadge>().ToList().Count);
+            Assert.IsTrue(HasText("<u>" + ScreenTexts.ReplayIntroTouch + "</u>"), "no (R) key on touch");
+            Assert.IsTrue(HasText(ScreenTexts.HoldTipTouch[0]), "the grip tip speaks of the device, not a controller");
+            yield return null;
+            var area = Q<VisualElement>("ac-touch-area");
+            var skip = _view.Root.Q("ac-col-right").Query(className: "ac-option").First();
+            Assert.IsTrue(_view.IsInPressAreaPanel(area.worldBound.center), "a touch on the circle counts");
+            Assert.IsFalse(_view.IsInPressAreaPanel(skip.worldBound.center), "a touch on Skip does not");
+            Assert.IsFalse(_view.IsInPressAreaPanel(Q<VisualElement>("ac-topbar").worldBound.center), "nor on Change / the top bar");
+            Assert.IsFalse(_view.IsInPressAreaPanel(Q<VisualElement>("ac-bottombar").worldBound.center));
+            yield return Snapshot("v2-touch-05-hold-ready");
+            _runner.SkipCurrent();
+            yield return null;
+            Assert.IsTrue(HasText(ScreenTexts.PressesAreaTouch));
+            yield return Snapshot("v2-touch-07-presses-ready");
+            _runner.SkipCurrent(); _runner.SkipCurrent();
+            yield return null;
+            Assert.IsTrue(_runner.IsReviewing, "no Button reach on touch");
+        }
+
+        [UnityTest, Timeout(60000)]
+        public IEnumerator Summary_ButtonsAndCopy()
+        {
+            yield return StartRunner();
+            _runner.ConfirmationInputDelaySeconds = 0;
+            _runner.ShowProposal(DesignMeasurements());
+            _runner.Accept();
+            yield return null;
+            Assert.IsTrue(_runner.IsShowingSummary);
+            var buttons = _view.Root.Q("ac-page-summary").Query(className: "ac-selected").ToList();
+            Assert.AreEqual(1, buttons.Count, "one button selected");
+            Assert.AreEqual("Continue to game", ScreenTexts.SummaryContinue, "the package's own text (the feedback app's \"Done\" must not leak)");
+            Assert.IsTrue(buttons[0].Query<Label>().ToList().Any(l => l.text == ScreenTexts.SummaryContinue));
+            _runner.CopyResults();
+            yield return null;
+            Assert.IsTrue(HasText(ScreenTexts.CopyDone));
+            yield return Snapshot("v2-dark-14-summary-copied");
         }
 
         [UnityTest, Timeout(60000)]

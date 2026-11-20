@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="sized" content="1">
+<title>Light · No changes</title>
+
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Manrope,system-ui,sans-serif}
+h1,h2{text-wrap:balance}
+p{text-wrap:pretty}
+.center p,p.center{text-wrap:balance}
+@keyframes acpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.5)}}
+.acpulse{animation:acpulse 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes acspin{to{transform:rotate(360deg)}}
+.acring{animation:acspin 8s linear infinite}
+@keyframes acripple{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.5);opacity:0}}
+.acripple{animation:acripple 2.4s ease-out infinite}
+@keyframes acpressA{0%{transform:scale(1)}25%{transform:scale(.9)}40%{transform:scale(.92) translateX(-5px)}55%{transform:scale(.93) translateX(5px)}70%{transform:scale(.95) translateX(-3px)}85%{transform:scale(.98) translateX(2px)}100%{transform:scale(1)}}
+@keyframes acpressB{0%{transform:scale(1)}25%{transform:scale(.9)}40%{transform:scale(.92) translateX(-5px)}55%{transform:scale(.93) translateX(5px)}70%{transform:scale(.95) translateX(-3px)}85%{transform:scale(.98) translateX(2px)}100%{transform:scale(1)}}
+.acpressA{animation:acpressA .45s ease-out}
+.acpressB{animation:acpressB .45s ease-out}
+@keyframes acbreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+.acbreathe{animation:acbreathe 3s ease-in-out infinite}
+@keyframes acglow{0%,100%{opacity:.55}50%{opacity:.9}}
+.acglow{animation:acglow 2s ease-in-out infinite}
+@keyframes acStackDrop{0%{opacity:0;filter:blur(6px);transform:translateY(calc(var(--i,0) * var(--step,56px) * -1)) scale(.97)}25%{opacity:1;filter:blur(0)}100%{opacity:1;transform:none}}
+.acStack>*{position:relative;z-index:calc(20 - var(--i,0));animation:acStackDrop .8s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--d0,0s) + var(--i,0) * .14s)}
+@media (prefers-reduced-motion: reduce){.acpulse,.acring,.acripple,.acpressA,.acpressB,.acbreathe,.acglow,.acStack>*{animation:none}}
+.galaxy{background:linear-gradient(180deg,#F6F7F9,#E8EAEE)}
+@keyframes acdrift{from{background-position:0 0,30% 35%}to{background-position:0 0,70% 65%}}
+.galaxy{animation:none}
+@media (prefers-reduced-motion: reduce){.galaxy{animation:none}}
+
+@keyframes zIn{0%{opacity:0;filter:blur(14px);transform:translateY(8px)}100%{opacity:1;filter:blur(0);transform:none}}
+@keyframes zDraw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes zPop{0%{opacity:0;transform:scale(0)}70%{opacity:1;transform:scale(1.4)}100%{opacity:1;transform:scale(1)}}
+@keyframes zSlide{0%{opacity:0;transform:translateX(-30px)}100%{opacity:1;transform:none}}
+.zA{animation:zIn 1s ease-out .2s both}.zB{animation:zIn 1s ease-out .7s both}
+.zLine{animation:zDraw 1.6s cubic-bezier(.4,0,.2,1) 1.5s both}
+.zDot{animation:zPop .5s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(1.5s + var(--i) * .4s)}
+.zLab{animation:zIn .6s ease-out both;animation-delay:calc(1.6s + var(--i) * .4s)}
+.zC{animation:zIn .8s ease-out 3.6s both}
+@media (prefers-reduced-motion: reduce){.zA,.zB,.zLine,.zDot,.zLab,.zC{animation:none!important}}
+@font-face{font-family:Manrope;src:url(../Manrope.ttf);font-weight:200 800}
+html,body{background:#000}
+</style>
+
+<div class="galaxy" style="position: relative; width: 1280px; height: 720px; overflow: hidden; font-family: Manrope, system-ui, sans-serif; color: #11141C">
+
+<div style="position: absolute; left: 0; top: 0; width: 1280px; height: 64px; box-sizing: border-box; padding: 0 40px; display: grid; grid-template-columns: 240px 1fr 240px; align-items: center"><div><span style="font-size: 16px; font-weight: 700; color: rgba(17,20,28,0.64)">Control setup</span></div><div style="display: flex; justify-content: center"><div aria-label="Step 6 of 5" style="display: flex; align-items: center; gap: 8px"><span title="Reaction done" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(17,20,28,0.88); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">1</span><span title="Hold done" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(17,20,28,0.88); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">2</span><span title="Repeated presses done" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(17,20,28,0.88); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">3</span><span title="Steadiness done" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(17,20,28,0.88); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">4</span><span title="Button reach done" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(17,20,28,0.88); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">5</span></div></div><div style="display: flex; justify-content: flex-end"></div></div>
+<div style="position: absolute; left: 0; top: 64px; width: 1280px; height: 596px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center">
+<h1 class="zA" style="margin: 0; font-size: 46px; font-weight: 700; letter-spacing: -0.02em">No changes needed</h1>
+<p class="center zB" style="margin: 16px 0 0; font-size: 18px; line-height: 1.5; color: rgba(17,20,28,0.64); max-width: 560px">Every check came back within the default range, so the game keeps its standard settings. You can still adjust anything in&nbsp;Options.</p>
+<div aria-label="All five checks done" style="position: relative; margin-top: 52px; width: 760px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))"><span class="zLine" aria-hidden="true" style="transform-origin: left center; position: absolute; left: 10%; right: 10%; top: 4px; height: 2px; background: #11141C; opacity: 0.5"></span><div style="display: flex; flex-direction: column; align-items: center; gap: 14px"><span class="zDot" style="--i: 0; width: 10px; height: 10px; border-radius: 50%; background: #11141C"></span><span class="zLab" style="--i: 0; font-size: 16px; font-weight: 600; color: rgba(17,20,28,0.64)">Reaction</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px"><span class="zDot" style="--i: 1; width: 10px; height: 10px; border-radius: 50%; background: #11141C"></span><span class="zLab" style="--i: 1; font-size: 16px; font-weight: 600; color: rgba(17,20,28,0.64)">Hold</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px"><span class="zDot" style="--i: 2; width: 10px; height: 10px; border-radius: 50%; background: #11141C"></span><span class="zLab" style="--i: 2; font-size: 16px; font-weight: 600; color: rgba(17,20,28,0.64)">Repeated presses</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px"><span class="zDot" style="--i: 3; width: 10px; height: 10px; border-radius: 50%; background: #11141C"></span><span class="zLab" style="--i: 3; font-size: 16px; font-weight: 600; color: rgba(17,20,28,0.64)">Steadiness</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 14px"><span class="zDot" style="--i: 4; width: 10px; height: 10px; border-radius: 50%; background: #11141C"></span><span class="zLab" style="--i: 4; font-size: 16px; font-weight: 600; color: rgba(17,20,28,0.64)">Button reach</span></div></div>
+<div class="zC" style="margin-top: 52px; display: flex; gap: 10px">
+<button type="button" style="height: 52px; width: 240px; padding: 0 12px 0 22px; border-radius: 6px; border: none; background: #11141C; color: #FFFFFF; font-family: inherit; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; cursor: pointer">Continue<span style="width: 30px; height: 30px; border-radius: 50%; background: #FFFFFF; color: #11141C; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800">A</span></button>
+<button type="button" style="height: 52px; width: 170px; border-radius: 6px; border: 1px solid rgba(17,20,28,0.30); background: rgba(255,255,255,0.62); color: #11141C; font-family: inherit; font-size: 18px; font-weight: 700; cursor: pointer">Redo setup</button>
+</div>
+</div>
+<div style="position: absolute; left: 0; bottom: 0; width: 1280px; height: 60px; box-sizing: border-box; padding: 0 40px; border-top: 1px solid rgba(17,20,28,0.16); background: rgba(255,255,255,0.62); display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 600; color: rgba(17,20,28,0.64)"><button type="button" onclick="acReplay()" style="padding: 6px 0; border: none; background: none; color: #11141C; font-family: inherit; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; cursor: pointer">Replay the intro (R)</button><span>Your results stay on this device</span></div>
+</div>
+
+
+<script>
+function acMeasure(){document.querySelectorAll('.acLn').forEach(function(el){var p=el.parentElement;if(!p)return;el.style.setProperty('--off',((p.clientWidth-el.offsetWidth)/2)+'px');});}
+acMeasure(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(acMeasure);
+function acReplay(){var r=document.querySelector('.galaxy');var c=r.cloneNode(true);r.parentNode.replaceChild(c,r);acMeasure();}
+document.addEventListener('keydown',function(e){if(e.key==='r'||e.key==='R')acReplay();});
+</script>
+</body>
+</html>

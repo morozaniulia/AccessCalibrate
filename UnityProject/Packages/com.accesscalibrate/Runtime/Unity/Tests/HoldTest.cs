@@ -71,7 +71,7 @@ namespace AccessCalibration
 
         void OnPress(InputAction.CallbackContext ctx)
         {
-            if (!IsRunning || _state != State.WaitingForPress || InputDevices.IsSkipKey(ctx)) return;
+            if (!IsRunning || _state != State.WaitingForPress || Ignored(ctx)) return;
             Remember(ctx);
             _pressCount++;
             _pressedAt = ctx.time;

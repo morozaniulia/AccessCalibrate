@@ -92,9 +92,12 @@ namespace AccessCalibration
                 case InputDeviceKind.Gamepad: return gamepad ? Mode.Stick : mouse ? Mode.Mouse : Mode.None;
                 case InputDeviceKind.Mouse:
                 case InputDeviceKind.Keyboard: return mouse ? Mode.Mouse : gamepad ? Mode.Stick : Mode.None;
-                default: return Mode.None; // touch: no stick, no mouse
+                default: return Touchscreen.current != null ? Mode.Mouse : Mode.None; // touch: the finger moves the dot
             }
         }
+
+        /// <summary>The pointer that moves the dot in Mouse mode: the finger on a touch screen, else the mouse.</summary>
+        Pointer DotPointer => PreferredDevice == InputDeviceKind.Touch && Touchscreen.current != null ? (Pointer)Touchscreen.current : Mouse.current;
 
         protected override void OnBegin(double now)
         {
@@ -120,7 +123,7 @@ namespace AccessCalibration
             {
                 Device = InputDeviceKind.Mouse;
                 _radius = Mathf.Max(1f, Screen.height * MouseRadiusFraction);
-                _target = PlaceMouseTarget(Mouse.current.position.ReadValue());
+                _target = PlaceMouseTarget(DotPointer.position.ReadValue());
             }
 
             // Where the dot is at the start counts as "seen": outside (the usual case) means any
@@ -169,8 +172,8 @@ namespace AccessCalibration
         {
             if (ActiveMode == Mode.Stick && Gamepad.current != null)
                 return Gamepad.current.leftStick.ReadUnprocessedValue();
-            if (ActiveMode == Mode.Mouse && Mouse.current != null)
-                return Mouse.current.position.ReadValue();
+            if (ActiveMode == Mode.Mouse && DotPointer != null)
+                return DotPointer.position.ReadValue();
             return _target;
         }
 

@@ -72,6 +72,21 @@ namespace AccessCalibration
             else { IsFinished = true; Finished?.Invoke(this); }
         }
 
+        /// <summary>
+        /// Stops the test without a result and without raising <see cref="Finished"/> (Back, or a
+        /// restart after the player picked another device). <see cref="Begin"/> starts it again.
+        /// </summary>
+        public void Abort()
+        {
+            if (!IsRunning) return;
+            IsRunning = false;
+            IsWaitingForRelease = false;
+            IsFinished = false;
+            WasSkipped = false;
+            OnStop();
+            View.ShowStimulus(false);
+        }
+
         /// <summary>Advances timers. Called from Update; tests call it directly with a fixed time.</summary>
         public void Tick(double now)
         {
@@ -138,6 +153,22 @@ namespace AccessCalibration
         }
 
         protected void Remember(InputAction.CallbackContext ctx) => Device = InputDevices.KindOf(ctx.control.device);
+
+        /// <summary>
+        /// On a touch screen, which touches count as presses, by where they began (screen pixels,
+        /// origin bottom-left). The built-in view sets it to its press area, so taps on Skip, Back or
+        /// Change are never measured. Null: every touch counts.
+        /// </summary>
+        public Func<Vector2, bool> TouchFilter;
+
+        /// <summary>A press the check must not measure: a skip / back key, or a touch outside the press area.</summary>
+        protected bool Ignored(InputAction.CallbackContext ctx)
+        {
+            if (InputDevices.IsSkipKey(ctx)) return true;
+            if (TouchFilter != null && ctx.control.device is Touchscreen ts)
+                return !TouchFilter(ts.primaryTouch.startPosition.ReadValue());
+            return false;
+        }
     }
 
     /// <summary>Input helpers shared by the tests.</summary>
@@ -208,19 +239,41 @@ namespace AccessCalibration
             return false;
         }
 
-        /// <summary>The skip shortcut (Escape / gamepad Select). Never counted as a test press.</summary>
+        /// <summary>
+        /// "Skip this check": Escape, or a tap on the gamepad's Menu button (≡ Start / Options; held,
+        /// it skips the whole setup instead). Never counted as a test press.
+        /// </summary>
         public static InputAction CreateSkip(string name)
         {
             var a = new InputAction(name, InputActionType.Button);
             a.AddBinding("<Keyboard>/escape");
+            a.AddBinding("<Gamepad>/start", interactions: "tap(duration=0.6)");
+            return a;
+        }
+
+        /// <summary>"Back" to the previous check: Backspace, or the gamepad's View button (Select / Create / −).</summary>
+        public static InputAction CreateBack(string name)
+        {
+            var a = new InputAction(name, InputActionType.Button);
+            a.AddBinding("<Keyboard>/backspace");
             a.AddBinding("<Gamepad>/select");
+            return a;
+        }
+
+        /// <summary>"Skip the whole setup": Shift + Escape, or holding the gamepad's Menu button for a second.</summary>
+        public static InputAction CreateSkipAll(string name)
+        {
+            var a = new InputAction(name, InputActionType.Button);
+            a.AddCompositeBinding("OneModifier").With("Modifier", "<Keyboard>/shift").With("Binding", "<Keyboard>/escape");
+            a.AddBinding("<Gamepad>/start", interactions: "hold(duration=1)");
             return a;
         }
 
         /// <summary>True if this "any key" press was actually the skip key.</summary>
         public static bool IsSkipKey(InputAction.CallbackContext ctx)
         {
-            return ctx.control.device is Keyboard kb && kb.escapeKey.isPressed;
+            // Esc (skip), Backspace (back) and R (replay the intro) are screen shortcuts, not answers.
+            return ctx.control.device is Keyboard kb && (kb.escapeKey.isPressed || kb.backspaceKey.isPressed || kb.rKey.isPressed);
         }
     }
 }

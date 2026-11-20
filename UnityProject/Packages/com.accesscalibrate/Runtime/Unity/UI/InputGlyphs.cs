@@ -154,9 +154,20 @@ namespace AccessCalibration.UI
             _subscription = InputSystem.onAnyButtonPress.Call(control => Set(InputGlyphs.FamilyOf(control.device)));
         }
 
+        /// <summary>True after the player picked a device: presses on other devices no longer change the glyphs.</summary>
+        public bool Locked { get; private set; }
+
+        /// <summary>Show this family and keep it (the player's choice in "What are you playing with?").</summary>
+        public void Lock(GlyphFamily family)
+        {
+            Locked = false;
+            Set(family);
+            Locked = true;
+        }
+
         public void Set(GlyphFamily family)
         {
-            if (family == Family) return;
+            if (Locked || family == Family) return;
             Family = family;
             Changed?.Invoke(family);
         }

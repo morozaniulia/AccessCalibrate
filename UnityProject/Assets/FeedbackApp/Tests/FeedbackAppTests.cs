@@ -57,59 +57,56 @@ namespace AccessCalibration.FeedbackApp.Tests
             yield return null;   // Start
             Assert.IsTrue(_runner.IsCalibrating);
             Assert.IsTrue(_runner.IsWelcoming);
-            Assert.IsFalse(_app.SummaryVisible);
             Assert.AreEqual("welcome", _app.State);
             _runner.WelcomeStart();
-            Assert.AreEqual("intro:ReactionTest", _app.State);
+            Assert.AreEqual("test:ReactionTest", _app.State, "no separate intro: the first check starts at once");
         }
 
         [UnityTest]
-        public IEnumerator Apply_ShowsTheSummary_CopyAndRedoWork()
+        public IEnumerator Apply_ShowsThePackageSummary_CopyWorks_DoneStartsOver()
         {
             yield return null;
             _runner.ShowProposal(Sample());
             int aim = _runner.Review.Items.ToList().FindIndex(i => i.Change.Setting == "aimAssist");
-            Assert.GreaterOrEqual(aim, 0);
             _runner.SetAccepted(aim, false);                 // the player switches one off
+            int timing = _runner.Review.Items.ToList().FindIndex(i => i.Change.Setting == "timingMultiplier");
+            _runner.Adjust(timing, +1);                       // and adjusts one: ×1.5 → ×1.75
             _runner.Accept();
             yield return null;
-
-            Assert.IsTrue(_app.SummaryVisible);
+            Assert.IsTrue(_runner.IsShowingSummary);
             Assert.AreEqual("summary", _app.State);
-            var root = _app.SummaryRoot;
-            Assert.AreEqual(5, root.Q("fb-measured").childCount, "five measurements");
-            Assert.AreEqual(_runner.LastResult.Changes.Count, root.Q<ScrollView>("fb-suggested").contentContainer.childCount);
-            Assert.IsTrue(root.Query<Label>().ToList().Any(l => l.text.StartsWith("Applied ")));
+            Assert.AreEqual(1.75f, AccessCalibrate.Profile.timingMultiplier, 1e-4, "the adjusted value is what gets applied");
+            var view = (UIToolkitCalibrationView)_runner.View;
+            Assert.IsTrue(view.Root.Query<Label>().ToList().Any(l => l.text == "Done"), "the summary's main button says Done");
 
-            _app.CopyResults();
-            Assert.AreEqual(true, _app.LastCopySucceeded);
+            _runner.CopyResults();
             string text = GUIUtility.systemCopyBuffer;
-            Assert.AreEqual(_app.LastResultsText, text);
+            Assert.AreEqual(_runner.LastResultsText, text);
             StringAssert.Contains("- Reaction: 650 ms median, 5 trials (keyboard)", text);
             StringAssert.Contains("- Steadiness: spread 0.25 of the circle (mouse)", text);
             StringAssert.Contains("- Button reach: 1 of 4 not reached: RB (keyboard)", text);
             StringAssert.Contains("Devices: keyboard, mouse", text);
             StringAssert.Contains("Suggestions (applied)", text);
             StringAssert.Contains("- [off] Aim assist (aimAssist", text);
-            StringAssert.Contains("- [on]  More time for quick moments (timingMultiplier", text);
+            StringAssert.Contains("- [on]  More time for quick moments (timingMultiplier = 1.75)", text);
             StringAssert.DoesNotContain(System.Environment.UserName, text, "no personal data");
             StringAssert.DoesNotContain(System.Environment.MachineName, text, "no personal data");
+            Assert.IsTrue(view.Root.Query<Label>().ToList().Any(l => l.text == ScreenTexts.CopyDone), "says it was copied");
 
-            _app.Redo();
-            Assert.IsFalse(_app.SummaryVisible);
-            Assert.IsTrue(_runner.IsWelcoming, "Redo starts a fresh calibration");
+            _runner.ContinueFromSummary();   // "Done"
+            yield return null;
+            Assert.IsTrue(_runner.IsWelcoming, "Done starts a fresh calibration");
         }
 
         [UnityTest]
-        public IEnumerator NotNow_SummarySaysNothingWasApplied()
+        public IEnumerator NotNow_StartsOver()
         {
             yield return null;
             _runner.ShowProposal(Sample());
             _runner.Skip();
             yield return null;
-            Assert.IsTrue(_app.SummaryVisible);
-            _app.CopyResults();
-            StringAssert.Contains("Suggestions (not applied: Not now)", _app.LastResultsText);
+            Assert.IsTrue(_runner.IsWelcoming);
+            Assert.AreEqual("welcome", _app.State);
         }
 
         [Test]

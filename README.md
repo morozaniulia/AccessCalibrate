@@ -114,7 +114,7 @@ Docs/                DESIGN_SPEC.md, screenshots
 | Suite | Tests | What it covers |
 |---|---|---|
 | EditMode | 110 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for every text colour on every surface in all presets (galaxy included), opaque text colours, no literal colours in the USS |
-| PlayMode | 87 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen in all three themes (compared with the design), SVG drawings, the demo level (including a jump with simulated input), the playable build's summary, copied text and Redo |
+| PlayMode | 109 | each check with simulated keyboard / mouse / gamepad / touch input, buttons held over from the previous check, runner, welcome and suggestions flows, Back / Skip / Skip the whole setup, the device picker, adjusted values, the summary (Copy results, Redo), touches only inside the press area, glyph families, live device drawings (Xbox, PlayStation, keyboard), rendering of every screen in all three themes (compared with the design), SVG drawings, the demo level (including a jump with simulated input), the playable build |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
 A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:

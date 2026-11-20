@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="sized" content="1">
+<meta name="sized" content="1">
+<meta name="sized" content="1">
+<title>v2 Welcome</title>
+
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Manrope,system-ui,sans-serif}
+h1,h2{text-wrap:balance}
+p{text-wrap:pretty}
+@keyframes acspin{to{transform:rotate(360deg)}}
+.acring{animation:acspin 8s linear infinite}
+@keyframes acpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.5)}}
+.acpulse{animation:acpulse 1.8s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.acpulse,.acring{animation:none}}
+.galaxy{background:linear-gradient(rgba(3,5,14,0.38),rgba(3,5,14,0.38)),#070A18 url(../galaxy.jpg) center/cover no-repeat}
+
+@keyframes acdrift{from{background-position:0 0,30% 35%}to{background-position:0 0,70% 65%}}
+.galaxy{background-size:auto,125% auto;animation:acdrift 70s ease-in-out infinite alternate}
+@media (prefers-reduced-motion: reduce){.galaxy{animation:none}}
+@keyframes zIn{0%{opacity:0;filter:blur(14px);transform:translateY(8px)}100%{opacity:1;filter:blur(0);transform:none}}
+@keyframes zDraw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.zA{animation:zIn 1.2s ease-out .2s both}.zB{animation:zIn 1s ease-out .9s both}
+.zStep{animation:zIn .7s ease-out both;animation-delay:calc(1.7s + var(--i) * .18s)}
+.zLine{transform-origin:left center;animation:zDraw 1.2s cubic-bezier(.4,0,.2,1) 2.6s both}
+.zDots{animation:zIn .6s ease-out 3.4s both}
+.zDev{animation:zIn .8s ease-out 3.8s both}.zC{animation:zIn .8s ease-out 4.2s both}
+@media (prefers-reduced-motion: reduce){.zA,.zB,.zStep,.zLine,.zDots,.zDev,.zC{animation:none!important}}
+@font-face{font-family:Manrope;src:url(../Manrope.ttf);font-weight:200 800}
+html,body{background:#000}
+</style>
+
+<div class="galaxy" style="position: relative; width: 1280px; height: 720px; overflow: hidden; font-family: Manrope, system-ui, sans-serif; color: #EEF2FF">
+
+<div style="position: absolute; left: 0; top: 0; width: 1280px; height: 64px; box-sizing: border-box; padding: 0 40px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center"><div><span style="font-size: 18px; font-weight: 700; color: rgba(220,228,255,0.64)">Control setup</span></div><div></div><div style="display: flex; justify-content: flex-end"><span style="display: inline-flex; align-items: center; gap: 8px"><span style="min-width: 30px; height: 30px; padding: 0 9px; border-radius: 5px; border: 1px solid rgba(220,228,255,0.40); box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 700; line-height: 1; color: #EEF2FF">Esc</span><span style="font-size: 19px; font-weight: 600; color: rgba(220,228,255,0.64)">Not now</span></span></div></div>
+<div style="position: absolute; left: 0; top: 104px; width: 1280px; display: flex; flex-direction: column; align-items: center; text-align: center">
+<h1 class="zA" style="margin: 0; font-size: 48px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em">Set up the controls<br>around how you play</h1>
+<p class="zB" style="margin: 18px 0 0; font-size: 18px; line-height: 1.5; color: rgba(220,228,255,0.64); max-width: 560px">Five short checks, about a minute. No score. We suggest settings and you choose which ones to&nbsp;keep.</p>
+<div style="margin-top: 44px; width: 860px">
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px"><div class="zStep" style="--i: 0; display: flex; flex-direction: column; gap: 6px; text-align: left"><span style="font-size: 18px; font-weight: 800; color: rgba(238,242,255,0.70); font-variant-numeric: tabular-nums">01</span><span style="font-size: 18px; font-weight: 700; color: #EEF2FF">Reaction</span></div><div class="zStep" style="--i: 1; display: flex; flex-direction: column; gap: 6px; text-align: left"><span style="font-size: 18px; font-weight: 800; color: rgba(238,242,255,0.70); font-variant-numeric: tabular-nums">02</span><span style="font-size: 18px; font-weight: 700; color: #EEF2FF">Hold</span></div><div class="zStep" style="--i: 2; display: flex; flex-direction: column; gap: 6px; text-align: left"><span style="font-size: 18px; font-weight: 800; color: rgba(238,242,255,0.70); font-variant-numeric: tabular-nums">03</span><span style="font-size: 18px; font-weight: 700; color: #EEF2FF">Repeated presses</span></div><div class="zStep" style="--i: 3; display: flex; flex-direction: column; gap: 6px; text-align: left"><span style="font-size: 18px; font-weight: 800; color: rgba(238,242,255,0.70); font-variant-numeric: tabular-nums">04</span><span style="font-size: 18px; font-weight: 700; color: #EEF2FF">Steadiness</span></div><div class="zStep" style="--i: 4; display: flex; flex-direction: column; gap: 6px; text-align: left"><span style="font-size: 18px; font-weight: 800; color: rgba(238,242,255,0.70); font-variant-numeric: tabular-nums">05</span><span style="font-size: 18px; font-weight: 700; color: #EEF2FF">Button reach</span></div></div>
+<div aria-hidden="true" style="position: relative; margin-top: 16px; height: 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; align-items: center"><span class="zLine" style="position: absolute; left: 10px; right: 10px; top: 10px; height: 1px; background: rgba(238,242,255,0.16)"></span><div class="zDots" style="position: relative; display: flex"><div style="position: relative; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center"><span class="acring" style="position: absolute; left: 0; top: 0; width: 20px; height: 20px; box-sizing: border-box; border-radius: 50%; border: 1.5px dashed #F2EEE6"></span><span class="acpulse" style="width: 8px; height: 8px; border-radius: 50%; background: #F2EEE6; box-shadow: 0 0 12px 3px #F2EEE6"></span></div></div><div class="zDots" style="position: relative; display: flex"><div style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center"><span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(238,242,255,0.30)"></span></div></div><div class="zDots" style="position: relative; display: flex"><div style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center"><span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(238,242,255,0.30)"></span></div></div><div class="zDots" style="position: relative; display: flex"><div style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center"><span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(238,242,255,0.30)"></span></div></div><div class="zDots" style="position: relative; display: flex"><div style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center"><span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(238,242,255,0.30)"></span></div></div></div>
+</div>
+<div class="zDev" style="margin-top: 40px; display: flex; align-items: center; gap: 6px; font-size: 19px; color: rgba(220,228,255,0.64)">
+<span>Playing with</span><span style="font-weight: 700; color: #EEF2FF">Xbox controller</span><span>· detected from your last input.</span>
+<button type="button" style="margin-left: 4px; padding: 4px 0; border: none; background: none; color: #F2EEE6; font-family: inherit; font-size: 19px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; cursor: pointer">Change</button>
+</div>
+<div class="zC" style="margin-top: 32px; display: flex; gap: 12px">
+<button type="button" style="height: 52px; width: 240px; padding: 0 14px 0 22px; border-radius: 6px; border: none; background: #EEF2FF; color: #0B1230; font-family: inherit; font-size: 18px; font-weight: 800; letter-spacing: 0.02em; display: flex; align-items: center; justify-content: space-between; cursor: pointer">Start<span style="min-width: 26px; height: 26px; padding: 0 7px; box-sizing: border-box; border-radius: 50%; background: #0B1230; color: #EEF2FF; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800">A</span></button>
+<button type="button" style="height: 52px; width: 160px; border-radius: 6px; border: 1px solid rgba(220,228,255,0.30); background: rgba(12,20,46,0.40); color: #EEF2FF; font-family: inherit; font-size: 18px; font-weight: 700; cursor: pointer">Not now</button>
+</div>
+</div>
+<div style="position: absolute; left: 0; bottom: 0; width: 1280px; height: 60px; box-sizing: border-box; padding: 0 40px; border-top: 1px solid rgba(170,195,255,0.16); background: rgba(5,8,20,0.35); display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: 600; color: rgba(220,228,255,0.64)"><button type="button" onclick="acReplay()" style="padding: 6px 0; border: none; background: none; color: #F2EEE6; font-family: inherit; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; cursor: pointer">Replay the intro (R)</button><span>About 1 minute · any check can be skipped · nothing leaves your device</span></div>
+</div>
+
+
+<script>
+function acMeasure(){document.querySelectorAll('.acLn').forEach(function(el){var p=el.parentElement;if(!p)return;el.style.setProperty('--off',((p.clientWidth-el.offsetWidth)/2)+'px');});}
+acMeasure(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(acMeasure);
+function acReplay(){var r=document.querySelector('.galaxy');var c=r.cloneNode(true);r.parentNode.replaceChild(c,r);acMeasure();}
+document.addEventListener('keydown',function(e){if(e.key==='r'||e.key==='R')acReplay();});
+</script>
+</body>
+</html>

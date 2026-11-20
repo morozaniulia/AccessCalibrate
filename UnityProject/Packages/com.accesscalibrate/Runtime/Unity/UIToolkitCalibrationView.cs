@@ -21,7 +21,8 @@ namespace AccessCalibration
     /// screen). What the interface doesn't carry — trial numbers, hold seconds, presses, time left —
     /// is read from the running test's read-only properties each frame.
     /// </summary>
-    public sealed class UIToolkitCalibrationView : MonoBehaviour, ICalibrationView, ICalibrationWelcomeView
+    public sealed class UIToolkitCalibrationView : MonoBehaviour, ICalibrationView, ICalibrationWelcomeView,
+        ICalibrationIntroView, ICalibrationDeviceView, ICalibrationSummaryView, ICalibrationTouchView
     {
         const string ResourceFolder = "AccessCalibrate/";
 
@@ -80,7 +81,8 @@ namespace AccessCalibration
 
         /// <summary>The panel this view draws into (e.g. to render it into a texture).</summary>
         public PanelSettings Panel => _doc != null ? _doc.panelSettings : null;
-        internal VisualElement Root => _root;
+        /// <summary>The root of the screens (read-only access, e.g. for tests or to add a game's own elements).</summary>
+        public VisualElement Root => _root;
         internal ThemeBackdrop Backdrop => _backdrop;
         internal Screen CurrentScreen => _screen;
         internal VisualElement Page(Screen s) => _pages.TryGetValue(s, out var p) ? p : null;
@@ -91,6 +93,9 @@ namespace AccessCalibration
         internal SteadinessTarget Target => _target;
         /// <summary>The glyph family on screen (follows the last device that pressed a button).</summary>
         public GlyphFamily GlyphFamily => _glyphs?.Family ?? GlyphFamily.Keyboard;
+
+        /// <summary>Length of a check's intro (the motion comes in stage 4; until then there is none).</summary>
+        public double IntroSeconds => 0;
 
         /// <summary>Tests: show a family without a real device press.</summary>
         internal void ForceGlyphFamily(GlyphFamily family) => _glyphs.Set(family);
@@ -264,7 +269,7 @@ namespace AccessCalibration
             if (large) b.AddToClassList("ac-btn--large");
             b.style.width = width;
             b.Add(L(label, "ac-btn-label"));
-            if (glyph.HasValue)
+            if (glyph.HasValue && !Touch)   // Touch: plain buttons, no key glyphs
             {
                 if (!primary) b.AddToClassList("ac-btn--with-glyph");
                 var classes = new List<string>(glyphClasses) { "ac-btn-glyph" };
@@ -277,6 +282,11 @@ namespace AccessCalibration
         static void Show(VisualElement e, bool visible) => e.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
 
         string DeviceName
+        {
+            get => Touch ? ScreenTexts.DeviceTouch : FamilyName;
+        }
+
+        string FamilyName
         {
             get
             {
@@ -291,6 +301,30 @@ namespace AccessCalibration
         }
 
         /// <summary>The south button / Space, for texts like "Press and hold A to begin".</summary>
+        VisualElement _stage;
+
+        /// <summary>Touch: a press counts only inside the centre stage (the circle / press area), never on a button.</summary>
+        public bool IsInPressArea(Vector2 screenPosition)
+        {
+            if (_stage?.panel == null) return false;
+            var p = RuntimePanelUtils.ScreenToPanel(_stage.panel, new Vector2(screenPosition.x, UnityEngine.Screen.height - screenPosition.y));
+            return IsInPressAreaPanel(p);
+        }
+
+        /// <summary>Same, for a point in panel coordinates (tests).</summary>
+        internal bool IsInPressAreaPanel(Vector2 panelPoint) => _stage != null && _screen == Screen.Check && _stage.worldBound.Contains(panelPoint);
+
+        /// <summary>The player chose Touch: press areas instead of a device drawing.</summary>
+        bool Touch => _runner != null && _runner.ChosenDevice == DeviceChoice.Touch;
+
+        VisualElement TouchArea(string text)
+        {
+            var area = E("ac-touch-area");
+            area.name = "ac-touch-area";
+            area.Add(L(text, "ac-touch-area-text"));
+            return area;
+        }
+
         string MainButton
         {
             get
@@ -320,7 +354,7 @@ namespace AccessCalibration
             _topRight.Clear();
             if (welcome)
             {
-                _topRight.Add(GlyphOf(new Glyph("Esc", isKey: true), "ac-glyph--top-key"));
+                if (!Touch) _topRight.Add(GlyphOf(new Glyph("Esc", isKey: true), "ac-glyph--top-key"));
                 var notNow = L(ScreenTexts.NotNow, "ac-top-notnow");
                 notNow.pickingMode = PickingMode.Position;
                 notNow.AddManipulator(new Clickable(() => _runner?.WelcomeNotNow()));
@@ -330,7 +364,7 @@ namespace AccessCalibration
             var device = L(rightText ?? DeviceName, "ac-top-device", "ac-top-device-name");
             device.EnableInClassList("ac-top-device--summary", _screen == Screen.Summary);
             _topRight.Add(device);
-            if (showChange) _topRight.Add(Link(ScreenTexts.Change, ShowDevicePicker, "ac-top-change"));
+            if (showChange) _topRight.Add(Link(ScreenTexts.Change, () => _runner?.OpenDevicePicker(), "ac-top-change"));
         }
 
         /// <summary>One step of the indicator: done (filled), current (pill with name and a soft glow), upcoming (outlined).</summary>
@@ -379,12 +413,13 @@ namespace AccessCalibration
                 n.EnableInClassList("ac-bottom-note--welcome", welcomeNote);
                 _bottomRight.Add(n);
             }
-            if (replay) _bottomRight.Add(Link(ScreenTexts.ReplayIntro, () => ReplayIntroClicked?.Invoke(), "ac-replay"));
+            if (replay) _bottomRight.Add(Link(Touch ? ScreenTexts.ReplayIntroTouch : ScreenTexts.ReplayIntro, () => ReplayIntroClicked?.Invoke(), "ac-replay"));
         }
 
         void BuildHints()
         {
             _hints.Clear();
+            if (Touch) return;   // no key hints on a touch screen: every option is a button on screen
             foreach (var (action, text) in _hintSpec)
             {
                 var hint = E("ac-hint");
@@ -411,7 +446,7 @@ namespace AccessCalibration
                 case Screen.Suggestions: case Screen.NoChanges: if (_review != null) { int sel = _selection; ShowConfirmation(_review); SetConfirmationSelection(sel); } break;
                 default: BuildHints(); break;
             }
-            if (_dialogLayer.ClassListContains("ac-dialog-layer--shown")) ShowDevicePicker();
+            if (_dialogLayer.ClassListContains("ac-dialog-layer--shown") && _runner != null) ShowDevicePicker(_runner.DeviceChoices, _runner.CurrentDevice, _runner.DeviceSelection);
         }
 
         void ShowPage(Screen screen)
@@ -461,7 +496,7 @@ namespace AccessCalibration
             _welcomeDevice = L("", "ac-welcome-device-name");
             device.Add(_welcomeDevice);
             device.Add(L(ScreenTexts.WelcomeDetected, "ac-welcome-device-text"));
-            device.Add(Link(ScreenTexts.Change, ShowDevicePicker, "ac-welcome-change"));
+            device.Add(Link(ScreenTexts.Change, () => _runner?.OpenDevicePicker(), "ac-welcome-change"));
             page.Add(device);
             var buttons = E("ac-buttons");
             buttons.pickingMode = PickingMode.Position;
@@ -517,6 +552,7 @@ namespace AccessCalibration
             _checkTest = test;
             _states.Clear();
             _colLeft.Clear(); _colCenter.Clear(); _colRight.Clear();
+            _stage = null;
             _drawing = null; _target = null; _ticks = null; _holdRing = null; _holdGlow = null;
             int index = test != null && _runner != null ? IndexOf(test) : 0;
             TopBar(index);
@@ -528,17 +564,17 @@ namespace AccessCalibration
             switch (test)
             {
                 case ReactionTest _:
-                    LeftColumn(ScreenTexts.ReactionTitle, ScreenTexts.ReactionInstruction, ScreenTexts.ReactionMeasure, "sound", ScreenTexts.ReactionTipTitle, ScreenTexts.ReactionTip, ScreenTexts.ReactionPlayTone);
+                    LeftColumn(ScreenTexts.ReactionTitle, Touch ? ScreenTexts.ReactionInstructionTouch : ScreenTexts.ReactionInstruction, ScreenTexts.ReactionMeasure, "sound", ScreenTexts.ReactionTipTitle, ScreenTexts.ReactionTip, ScreenTexts.ReactionPlayTone);
                     break;
                 case HoldTest _:
-                    LeftColumn(ScreenTexts.HoldTitle, keyboard ? ScreenTexts.HoldInstructionKey : ScreenTexts.HoldInstruction, ScreenTexts.HoldMeasure, "grip", ScreenTexts.HoldTipTitle, ScreenTexts.HoldTip, null);
+                    LeftColumn(ScreenTexts.HoldTitle, Touch ? ScreenTexts.HoldInstructionTouch : keyboard ? ScreenTexts.HoldInstructionKey : ScreenTexts.HoldInstruction, ScreenTexts.HoldMeasure, "grip", ScreenTexts.HoldTipTitle, Touch ? ScreenTexts.HoldTipTouch : ScreenTexts.HoldTip, null);
                     break;
                 case TapTest _:
-                    LeftColumn(ScreenTexts.PressesTitle, keyboard ? ScreenTexts.PressesInstructionKey : ScreenTexts.PressesInstruction, ScreenTexts.PressesMeasure, "pace", ScreenTexts.PressesTipTitle, ScreenTexts.PressesTip, null);
+                    LeftColumn(ScreenTexts.PressesTitle, Touch ? ScreenTexts.PressesInstructionTouch : keyboard ? ScreenTexts.PressesInstructionKey : ScreenTexts.PressesInstruction, ScreenTexts.PressesMeasure, "pace", ScreenTexts.PressesTipTitle, ScreenTexts.PressesTip, null);
                     break;
                 case StabilityTest s:
                     bool mouse = s.ActiveMode == StabilityTest.Mode.Mouse || (s.ActiveMode == StabilityTest.Mode.None && keyboard);
-                    LeftColumn(ScreenTexts.SteadinessTitle, mouse ? ScreenTexts.SteadinessInstructionMouse : ScreenTexts.SteadinessInstructionStick, ScreenTexts.SteadinessMeasure, "hand", ScreenTexts.SteadinessTipTitle, ScreenTexts.SteadinessTip, null);
+                    LeftColumn(ScreenTexts.SteadinessTitle, mouse ? (Touch ? ScreenTexts.SteadinessInstructionTouch : ScreenTexts.SteadinessInstructionMouse) : ScreenTexts.SteadinessInstructionStick, ScreenTexts.SteadinessMeasure, "hand", ScreenTexts.SteadinessTipTitle, ScreenTexts.SteadinessTip, null);
                     break;
                 case ButtonAccessTest b:
                     var tb = E("ac-title-block", "ac-title-block--reach");
@@ -558,6 +594,7 @@ namespace AccessCalibration
             else
             {
                 var stage = E("ac-stage");
+                _stage = stage;
                 _colCenter.Add(stage);
                 switch (test)
                 {
@@ -588,8 +625,8 @@ namespace AccessCalibration
             else
             {
                 _colRight.Add(Option(ScreenTexts.SkipCheck, PromptAction.Skip, null, () => SkipClicked?.Invoke()));
-                _colRight.Add(Option(ScreenTexts.Back, PromptAction.Back, null));
-                _colRight.Add(Option(ScreenTexts.SkipAll, PromptAction.SkipAll, ScreenTexts.HoldWord, holdWord: GlyphFamily != GlyphFamily.Keyboard));
+                _colRight.Add(Option(ScreenTexts.Back, PromptAction.Back, null, () => _runner?.Back()));
+                _colRight.Add(Option(ScreenTexts.SkipAll, PromptAction.SkipAll, ScreenTexts.HoldWord, () => _runner?.SkipAll(), holdWord: GlyphFamily != GlyphFamily.Keyboard));
                 _colRight.Add(Lines(ScreenTexts.SkipNote, "ac-options-note"));
             }
 
@@ -632,7 +669,8 @@ namespace AccessCalibration
             var row = E("ac-option");
             row.Add(L(label, "ac-option-label"));
             var trailing = E("ac-option-trailing");
-            if (glyph.HasValue)
+            if (Touch && glyph.HasValue) { }   // Touch: a plain button, no key glyph
+            else if (glyph.HasValue)
             {
                 if (holdWord && trailingText != null) trailing.Add(L(trailingText, "ac-option-hold"));
                 trailing.Add(GlyphFor(glyph.Value));
@@ -658,9 +696,9 @@ namespace AccessCalibration
             foreach (var kv in _states) Show(kv.Value, kv.Key == name);
         }
 
-        SvgDrawing NewDrawing(string name)
+        SvgDrawing NewDrawing(string name, string svg = null)
         {
-            var d = new SvgDrawing(name);
+            var d = new SvgDrawing(name, svg);
             d.name = "ac-drawing";
             _drawing = d;
             return d;
@@ -690,8 +728,9 @@ namespace AccessCalibration
         void BuildHoldCentre(VisualElement stage, bool keyboard)
         {
             var ready = State("ready", stage);
-            var d = NewDrawing(keyboard ? "keyboard-ansi" : "controller-hold-a");
-            ready.Add(d);
+            if (Touch) ready.Add(TouchArea(ScreenTexts.HoldAreaTouch));
+            else ready.Add(keyboard ? NewDrawing("keyboard-ansi")
+                : NewDrawing("controller-hold-a", DeviceDrawings.Controller("buttonSouth", null, GlyphFamily, string.Format(ScreenTexts.HoldCallout, DeviceDrawings.ControlName("buttonSouth", GlyphFamily)))));
             var ringBox = State("ring", stage, "ac-ring-box");
             _holdGlow = new HoldRing(glow: true);
             _holdRing = new HoldRing();
@@ -708,9 +747,9 @@ namespace AccessCalibration
         void BuildTapCentre(VisualElement stage, bool keyboard)
         {
             var ready = State("ready", stage);
-            var d = NewDrawing(keyboard ? "keyboard-ansi" : "controller-press-a");
-            if (keyboard) d.ReplaceText("Hold Space", string.Format(ScreenTexts.PressesCallout, "Space"));
-            ready.Add(d);
+            if (Touch) ready.Add(TouchArea(ScreenTexts.PressesAreaTouch));
+            else ready.Add(keyboard ? NewDrawing("keyboard-ansi", DeviceDrawings.Keyboard("Space", null, string.Format(ScreenTexts.PressesCallout, "Space")))
+                : NewDrawing("controller-press-a", DeviceDrawings.Controller("buttonSouth", null, GlyphFamily, string.Format(ScreenTexts.PressesCallout, DeviceDrawings.ControlName("buttonSouth", GlyphFamily)))));
             var counter = State("counter", stage, "ac-counter");
             _ticks = new TickRing();
             counter.Add(_ticks);
@@ -730,7 +769,7 @@ namespace AccessCalibration
             stage.AddToClassList("ac-stage--tall");
             bool mouse = s.ActiveMode == StabilityTest.Mode.Mouse || (s.ActiveMode == StabilityTest.Mode.None && keyboard);
             var ready = State("ready", stage, "ac-drawing-box");
-            var drawing = NewDrawing(mouse ? "mouse" : "controller-left-stick");
+            var drawing = mouse ? NewDrawing("mouse") : NewDrawing("controller-left-stick", DeviceDrawings.WithFamily(SvgDrawing.Source("controller-left-stick"), GlyphFamily));
             if (mouse)
             {
                 var box = E();   // halo behind the mouse, in the drawing's own coordinates (300 × 340)
@@ -758,9 +797,9 @@ namespace AccessCalibration
 
         void BuildReachCentre()
         {
-            var stage = E("ac-reach-stage");
-            stage.Add(NewDrawing("controller-reach-y"));
-            _colCenter.Add(stage);
+            _reachStage = E("ac-reach-stage");
+            _reachDrawingKey = null;
+            _colCenter.Add(_reachStage);
             var p = E("ac-reach-progress");
             var progress = E("ac-progress");
             _reachProgressFill = E("ac-progress-fill");
@@ -815,7 +854,7 @@ namespace AccessCalibration
                 {
                     bool signal = running && r.StimulusVisible;
                     ShowState(signal ? "signal" : "ready");
-                    SetStatusLines(signal ? ScreenTexts.ReactionPress : ScreenTexts.ReactionGetReady,
+                    SetStatusLines(signal ? (Touch ? ScreenTexts.ReactionPressTouch : ScreenTexts.ReactionPress) : ScreenTexts.ReactionGetReady,
                                    string.Format(ScreenTexts.TryOf, r.TrialNumber, r.Trials));
                     _ready = !signal;
                     break;
@@ -832,7 +871,8 @@ namespace AccessCalibration
                         _holdValue.text = h.CurrentHoldSeconds.ToString("0.0", CultureInfo.InvariantCulture);
                         _holdUnit.text = string.Format(CultureInfo.InvariantCulture, ScreenTexts.HoldSecondsOf, h.MaxHoldSeconds);
                     }
-                    SetStatusLines(holding ? string.Format(ScreenTexts.HoldKeep, MainButton) : string.Format(ScreenTexts.HoldReady, MainButton),
+                    SetStatusLines(Touch ? (holding ? ScreenTexts.HoldKeepTouch : ScreenTexts.HoldReadyTouch)
+                                   : holding ? string.Format(ScreenTexts.HoldKeep, MainButton) : string.Format(ScreenTexts.HoldReady, MainButton),
                                    holding ? ScreenTexts.HoldLetGo : string.Format(ScreenTexts.TryOf, h.TrialNumber, h.Trials));
                     _ready = !holding;
                     break;
@@ -844,7 +884,7 @@ namespace AccessCalibration
                     if (_ticks != null) _ticks.Lit = t.PressCount;
                     if (_count != null) _count.text = t.PressCount.ToString(CultureInfo.InvariantCulture);
                     if (_progressFill != null) _progressFill.style.width = Length.Percent((float)(1 - t.SecondsLeft / t.WindowSeconds) * 100f);
-                    SetStatusLines(counting ? ScreenTexts.PressesKeepGoing : string.Format(ScreenTexts.PressesReady, MainButton),
+                    SetStatusLines(counting ? ScreenTexts.PressesKeepGoing : Touch ? ScreenTexts.PressesReadyTouch : string.Format(ScreenTexts.PressesReady, MainButton),
                                    counting ? string.Format(CultureInfo.InvariantCulture, ScreenTexts.SecondsLeft, t.SecondsLeft) : ScreenTexts.PressesReadySub);
                     _ready = !counting;
                     break;
@@ -873,7 +913,7 @@ namespace AccessCalibration
             if (force || _ready != _replayShown)
             {
                 _replayShown = _ready;
-                BottomBar(ScreenTexts.ButtonsMatch, _ready, false, CheckHints);
+                BottomBar(Touch ? null : ScreenTexts.ButtonsMatch, _ready, false, CheckHints);   // Touch: no buttons to match
             }
         }
         bool _replayShown;
@@ -885,10 +925,38 @@ namespace AccessCalibration
             if (_substatus.text != sub) _substatus.text = sub;
         }
 
+        VisualElement _reachStage;
+        string _reachDrawingKey;
+
+        /// <summary>The device drawing on Button reach: the requested button lit, the ones already reached shown pressed.</summary>
+        void UpdateReachDrawing(ButtonAccessTest b, int current)
+        {
+            bool keyboard = GlyphFamily == GlyphFamily.Keyboard;
+            var reached = new List<string>();
+            string lit = null;
+            for (int i = 0; i < b.Buttons.Count; i++)
+            {
+                string id = keyboard ? DeviceDrawings.KeyboardKey(b.Buttons[i].Bindings) : DeviceDrawings.GamepadControl(b.Buttons[i].Bindings);
+                if (id == null) continue;
+                if (i == current) lit = id;
+                else if (i < b.ReachSeconds.Count && !double.IsNaN(b.ReachSeconds[i])) reached.Add(id);
+            }
+            if (current < 0 && lit == null && b.Buttons.Count > 0 && b.ReachSeconds.Count == 0)   // before the first prompt: the first button
+                lit = keyboard ? DeviceDrawings.KeyboardKey(b.Buttons[0].Bindings) : DeviceDrawings.GamepadControl(b.Buttons[0].Bindings);
+            string callout = lit == null ? null : string.Format(ScreenTexts.ReachCallout, keyboard ? lit : DeviceDrawings.ControlName(lit, GlyphFamily));
+            string key = GlyphFamily + "|" + lit + "|" + string.Join(",", reached);
+            if (key == _reachDrawingKey) return;
+            _reachDrawingKey = key;
+            _reachStage.Clear();
+            _reachStage.Add(keyboard ? NewDrawing("keyboard-ansi", DeviceDrawings.Keyboard(lit, reached, callout))
+                                     : NewDrawing("controller-reach", DeviceDrawings.Controller(lit, reached, GlyphFamily, callout)));
+        }
+
         void UpdateReach(ButtonAccessTest b, bool running)
         {
             int n = b.Buttons.Count;
             int current = running ? b.PromptIndex : -1;
+            UpdateReachDrawing(b, current);
             if (_reachList.childCount != n) { _reachList.Clear(); for (int i = 0; i < n; i++) _reachList.Add(E("ac-reach-row")); }
             for (int i = 0; i < n; i++)
             {
@@ -1034,7 +1102,7 @@ namespace AccessCalibration
                 if (item.Accepted) on++;
                 var row = _rows[i];
                 row.EnableInClassList("ac-suggestion--off", !item.Accepted);
-                row.Q<Label>(className: "ac-suggestion-detail").text = item.Accepted ? ScreenTexts.RowDetail(item.Change)
+                row.Q<Label>(className: "ac-suggestion-detail").text = item.Accepted ? ScreenTexts.RowDetail(item.Change, item.Value)
                     : item.Change.IsUncertain ? ScreenTexts.RowOffUncertain : ScreenTexts.RowOffByPlayer;
                 row.Q(className: "ac-toggle").EnableInClassList("ac-toggle--on", item.Accepted);
             }
@@ -1047,7 +1115,10 @@ namespace AccessCalibration
         void BuildDetail()
         {
             if (_detail == null || _review == null || _review.Items.Count == 0) return;
-            var c = _review.Items[Mathf.Clamp(_detailIndex, 0, _review.Items.Count - 1)].Change;
+            int index = Mathf.Clamp(_detailIndex, 0, _review.Items.Count - 1);
+            var item = _review.Items[index];
+            var c = item.Change;
+            string value = item.Value ?? c.ProposedValue;
             _detail.Clear();
             _detail.Add(L(ProposalTexts.Title(c), "ac-detail-title"));
             var grid = E("ac-detail-grid");
@@ -1065,19 +1136,19 @@ namespace AccessCalibration
             {
                 case "timingMultiplier":
                 {
-                    float m = float.Parse(c.ProposedValue, CultureInfo.InvariantCulture);
+                    float m = float.Parse(value, CultureInfo.InvariantCulture);
                     const float window = 0.8f, max = 2.0f;
                     bars.Add(Bar(ScreenTexts.Default, window / max, string.Format(CultureInfo.InvariantCulture, "{0:0.0} s", window), false));
-                    bars.Add(Bar(ScreenTexts.WithThis, window * m / max, string.Format(CultureInfo.InvariantCulture, "{0:0.0} s", window * m), true));
+                    bars.Add(Bar(ScreenTexts.WithThis, window * m / max, string.Format(CultureInfo.InvariantCulture, "{0:0.0#} s", window * m), true));
                     break;
                 }
                 case "aimAssist":
                     bars.Add(Bar(ScreenTexts.Default, 0, ScreenTexts.Off, false));
-                    bars.Add(Bar(ScreenTexts.WithThis, AimLevel(c.ProposedValue) / 3f, c.ProposedValue, true));
+                    bars.Add(Bar(ScreenTexts.WithThis, AimLevel(value) / 3f, value, true));
                     break;
                 case "stickDeadzone":
                 {
-                    float d = float.Parse(c.ProposedValue, CultureInfo.InvariantCulture), def = AccessCalibrate.Config.DefaultStickDeadzone;
+                    float d = float.Parse(value, CultureInfo.InvariantCulture), def = AccessCalibrate.Config.DefaultStickDeadzone;
                     bars.Add(Bar(ScreenTexts.Default, def / 0.5f, def.ToString("0.00", CultureInfo.InvariantCulture), false));
                     bars.Add(Bar(ScreenTexts.WithThis, d / 0.5f, d.ToString("0.00", CultureInfo.InvariantCulture), true));
                     break;
@@ -1090,9 +1161,9 @@ namespace AccessCalibration
             _detail.Add(bars);
             _detail.Add(E("ac-detail-spacer"));
 
-            if (c.Setting == "timingMultiplier") _detail.Add(Advanced("×" + c.ProposedValue, new[] { "×1.0", "×1.5", "×2.0", "×2.5" },
-                (float.Parse(c.ProposedValue, CultureInfo.InvariantCulture) - 1f) / 1.5f, "×" + c.ProposedValue));
-            else if (c.Setting == "aimAssist") _detail.Add(Advanced(c.ProposedValue, new[] { "Off", "Low", "Medium", "High" }, AimLevel(c.ProposedValue) / 3f, c.ProposedValue));
+            if (c.Setting == "timingMultiplier") _detail.Add(Advanced(index, "×" + value, new[] { "×1.0", "×1.5", "×2.0", "×2.5" },
+                (float.Parse(value, CultureInfo.InvariantCulture) - 1f) / 1.5f, "×" + float.Parse(c.ProposedValue, CultureInfo.InvariantCulture).ToString("0.0", CultureInfo.InvariantCulture)));
+            else if (c.Setting == "aimAssist") _detail.Add(Advanced(index, value, new[] { "Off", "Low", "Medium", "High" }, AimLevel(value) / 3f, c.ProposedValue));
         }
 
         static int AimLevel(string v) => v == "Low" ? 1 : v == "Medium" ? 2 : v == "High" ? 3 : 0;
@@ -1118,7 +1189,7 @@ namespace AccessCalibration
             return row;
         }
 
-        VisualElement Advanced(string value, string[] ticks, float position, string suggested)
+        VisualElement Advanced(int index, string value, string[] ticks, float position, string suggested)
         {
             var adv = E("ac-advanced");
             var head = E("ac-advanced-head");
@@ -1127,12 +1198,14 @@ namespace AccessCalibration
             adv.Add(head);
             var slider = E("ac-slider");
             var dec = E("ac-slider-step"); dec.Add(L("‹", "ac-slider-step-text")); slider.Add(dec);
+            dec.pickingMode = PickingMode.Position; dec.AddManipulator(new Clickable(() => _runner?.Adjust(index, -1)));
             var track = E("ac-slider-track");
             track.Add(E("ac-slider-line"));
             var fill = E("ac-slider-fill"); fill.style.width = Length.Percent(position * 100f); track.Add(fill);
             var thumb = E("ac-slider-thumb"); thumb.style.left = Length.Percent(position * 100f); track.Add(thumb);
             slider.Add(track);
             var inc = E("ac-slider-step"); inc.Add(L("›", "ac-slider-step-text")); slider.Add(inc);
+            inc.pickingMode = PickingMode.Position; inc.AddManipulator(new Clickable(() => _runner?.Adjust(index, +1)));
             adv.Add(slider);
             var row = E("ac-slider-ticks");
             foreach (var t in ticks)
@@ -1194,17 +1267,30 @@ namespace AccessCalibration
 
             var row = E("ac-buttons");
             row.pickingMode = PickingMode.Position;
-            var cont = Btn(ScreenTexts.SummaryContinue, true, false, 230, () => Hide(), PromptAction.Confirm);
+            var cont = Btn(ScreenTexts.SummaryContinue, true, false, 230, () => _runner?.ContinueFromSummary(), PromptAction.Confirm);
             cont.AddToClassList("ac-btn--glyph-30");
             cont.style.paddingRight = 10;
-            row.Add(cont);
-            row.Add(Btn(ScreenTexts.SummaryCopy, false, false, 170, null));
-            row.Add(Btn(ScreenTexts.SummaryRedo, false, false, 130, () => _runner?.Redo()));
+            var copy = Btn(ScreenTexts.SummaryCopy, false, false, 170, () => _runner?.CopyResults());
+            var redo = Btn(ScreenTexts.SummaryRedo, false, false, 130, () => _runner?.Redo());
+            row.Add(cont); row.Add(copy); row.Add(redo);
+            _selectable.Add(cont); _selectable.Add(copy); _selectable.Add(redo);
             page.Add(row);
 
             TopBar(done, showChange: false);
             BottomBar(ScreenTexts.SummaryNote, false, false, (PromptAction.Move, ScreenTexts.HintSelect), (PromptAction.Confirm, ScreenTexts.HintConfirm));
             ApplyFontOverride();
+        }
+
+        public void SetSummarySelection(int index)
+        {
+            for (int i = 0; i < _selectable.Count; i++) _selectable[i].EnableInClassList("ac-selected", i == index);
+        }
+
+        /// <summary>The bottom-bar note says whether the results are on the clipboard.</summary>
+        public void ShowCopyResult(bool copied)
+        {
+            var note = _bottomRight.Q<Label>(className: "ac-bottom-note");
+            if (note != null) note.text = copied ? ScreenTexts.CopyDone : ScreenTexts.CopyFailed;
         }
 
         static string F(string pattern, params object[] args) => string.Format(CultureInfo.InvariantCulture, pattern, args);
@@ -1250,62 +1336,82 @@ namespace AccessCalibration
 
         // ================================================================ 02 device picker
 
-        /// <summary>"What are you playing with?" over the current screen (choosing is wired in stage 3).</summary>
-        public void ShowDevicePicker()
+        readonly List<VisualElement> _deviceRows = new List<VisualElement>();
+        (PromptAction, string)[] _specBeforeDialog;
+
+        /// <summary>"What are you playing with?" over the current screen. The runner moves the cursor and chooses.</summary>
+        public void ShowDevicePicker(IReadOnlyList<DeviceChoice> choices, DeviceChoice detected, int selected)
         {
+            bool wasOpen = _dialogLayer.ClassListContains("ac-dialog-layer--shown");
             _dialogLayer.Clear();
+            _deviceRows.Clear();
             var dialog = E("ac-dialog");
             dialog.pickingMode = PickingMode.Position;
             dialog.Add(L(ScreenTexts.DeviceTitle, "ac-dialog-title"));
             dialog.Add(Lines(ScreenTexts.DeviceText, "ac-dialog-text"));
             var list = E("ac-devices");
-            var family = GlyphFamily;
-            void Row(string name, string detail, bool selected)
+            foreach (var choice in choices)
             {
+                var c = choice;
                 var r = E("ac-device");
-                r.EnableInClassList("ac-device--selected", selected);
+                r.name = "ac-device-" + c;
+                r.pickingMode = PickingMode.Position;
+                r.AddManipulator(new Clickable(() => _runner?.ChooseDevice(c)));
                 var t = E();
-                t.Add(L(name, "ac-device-name"));
-                t.Add(L(selected ? string.Format(ScreenTexts.DeviceDetected, detail) : detail, "ac-device-detail"));
+                t.Add(L(DeviceLabel(c), "ac-device-name"));
+                string detail = DeviceDetail(c);
+                t.Add(L(c == detected ? string.Format(ScreenTexts.DeviceDetected, detail) : detail, "ac-device-detail"));
                 r.Add(t);
                 r.Add(L(ScreenTexts.DeviceSelected, "ac-device-selected"));
                 list.Add(r);
+                _deviceRows.Add(r);
             }
-            Row(ScreenTexts.DeviceXbox, ScreenTexts.DeviceXboxDetail, family == GlyphFamily.Xbox || family == GlyphFamily.Nintendo);
-            Row(ScreenTexts.DevicePlayStation, ScreenTexts.DevicePlayStationDetail, family == GlyphFamily.PlayStation);
-            Row(ScreenTexts.DeviceKeyboard, ScreenTexts.DeviceKeyboardDetail, family == GlyphFamily.Keyboard);
-            if (UnityEngine.InputSystem.Touchscreen.current != null || ForceTouchRow) Row(ScreenTexts.DeviceTouch, ScreenTexts.DeviceTouchDetail, false);
             dialog.Add(list);
             var buttons = E("ac-buttons");
             buttons.pickingMode = PickingMode.Position;
-            buttons.Add(Btn(ScreenTexts.DeviceUse, true, false, 334, HideDevicePicker, PromptAction.Confirm, "ac-glyph--small"));
-            buttons.Add(Btn(ScreenTexts.HintCancel, false, false, 150, HideDevicePicker, PromptAction.Cancel, "ac-glyph--small"));
+            buttons.Add(Btn(ScreenTexts.DeviceUse, true, false, 334, () => { if (_runner != null) _runner.ChooseDevice(_runner.DeviceChoices[_runner.DeviceSelection]); }, PromptAction.Confirm, "ac-glyph--small"));
+            buttons.Add(Btn(ScreenTexts.HintCancel, false, false, 150, () => _runner?.CloseDevicePicker(), PromptAction.Cancel, "ac-glyph--small"));
             dialog.Add(buttons);
             var wrap = new VisualElement { pickingMode = PickingMode.Ignore };
             wrap.Add(E("ac-dialog-shadow"));
             wrap.Add(dialog);
             _dialogLayer.Add(wrap);
             _dialogLayer.AddToClassList("ac-dialog-layer--shown");
+            _dialogLayer.pickingMode = PickingMode.Position;
             var change = _topRight.Q(className: "ac-top-change");
             if (change != null) Show(change, false);   // the picker is open: no "Change" behind it
-            _dialogLayer.pickingMode = PickingMode.Position;
-            var spec = _hintSpec;
+            if (!wasOpen) _specBeforeDialog = _hintSpec;
             BottomBar(ScreenTexts.DeviceNote, false, false, (PromptAction.Move, ScreenTexts.HintSelect), (PromptAction.Confirm, ScreenTexts.HintConfirm), (PromptAction.Cancel, ScreenTexts.HintCancel));
-            _specBeforeDialog = spec;
+            SetDeviceSelection(selected);
             ApplyFontOverride();
         }
-        (PromptAction, string)[] _specBeforeDialog;
 
-        /// <summary>Tests: show the picker as if Touch were available.</summary>
-        internal bool ForceTouchRow;
+        public void SetDeviceSelection(int index)
+        {
+            for (int i = 0; i < _deviceRows.Count; i++) _deviceRows[i].EnableInClassList("ac-device--selected", i == index);
+        }
 
-        void HideDevicePicker()
+        static string DeviceLabel(DeviceChoice c) => c == DeviceChoice.Xbox ? ScreenTexts.DeviceXbox : c == DeviceChoice.PlayStation ? ScreenTexts.DevicePlayStation
+            : c == DeviceChoice.KeyboardMouse ? ScreenTexts.DeviceKeyboard : ScreenTexts.DeviceTouch;
+        static string DeviceDetail(DeviceChoice c) => c == DeviceChoice.Xbox ? ScreenTexts.DeviceXboxDetail : c == DeviceChoice.PlayStation ? ScreenTexts.DevicePlayStationDetail
+            : c == DeviceChoice.KeyboardMouse ? ScreenTexts.DeviceKeyboardDetail : ScreenTexts.DeviceTouchDetail;
+
+        public void HideDevicePicker()
         {
             if (_dialogLayer == null || !_dialogLayer.ClassListContains("ac-dialog-layer--shown")) return;
             _dialogLayer.RemoveFromClassList("ac-dialog-layer--shown");
             _dialogLayer.Clear();
+            _deviceRows.Clear();
+            var change = _topRight.Q(className: "ac-top-change");
+            if (change != null) Show(change, true);
             if (_screen == Screen.Check) UpdateCheck(force: true);
             else if (_specBeforeDialog != null) { _hintSpec = _specBeforeDialog; BuildHints(); }
+        }
+
+        /// <summary>The player picked a device: its glyphs from now on (Touch has no buttons: key names).</summary>
+        public void UseDevice(DeviceChoice choice)
+        {
+            _glyphs.Lock(choice == DeviceChoice.Xbox ? GlyphFamily.Xbox : choice == DeviceChoice.PlayStation ? GlyphFamily.PlayStation : GlyphFamily.Keyboard);
         }
 
         // ================================================================ hide / cue

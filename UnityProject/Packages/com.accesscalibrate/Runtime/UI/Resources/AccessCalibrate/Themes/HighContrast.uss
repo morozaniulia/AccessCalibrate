@@ -60,12 +60,4 @@
     --ac-draw-label: #FFFFFF;
     --ac-draw-key-label: #FFFFFF;
     --ac-draw-on-highlight: #000000;
-    /* v1 names, used by the feedback app's summary until stage 3 */
-    --ac-panel: #000000;
-    --ac-text-secondary: #FFFFFF;
-    --ac-text-reason: #FFFFFF;
-    --ac-surface-row: #000000;
-    --ac-surface-row-border: #B2B2B2;
-    --ac-focus: #FFD60A;
-    --ac-on-focus: #000000;
 }

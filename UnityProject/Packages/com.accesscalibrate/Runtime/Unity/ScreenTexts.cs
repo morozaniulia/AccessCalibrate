@@ -26,6 +26,7 @@ namespace AccessCalibration
         public static string WhatWeMeasure = "What we measure";
         public static string ButtonsMatch = "Buttons on screen match your device";
         public static string ReplayIntro = "Replay the intro (R)";
+        public static string ReplayIntroTouch = "Replay the intro";
         public static string TryOf = "Try {0} of {1}";
         public static string SecondsLeft = "{0:0.0} s left";
 
@@ -73,6 +74,7 @@ namespace AccessCalibration
         // ------------------------------------------------------------ 03 / 04 reaction
         public static string ReactionTitle = "Reaction";
         public static string[] ReactionInstruction = { "Press any button as soon", "as the circle lights up." };
+        public static string[] ReactionInstructionTouch = { "Tap the screen as soon", "as the circle lights up." };
         public static string[] ReactionMeasure = { "How fast you respond.", "Six tries, one warm-up." };
         public static string ReactionTipTitle = "Sound";
         public static string[] ReactionTip = { "Each signal also plays a soft tone,", "so you can react to sound." };
@@ -81,14 +83,20 @@ namespace AccessCalibration
         public static string ReactionGetReady = "Get ready";
         public static string ReactionSignal = "Press";
         public static string ReactionPress = "Press any button";
+        public static string ReactionPressTouch = "Tap the screen";
 
         // ------------------------------------------------------------ 05 / 06 hold
         public static string HoldTitle = "Hold";
         public static string[] HoldInstruction = { "Hold the button for as long", "as it feels comfortable." };
         public static string[] HoldInstructionKey = { "Hold the key for as long", "as it feels comfortable." };
+        public static string[] HoldInstructionTouch = { "Touch and hold the circle", "for as long as it feels comfortable." };
+        public static string HoldReadyTouch = "Touch and hold the circle to begin";
+        public static string HoldKeepTouch = "Keep holding";
+        public static string HoldAreaTouch = "Touch and hold";
         public static string[] HoldMeasure = { "Your longest comfortable hold,", "up to 5 seconds. Two tries." };
         public static string HoldTipTitle = "Grip";
         public static string[] HoldTip = { "Use the grip you normally play with.", "Any length is a valid answer." };
+        public static string[] HoldTipTouch = { "Hold the device the way", "you normally play." };
         public static string HoldReady = "Press and hold {0} to begin";
         public static string HoldKeep = "Keep holding {0}";
         public static string HoldLetGo = "Let go when it stops feeling comfortable";
@@ -99,6 +107,9 @@ namespace AccessCalibration
         public static string PressesTitle = "Repeated presses";
         public static string[] PressesInstruction = { "Press the button as fast", "as you comfortably can." };
         public static string[] PressesInstructionKey = { "Press the key as fast", "as you comfortably can." };
+        public static string[] PressesInstructionTouch = { "Tap the circle as fast", "as you comfortably can." };
+        public static string PressesReadyTouch = "Tap the circle to start";
+        public static string PressesAreaTouch = "Tap here";
         public static string[] PressesMeasure = { "Presses per second for 5 s,", "from your first press." };
         public static string PressesTipTitle = "Pace";
         public static string[] PressesTip = { "Comfort matters more than speed.", "You can stop at any time." };
@@ -107,11 +118,14 @@ namespace AccessCalibration
         public static string PressesKeepGoing = "Keep going";
         public static string PressesUnit = "presses";
         public static string PressesCallout = "Press {0}";
+        /// <summary>PlayStation face buttons in callouts (the shapes are drawn; the font has no ✕ ○ □ △).</summary>
+        public static string PsCross = "Cross", PsCircle = "Circle", PsSquare = "Square", PsTriangle = "Triangle";
 
         // ------------------------------------------------------------ 09 / 10 steadiness
         public static string SteadinessTitle = "Steadiness";
         public static string[] SteadinessInstructionStick = { "Use the left stick to bring", "the dot into the circle." };
         public static string[] SteadinessInstructionMouse = { "Use the mouse to bring", "the dot into the circle." };
+        public static string[] SteadinessInstructionTouch = { "Use your finger to bring", "the dot into the circle." };
         public static string[] SteadinessMeasure = { "How much the dot drifts.", "It doesn't need to be centred." };
         public static string SteadinessTipTitle = "Hand position";
         public static string[] SteadinessTip = { "Rest your hand the way you do", "when you play, then keep still." };
@@ -155,6 +169,8 @@ namespace AccessCalibration
         public static string Redo = "Redo setup";
         public static string RowOffByPlayer = "Off · you turned it off";
         public static string RowOffUncertain = "Off · not measured reliably";
+        public static string CopyDone = "Copied to clipboard.";
+        public static string CopyFailed = "Couldn't copy. Press Enter or click Copy results again.";
 
         // ------------------------------------------------------------ 13 no changes
         public static string NoChangesTitle = "No changes needed";
@@ -193,16 +209,19 @@ namespace AccessCalibration
         // ------------------------------------------------------------ per suggestion
 
         /// <summary>Second line of a suggestion row, e.g. "Timing windows ×1.5".</summary>
-        public static string RowDetail(ProposedChange c)
+        public static string RowDetail(ProposedChange c) => RowDetail(c, c.ProposedValue);
+
+        /// <summary>Second line of a suggestion row with the (possibly adjusted) value.</summary>
+        public static string RowDetail(ProposedChange c, string value)
         {
             switch (c.Setting)
             {
-                case "timingMultiplier": return F("Timing windows ×{0}", c.ProposedValue);
+                case "timingMultiplier": return F("Timing windows ×{0}", value);
                 case "qteMode": return "Quick-time events get a skip button";
-                case "holdToToggle": return "Hold-to-toggle";
+                case "holdToToggle": return "Press once to hold";
                 case "mashingMode": return "Mashing becomes a hold";
                 case "stickDeadzone": return F("Stick deadzone {0}", c.ProposedValue);
-                case "aimAssist": return F("Aim assist {0}", c.ProposedValue.ToLowerInvariant());
+                case "aimAssist": return F("Aim assist {0}", value.ToLowerInvariant());
                 case "remapSuggestions": return RemapDetail(c.ProposedValue);
                 case "suggestOneHandedLayout": return "One-handed layout";
                 case "mouseSmoothing": return "Mouse smoothing";
@@ -241,7 +260,7 @@ namespace AccessCalibration
                 case "holdToToggle": return new[] { "Press once to start a hold,", "press again to stop." };
                 case "mashingMode": return new[] { "Hold the button instead", "of pressing it rapidly." };
                 case "stickDeadzone": return new[] { "Small stick movements", "are ignored." };
-                case "aimAssist": return new[] { "The aim moves a little", "towards targets." };
+                case "aimAssist": return new[] { "Your aim is pulled slightly", "towards targets." };
                 case "remapSuggestions": return new[] { F("{0} moves to a button", c.ProposedValue), "that is easier to reach." };
                 case "suggestOneHandedLayout": return new[] { "Controls are grouped", "for one hand." };
                 case "mouseSmoothing": return new[] { "Small mouse movements", "are smoothed." };

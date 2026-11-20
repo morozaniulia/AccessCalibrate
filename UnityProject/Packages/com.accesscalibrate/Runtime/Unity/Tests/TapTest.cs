@@ -45,7 +45,7 @@ namespace AccessCalibration
 
         void OnPress(InputAction.CallbackContext ctx)
         {
-            if (!IsRunning || InputDevices.IsSkipKey(ctx)) return;
+            if (!IsRunning || Ignored(ctx)) return;
             if (double.IsNaN(_windowStart))
             {
                 Remember(ctx);

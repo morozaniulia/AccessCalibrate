@@ -79,9 +79,9 @@ namespace AccessCalibration.PlayModeTests
             _runner.StartCalibration();
             PressAndTick(Keyboard.enterKey);
             Assert.IsFalse(_runner.IsWelcoming);
-            Assert.IsTrue(_runner.InIntro);
             Assert.AreSame(_runner.Reaction, _runner.CurrentTest);
-            Assert.AreEqual(1, _view.IntroShown);
+            Assert.AreEqual(1, _view.IntroShown, "the check's intro is shown…");
+            Assert.IsTrue(_runner.Reaction.IsRunning, "…and the check starts at once (no separate intro step)");
         }
 
         [Test]
@@ -126,7 +126,7 @@ namespace AccessCalibration.PlayModeTests
             _runner.View = NullCalibrationView.Instance;
             _runner.StartCalibration();
             Assert.IsFalse(_runner.IsWelcoming);
-            Assert.IsTrue(_runner.InIntro);
+            Assert.IsTrue(_runner.Reaction.IsRunning);
         }
     }
 }

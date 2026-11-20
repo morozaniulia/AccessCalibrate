@@ -66,14 +66,6 @@
     --ac-draw-label: #9497A4;   /* rgba(255, 255, 255, 0.56) */
     --ac-draw-key-label: #767A8B;   /* rgba(255, 255, 255, 0.44) */
     --ac-draw-on-highlight: #0B0C10;
-    /* v1 names, used by the feedback app's summary until stage 3 */
-    --ac-panel: rgba(12, 20, 46, 0.62);
-    --ac-text-secondary: #C9CEDC;
-    --ac-text-reason: #9097B1;
-    --ac-surface-row: rgba(12, 20, 46, 0.62);
-    --ac-surface-row-border: #232C48;
-    --ac-focus: #F2EEE6;
-    --ac-on-focus: #07142A;
     --ac-transparent: rgba(0, 0, 0, 0);
     /* ---- shape ---- */
     --ac-radius-control: 6px;
@@ -97,6 +89,7 @@
 .unity-label { margin: 0; padding: 0; }
 .unity-button { margin: 0; padding: 0; border-width: 0; border-radius: 0; background-color: var(--ac-transparent); }
 .unity-button:hover, .unity-button:active, .unity-button:focus { background-color: var(--ac-transparent); }
+
 
 
 
@@ -247,6 +240,7 @@
 .ac-glyph--inverse .ac-glyph-text { color: var(--ac-primary); }
 .ac-glyph--inverse.ac-glyph--key { background-color: var(--ac-on-primary); border-width: 0; }
 .ac-glyph--mini-key { height: 24px; min-width: 24px; padding: 0 6px; border-radius: 4px; border-color: var(--ac-control-border); }
+.ac-glyph--mini-key { --ac-glyph-c: var(--ac-text-muted); }
 .ac-glyph--mini-key .ac-glyph-text { font-size: 10px; color: var(--ac-text-muted); }
 .ac-glyph-icon { width: 14px; height: 14px; }
 
@@ -336,6 +330,9 @@
 .ac-signal-glow { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 150px; background-color: var(--ac-accent-glow-soft); filter: blur(16px); }
 .ac-signal { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 150px; background-color: var(--ac-accent); align-items: center; justify-content: center; }
 .ac-signal-text { font-size: 56px; -unity-font-definition: var(--ac-font-800); letter-spacing: -1.12px; color: var(--ac-on-accent); }
+/* Touch: the press area for Hold and Repeated presses (no design yet: the waiting ring, lit in the accent) */
+.ac-touch-area { width: 300px; height: 300px; border-radius: 150px; border-width: 2px; border-color: var(--ac-accent); align-items: center; justify-content: center; }
+.ac-touch-area-text { font-size: 22px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text); }
 .ac-ripple { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 150px; border-width: 2px; border-color: var(--ac-accent); opacity: 0; }
 
 /* hold */
@@ -380,7 +377,8 @@
 .ac-reach-row--current { background-color: var(--ac-accent); border-width: 0; }
 .ac-reach-row--current .ac-reach-status { -unity-font-definition: var(--ac-font-800); color: var(--ac-on-accent); }
 .ac-reach-row--current .ac-reach-time { -unity-font-definition: var(--ac-font-800); color: var(--ac-on-accent); }
-.ac-reach-row--current .ac-glyph { width: 24px; height: 24px; border-radius: 12px; background-color: var(--ac-on-accent); }
+.ac-reach-row--current .ac-glyph { width: 24px; height: 24px; border-radius: 12px; background-color: var(--ac-on-accent); --ac-glyph-c: var(--ac-accent); }
+.ac-reach-row--current .ac-glyph--key { width: auto; min-width: 24px; padding: 0 6px; border-radius: 4px; border-width: 0; }
 .ac-reach-row--current .ac-glyph-text { font-size: 12px; color: var(--ac-accent); }
 .ac-reach-row--next .ac-reach-status { color: var(--ac-text-faint); }
 .ac-reach-stage { width: 520px; height: 380px; align-items: center; justify-content: flex-start; padding-top: 17px; flex-shrink: 0; }
@@ -552,7 +550,3 @@
 
 /* ---------------------------------------------------------------- reduce motion */
 .ac-reduce-motion * { transition-duration: 0s; }
-
-/* ---------------------------------------------------------------- feedback app (until the summary moves into the package, stage 3) */
-.ac-panel { flex-grow: 1; background-color: var(--ac-surface-card); }
-.ac-eyebrow { font-size: 13px; -unity-font-definition: var(--ac-font-700); color: var(--ac-text-muted); }

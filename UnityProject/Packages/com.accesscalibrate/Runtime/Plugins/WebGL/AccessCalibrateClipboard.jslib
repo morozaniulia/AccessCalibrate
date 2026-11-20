@@ -1,13 +1,9 @@
 // Copyright 2026 Morozan Iulia. Licensed under the Apache License, Version 2.0.
-// Copy text to the system clipboard from a WebGL build. Browsers allow this only on a secure page
-// (https or localhost); some also require a recent key press or click (a gamepad button doesn't count).
-// The result ("ok" / "fail") goes back to Unity with SendMessage. No network access.
+// Copy text to the system clipboard from a WebGL build (AccessCalibration.Clipboard). Browsers allow
+// this only on a secure page (https or localhost); some also require a recent key press or click
+// (a gamepad button doesn't count). The result ("ok" / "fail") goes back to Unity with SendMessage.
+// No network access.
 mergeInto(LibraryManager.library, {
-    // Current screen, for browser tests (see FeedbackApp.State).
-    AC_SetState: function (statePtr) {
-        window.accessCalibrateState = UTF8ToString(statePtr);
-    },
-
     AC_CopyToClipboard: function (textPtr, objectPtr, methodPtr) {
         var text = UTF8ToString(textPtr);
         var objectName = UTF8ToString(objectPtr);

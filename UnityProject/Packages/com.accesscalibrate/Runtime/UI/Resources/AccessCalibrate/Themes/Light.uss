@@ -60,12 +60,4 @@
     --ac-draw-label: #626469;   /* rgba(17, 20, 28, 0.66) */
     --ac-draw-key-label: #626469;   /* rgba(17, 20, 28, 0.66) */
     --ac-draw-on-highlight: #FFFFFF;
-    /* v1 names, used by the feedback app's summary until stage 3 */
-    --ac-panel: #FEFEFE;
-    --ac-text-secondary: #373940;
-    --ac-text-reason: #66686D;
-    --ac-surface-row: #FEFEFE;
-    --ac-surface-row-border: #D8D9DA;
-    --ac-focus: #11141C;
-    --ac-on-focus: #FFFFFF;
 }

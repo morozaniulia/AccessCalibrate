@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="sized" content="1">
+<title>Light · Change device</title>
+
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Manrope,system-ui,sans-serif}
+h1,h2{text-wrap:balance}
+p{text-wrap:pretty}
+.center p,p.center{text-wrap:balance}
+@keyframes acpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.5)}}
+.acpulse{animation:acpulse 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes acspin{to{transform:rotate(360deg)}}
+.acring{animation:acspin 8s linear infinite}
+@keyframes acripple{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.5);opacity:0}}
+.acripple{animation:acripple 2.4s ease-out infinite}
+@keyframes acpressA{0%{transform:scale(1)}25%{transform:scale(.9)}40%{transform:scale(.92) translateX(-5px)}55%{transform:scale(.93) translateX(5px)}70%{transform:scale(.95) translateX(-3px)}85%{transform:scale(.98) translateX(2px)}100%{transform:scale(1)}}
+@keyframes acpressB{0%{transform:scale(1)}25%{transform:scale(.9)}40%{transform:scale(.92) translateX(-5px)}55%{transform:scale(.93) translateX(5px)}70%{transform:scale(.95) translateX(-3px)}85%{transform:scale(.98) translateX(2px)}100%{transform:scale(1)}}
+.acpressA{animation:acpressA .45s ease-out}
+.acpressB{animation:acpressB .45s ease-out}
+@keyframes acbreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+.acbreathe{animation:acbreathe 3s ease-in-out infinite}
+@keyframes acglow{0%,100%{opacity:.55}50%{opacity:.9}}
+.acglow{animation:acglow 2s ease-in-out infinite}
+@keyframes acStackDrop{0%{opacity:0;filter:blur(6px);transform:translateY(calc(var(--i,0) * var(--step,56px) * -1)) scale(.97)}25%{opacity:1;filter:blur(0)}100%{opacity:1;transform:none}}
+.acStack>*{position:relative;z-index:calc(20 - var(--i,0));animation:acStackDrop .8s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(var(--d0,0s) + var(--i,0) * .14s)}
+@media (prefers-reduced-motion: reduce){.acpulse,.acring,.acripple,.acpressA,.acpressB,.acbreathe,.acglow,.acStack>*{animation:none}}
+.galaxy{background:linear-gradient(180deg,#F6F7F9,#E8EAEE)}
+@keyframes acdrift{from{background-position:0 0,30% 35%}to{background-position:0 0,70% 65%}}
+.galaxy{animation:none}
+@media (prefers-reduced-motion: reduce){.galaxy{animation:none}}
+
+@keyframes zScrim{from{opacity:0}to{opacity:1}}
+@keyframes zDlg{0%{opacity:0;filter:blur(10px);transform:translateY(24px) scale(.97)}100%{opacity:1;filter:blur(0);transform:none}}
+@keyframes zRow{0%{opacity:0;transform:translateY(-14px)}100%{opacity:1;transform:none}}
+.zS{animation:zScrim .4s ease-out both}.zD{animation:zDlg .6s cubic-bezier(.2,.8,.2,1) .15s both}
+.zD [role=radio]{animation:zRow .5s cubic-bezier(.34,1.56,.64,1) both}
+.zD [role=radio]:nth-child(1){animation-delay:.55s}.zD [role=radio]:nth-child(2){animation-delay:.67s}.zD [role=radio]:nth-child(3){animation-delay:.79s}.zD [role=radio]:nth-child(4){animation-delay:.91s}
+@media (prefers-reduced-motion: reduce){.zS,.zD,.zD [role=radio]{animation:none!important}}
+@font-face{font-family:Manrope;src:url(../Manrope.ttf);font-weight:200 800}
+html,body{background:#000}
+</style>
+
+<div class="galaxy" style="position: relative; width: 1280px; height: 720px; overflow: hidden; font-family: Manrope, system-ui, sans-serif; color: #11141C">
+
+<div style="position: absolute; left: 0; top: 0; width: 1280px; height: 64px; box-sizing: border-box; padding: 0 40px; display: grid; grid-template-columns: 240px 1fr 240px; align-items: center"><div><span style="font-size: 16px; font-weight: 700; color: rgba(17,20,28,0.64)">Control setup</span></div><div style="display: flex; justify-content: center"><div aria-label="Step 2 of 5" style="display: flex; align-items: center; gap: 8px"><span title="Reaction done" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(17,20,28,0.88); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">1</span><span aria-current="step" style="height: 30px; padding: 0 12px 0 4px; border-radius: 15px; background: #11141C; color: #FFFFFF; box-shadow: 0 0 18px rgba(17,20,28,0.35); display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; white-space: nowrap"><span style="width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; color: #11141C; display: inline-flex; align-items: center; justify-content: center; font-size: 14px">2</span>Hold</span><span title="Repeated presses" style="width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid rgba(17,20,28,0.30); color: rgba(17,20,28,0.66); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">3</span><span title="Steadiness" style="width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid rgba(17,20,28,0.30); color: rgba(17,20,28,0.66); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">4</span><span title="Button reach" style="width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid rgba(17,20,28,0.30); color: rgba(17,20,28,0.66); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">5</span></div></div><div style="display: flex; justify-content: flex-end"><span style="font-size: 15px; font-weight: 600; color: rgba(17,20,28,0.64)">Xbox controller</span></div></div><div class="zS" style="position: absolute; inset: 0; background: rgba(17,20,28,0.35)"></div>
+<div class="zD" role="dialog" aria-label="Choose your device" style="position: absolute; left: 360px; top: 112px; width: 560px; box-sizing: border-box; padding: 30px 32px; border-radius: 8px; border: 1px solid rgba(17,20,28,0.22); background: rgba(255,255,255,0.94); box-shadow: 0 30px 80px rgba(0,0,0,0.15)">
+<h2 style="margin: 0; font-size: 28px; font-weight: 700">What are you playing with?</h2>
+<p style="margin: 8px 0 0; font-size: 17px; line-height: 1.5; color: rgba(17,20,28,0.64)">We picked this from the last button you pressed. The buttons shown on screen and the rules we use will match your&nbsp;choice.</p>
+<div role="radiogroup" style="margin-top: 20px; display: flex; flex-direction: column; gap: 6px">
+<button type="button" role="radio" aria-checked="true" style="height: 62px; box-sizing: border-box; padding: 0 16px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; font-family: inherit; width: 100%; border: none; background: #11141C; color: #FFFFFF;"><span style="display: flex; flex-direction: column; gap: 2px; text-align: left"><span style="font-size: 18px; font-weight: 800">Xbox controller</span><span style="font-size: 15px; font-weight: 600; opacity: 0.78">Detected · A B X Y buttons</span></span><span style="font-size: 15px; font-weight: 800">Selected</span></button><button type="button" role="radio" aria-checked="false" style="height: 62px; box-sizing: border-box; padding: 0 16px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; font-family: inherit; width: 100%; border: 1px solid rgba(17,20,28,0.16); background: #FFFFFF; color: #11141C;"><span style="display: flex; flex-direction: column; gap: 2px; text-align: left"><span style="font-size: 18px; font-weight: 800">PlayStation controller</span><span style="font-size: 15px; font-weight: 600; opacity: 0.78">Cross, circle, square, triangle buttons</span></span><span style="font-size: 15px; font-weight: 800"></span></button><button type="button" role="radio" aria-checked="false" style="height: 62px; box-sizing: border-box; padding: 0 16px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; font-family: inherit; width: 100%; border: 1px solid rgba(17,20,28,0.16); background: #FFFFFF; color: #11141C;"><span style="display: flex; flex-direction: column; gap: 2px; text-align: left"><span style="font-size: 18px; font-weight: 800">Keyboard &amp; mouse</span><span style="font-size: 15px; font-weight: 600; opacity: 0.78">Keys and mouse movement</span></span><span style="font-size: 15px; font-weight: 800"></span></button><button type="button" role="radio" aria-checked="false" style="height: 62px; box-sizing: border-box; padding: 0 16px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; font-family: inherit; width: 100%; border: 1px solid rgba(17,20,28,0.16); background: #FFFFFF; color: #11141C;"><span style="display: flex; flex-direction: column; gap: 2px; text-align: left"><span style="font-size: 18px; font-weight: 800">Touch</span><span style="font-size: 15px; font-weight: 600; opacity: 0.78">Taps and swipes on screen</span></span><span style="font-size: 15px; font-weight: 800"></span></button>
+</div>
+<div style="margin-top: 22px; display: flex; gap: 10px">
+<button type="button" style="height: 48px; flex: 1; padding: 0 14px 0 20px; border-radius: 6px; border: none; background: #11141C; color: #FFFFFF; font-family: inherit; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; cursor: pointer">Use this device<span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; color: #11141C; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">A</span></button>
+<button type="button" style="height: 48px; width: 150px; padding: 0 12px 0 18px; border-radius: 6px; border: 1px solid rgba(17,20,28,0.30); background: rgba(255,255,255,0.62); color: #11141C; font-family: inherit; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; cursor: pointer">Cancel<span style="width: 26px; height: 26px; border-radius: 50%; background: #11141C; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">B</span></button>
+</div>
+</div><div style="position: absolute; left: 0; bottom: 0; width: 1280px; height: 60px; box-sizing: border-box; padding: 0 40px; border-top: 1px solid rgba(17,20,28,0.16); background: rgba(255,255,255,0.62); display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 600; color: rgba(17,20,28,0.64)"><span style="display: flex; gap: 24px"><span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 30px; height: 30px; flex: none; border-radius: 50%; background: #11141C; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; line-height: 1"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" style="display: block"><path d="M7 1.5 V12.5 M4 4.5 L7 1.5 L10 4.5 M4 9.5 L7 12.5 L10 9.5" fill="none" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>Select</span><span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 30px; height: 30px; flex: none; border-radius: 50%; background: #11141C; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; line-height: 1">A</span>Confirm</span><span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 30px; height: 30px; flex: none; border-radius: 50%; background: #11141C; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; line-height: 1">B</span>Cancel</span></span><span style="display: flex; gap: 20px; align-items: center"><span>The current check restarts with the new device</span><button type="button" onclick="acReplay()" style="padding: 6px 0; border: none; background: none; color: #11141C; font-family: inherit; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; cursor: pointer">Replay</button></span></div>
+</div>
+
+
+<script>
+function acMeasure(){document.querySelectorAll('.acLn').forEach(function(el){var p=el.parentElement;if(!p)return;el.style.setProperty('--off',((p.clientWidth-el.offsetWidth)/2)+'px');});}
+acMeasure(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(acMeasure);
+function acReplay(){var r=document.querySelector('.galaxy');var c=r.cloneNode(true);r.parentNode.replaceChild(c,r);acMeasure();}
+document.addEventListener('keydown',function(e){if(e.key==='r'||e.key==='R')acReplay();});
+</script>
+</body>
+</html>

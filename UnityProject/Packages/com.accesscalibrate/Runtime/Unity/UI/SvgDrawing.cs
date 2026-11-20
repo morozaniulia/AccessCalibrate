@@ -61,12 +61,15 @@ namespace AccessCalibration.UI
         internal int TextCount => _doc?.Texts.Count ?? 0;
         internal IReadOnlyCollection<string> UnknownColours => _doc?.Unknown ?? (IReadOnlyCollection<string>)Array.Empty<string>();
 
-        public SvgDrawing(string name)
+        public SvgDrawing(string name) : this(name, null) { }
+
+        /// <summary>A drawing made from SVG text (e.g. the controller with the requested button lit).</summary>
+        public SvgDrawing(string name, string svg)
         {
             DrawingName = name;
             AddToClassList("ac-svg");
             pickingMode = PickingMode.Ignore;
-            _doc = Load(name);
+            _doc = svg == null ? Load(name) : FromText(svg);
             if (_doc == null) return;
             style.width = _doc.Width;
             style.height = _doc.Height;
@@ -97,6 +100,20 @@ namespace AccessCalibration.UI
         public IEnumerable<string> Texts { get { foreach (var (label, _) in _labels) yield return label.text; } }
 
         // ------------------------------------------------------------ loading
+
+        static readonly Dictionary<string, Doc> s_TextCache = new Dictionary<string, Doc>();
+
+        static Doc FromText(string svg)
+        {
+            if (s_TextCache.TryGetValue(svg, out var d)) return d;
+            if (s_TextCache.Count > 64) s_TextCache.Clear();
+            d = Parse(svg);
+            s_TextCache[svg] = d;
+            return d;
+        }
+
+        /// <summary>The SVG text of a drawing in Resources (null if missing).</summary>
+        internal static string Source(string name) => Resources.Load<TextAsset>("AccessCalibrate/Drawings/" + name + ".svg")?.text;
 
         internal static Doc Load(string name)
         {

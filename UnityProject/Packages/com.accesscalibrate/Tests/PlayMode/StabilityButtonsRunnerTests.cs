@@ -318,8 +318,8 @@ namespace AccessCalibration.PlayModeTests
         {
             AccessCalibrate.RequestCalibration();
             Assert.IsTrue(_runner.IsCalibrating);
-            Assert.IsTrue(_runner.InIntro);
             Assert.AreSame(_runner.Reaction, _runner.CurrentTest);
+            Assert.IsTrue(_runner.Reaction.IsRunning, "the first check starts at once (its intro is part of it)");
         }
 
         [Test]
@@ -343,30 +343,23 @@ namespace AccessCalibration.PlayModeTests
         }
 
         [Test]
-        public void UnansweredCheck_RecordsTheDeviceThatStartedIt_NotTheOneUsedBefore()
+        public void UnansweredCheck_RecordsTheDeviceThePlayerChose()
         {
             var mouse = InputSystem.AddDevice<Mouse>();
             _runner.StartCalibration();
-
-            Tap(mouse.leftButton, 10.1, 10.2);            // Reaction started with a mouse click…
+            Tap(mouse.leftButton, 10.1, 10.2);             // a mouse click somewhere…
             _runner.Tick();
-            Assert.IsTrue(_runner.Reaction.IsRunning);
-            _runner.SkipCurrent();                         // …then skipped
-            _runner.SkipCurrent();                         // Hold (from its intro)
-            _runner.SkipCurrent();                         // Repeated presses
-            _runner.SkipCurrent();                         // Steadiness
+            _runner.ChooseDevice(DeviceChoice.KeyboardMouse);   // …but the player said: keyboard & mouse
+            Assert.IsTrue(_runner.Reaction.IsRunning, "the current check started again with the chosen device");
+            for (int i = 0; i < 4; i++) _runner.SkipCurrent();
             Assert.AreSame(_runner.ButtonAccess, _runner.CurrentTest);
-
-            Tap(Keyboard.enterKey, 11.1, 11.2);            // Button reach started from the keyboard
-            _runner.Tick();
             Assert.IsTrue(_runner.ButtonAccess.IsRunning);
             for (int i = 0; i < 10 && _runner.ButtonAccess.IsRunning; i++)
                 TickAt(_runner.ButtonAccess, Now + 6);     // no prompt answered: every one times out
 
             var buttons = _runner.LastMeasurements.Buttons;
             Assert.AreEqual(_runner.ButtonAccess.Buttons.Count, buttons.UnpressedButtons.Count);
-            Assert.AreEqual(InputDeviceKind.Keyboard, buttons.Device,
-                "the keyboard started this check; the mouse click belonged to an earlier one");
+            Assert.AreEqual(InputDeviceKind.Keyboard, buttons.Device, "an unanswered check is recorded with the chosen device");
         }
 
         [Test]
