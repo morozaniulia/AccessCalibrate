@@ -27,6 +27,10 @@ namespace AccessCalibration.FeedbackApp
         void Awake()
         {
             _runner = GetComponent<CalibrationRunner>();
+            // ?blur=0: fog-ins without blur (to compare frame times); ?motion=0: reduce motion
+            string url = Application.absoluteURL ?? "";
+            if (url.Contains("blur=0")) _runner.MotionBlur = false;
+            if (url.Contains("motion=0")) _runner.ReduceMotion = true;
             AccessCalibrate.UseStore(new ProfileStore(Path.Combine(Application.temporaryCachePath, "AccessCalibrateFeedback")));
             _savedContinue = ScreenTexts.SummaryContinue;
             ScreenTexts.SummaryContinue = "Done";

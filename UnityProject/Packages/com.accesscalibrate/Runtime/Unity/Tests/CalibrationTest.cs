@@ -34,6 +34,16 @@ namespace AccessCalibration
         /// </summary>
         public bool IsWaitingForRelease { get; private set; }
         public bool IsFinished { get; private set; }
+
+        /// <summary>
+        /// Seconds between <see cref="Begin"/> and the real start: the screen's intro plays first.
+        /// Nothing is measured and no timer runs meanwhile (Reaction's first signal comes after it,
+        /// plus the usual random wait).
+        /// </summary>
+        public double StartDelaySeconds;
+        /// <summary>The intro is still playing: the test has begun but measures nothing yet.</summary>
+        public bool IsInIntro { get; private set; }
+        double _introEndsAt;
         public bool WasSkipped { get; private set; }
 
         /// <summary>The device this test's input actually came from.</summary>
@@ -55,6 +65,18 @@ namespace AccessCalibration
             WasSkipped = false;
             Device = PreferredDevice;
             View.ShowTest(Title, Instructions);
+            if (StartDelaySeconds > 0)
+            {
+                IsInIntro = true;
+                _introEndsAt = Clock() + StartDelaySeconds;
+                return;
+            }
+            StartAfterIntro();
+        }
+
+        void StartAfterIntro()
+        {
+            IsInIntro = false;
             if (InputDevices.AnyButtonHeld())
             {
                 IsWaitingForRelease = true;
@@ -80,6 +102,7 @@ namespace AccessCalibration
         {
             if (!IsRunning) return;
             IsRunning = false;
+            IsInIntro = false;
             IsWaitingForRelease = false;
             IsFinished = false;
             WasSkipped = false;
@@ -91,6 +114,12 @@ namespace AccessCalibration
         public void Tick(double now)
         {
             if (!IsRunning) return;
+            if (IsInIntro)
+            {
+                if (now < _introEndsAt) return;
+                StartAfterIntro();
+                return;
+            }
             if (IsWaitingForRelease)
             {
                 if (InputDevices.AnyButtonHeld()) return;
@@ -113,6 +142,7 @@ namespace AccessCalibration
         {
             if (!IsRunning) return;
             IsRunning = false;
+            IsInIntro = false;
             IsWaitingForRelease = false;
             IsFinished = true;
             OnStop();

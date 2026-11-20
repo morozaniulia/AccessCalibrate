@@ -26,6 +26,9 @@ namespace AccessCalibration
         [Tooltip("Turn off animations (respect the player's 'reduce motion' preference).")]
         public bool ReduceMotion;
 
+        [Tooltip("Blur in the screens' fog-ins (spec: blur 14 px → 0). Turn off if it is too slow on a device: opacity and scale stay.")]
+        public bool MotionBlur = true;
+
         [Tooltip("Create the built-in UI Toolkit screens automatically.")]
         public bool UseBuiltInView = true;
 
@@ -102,8 +105,8 @@ namespace AccessCalibration
         readonly List<DeviceChoice> _deviceChoices = new List<DeviceChoice>();
         int _index;
         InputDeviceKind _preferred = InputDeviceKind.Gamepad;
-        InputAction _skip, _back, _skipAll, _up, _down, _left, _right, _submit, _toggle, _cancel;
-        bool _skipRequested, _backRequested, _skipAllRequested, _submitRequested, _toggleRequested, _cancelRequested;
+        InputAction _replay, _skip, _back, _skipAll, _up, _down, _left, _right, _submit, _toggle, _cancel;
+        bool _replayRequested, _skipRequested, _backRequested, _skipAllRequested, _submitRequested, _toggleRequested, _cancelRequested;
         int _moveRequested, _adjustRequested;
         double _reviewShownAt, _welcomeShownAt, _summaryShownAt;
         bool _applied;
@@ -134,6 +137,8 @@ namespace AccessCalibration
             _skip.performed += ctx => { if (!IsShiftHeld(ctx)) _skipRequested = true; };
             _back = InputDevices.CreateBack("AccessCalibrate/Back");
             _back.performed += _ => _backRequested = true;
+            _replay = CreateButtonAction("AccessCalibrate/ReplayIntro", "<Keyboard>/r");
+            _replay.performed += _ => _replayRequested = true;
             _skipAll = InputDevices.CreateSkipAll("AccessCalibrate/SkipAll");
             _skipAll.performed += _ => _skipAllRequested = true;
 
@@ -157,7 +162,7 @@ namespace AccessCalibration
             foreach (var a in Actions) a.Enable();
         }
 
-        InputAction[] Actions => new[] { _skip, _back, _skipAll, _up, _down, _left, _right, _submit, _toggle, _cancel };
+        InputAction[] Actions => new[] { _replay, _skip, _back, _skipAll, _up, _down, _left, _right, _submit, _toggle, _cancel };
 
         static bool IsShiftHeld(InputAction.CallbackContext ctx) =>
             ctx.control.device is Keyboard kb && (kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed);
@@ -173,7 +178,7 @@ namespace AccessCalibration
         {
             AccessCalibrate.OnCalibrationRequested -= StartCalibration;
             foreach (var a in Actions) a?.Dispose();
-            _skip = _back = _skipAll = _up = _down = _left = _right = _submit = _toggle = _cancel = null;
+            _replay = _skip = _back = _skipAll = _up = _down = _left = _right = _submit = _toggle = _cancel = null;
         }
 
         void EnsureView()
@@ -184,7 +189,7 @@ namespace AccessCalibration
 
         void ClearRequests()
         {
-            _skipRequested = _backRequested = _skipAllRequested = _submitRequested = _toggleRequested = _cancelRequested = false;
+            _replayRequested = _skipRequested = _backRequested = _skipAllRequested = _submitRequested = _toggleRequested = _cancelRequested = false;
             _moveRequested = _adjustRequested = 0;
         }
 
@@ -249,7 +254,7 @@ namespace AccessCalibration
             t.TouchFilter = _preferred == InputDeviceKind.Touch && View is ICalibrationTouchView touch ? touch.IsInPressArea : (Func<Vector2, bool>)null;
             // On a touch screen there are no buttons to reach.
             if (t is ButtonAccessTest && _preferred == InputDeviceKind.Touch) { View.ShowIntro(_index + 1, _tests.Count, t.Title, t.Instructions); t.Skip(); return; }
-            if (t is ReactionTest r) r.FirstSignalDelaySeconds = View is ICalibrationIntroView intro ? intro.IntroSeconds : 0;
+            t.StartDelaySeconds = View is ICalibrationIntroView intro ? intro.IntroSeconds : 0;
             View.ShowIntro(_index + 1, _tests.Count, t.Title, t.Instructions);
             t.Begin();
         }
@@ -266,6 +271,15 @@ namespace AccessCalibration
         {
             if (!IsCalibrating || IsWelcoming) return;
             _tests[_index].Skip();
+        }
+
+        /// <summary>"Replay the intro" (R, or the link on a ready screen): the current check starts again with its intro.</summary>
+        public void ReplayIntro()
+        {
+            if (!IsCalibrating || IsWelcoming || IsChoosingDevice) return;
+            if (View is ICalibrationIntroView iv && !iv.CanReplayIntro) return;
+            _tests[_index].Abort();
+            StartCurrent();
         }
 
         /// <summary>"Back" (View / Backspace): the previous check again; from the first check, the Welcome screen.</summary>
@@ -395,9 +409,10 @@ namespace AccessCalibration
 
             if (IsCalibrating)
             {
-                bool skipAll = _skipAllRequested, back = _backRequested, skip = _skipRequested;
+                bool skipAll = _skipAllRequested, back = _backRequested, skip = _skipRequested, replay = _replayRequested;
                 ClearRequests();
                 if (skipAll) SkipAll();
+                else if (replay) ReplayIntro();
                 else if (back) Back();
                 else if (skip) SkipCurrent();
                 return;

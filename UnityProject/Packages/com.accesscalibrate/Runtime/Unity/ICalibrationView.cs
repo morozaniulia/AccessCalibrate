@@ -77,13 +77,15 @@ namespace AccessCalibration
     public enum DeviceChoice { Xbox, PlayStation, KeyboardMouse, Touch }
 
     /// <summary>
-    /// Optional: a view that plays an intro at the start of each check. The runner waits this long
-    /// (plus the usual random pause) before the first Reaction signal, so it never comes during the intro.
+    /// Optional: a view that plays an intro at the start of each check. The check measures nothing
+    /// until it has finished (Reaction's first signal comes after it, plus the usual random pause).
     /// </summary>
     public interface ICalibrationIntroView
     {
-        /// <summary>Length of a check's intro in seconds (0 with reduce motion).</summary>
+        /// <summary>Seconds of the check's intro before it may measure (0 with reduce motion).</summary>
         double IntroSeconds { get; }
+        /// <summary>"Replay the intro (R)" is offered now (a check screen that is ready, not measuring).</summary>
+        bool CanReplayIntro { get; }
     }
 
     /// <summary>Optional: "What are you playing with?" (opened from "Change"). Items are the choices, in order.</summary>

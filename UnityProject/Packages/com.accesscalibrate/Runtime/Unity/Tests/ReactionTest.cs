@@ -20,11 +20,6 @@ namespace AccessCalibration
         public double MaxWaitSeconds = 3.0;
         /// <summary>No press this long after the signal → the trial counts as inattention.</summary>
         public double TrialTimeoutSeconds = 2.5;
-        /// <summary>
-        /// Extra wait before the first signal (the runner sets it to the length of the check's intro,
-        /// so the signal never comes while the intro is still playing).
-        /// </summary>
-        public double FirstSignalDelaySeconds;
         /// <summary>Random source for the pauses. Replace with a seeded one for reproducible runs.</summary>
         public Random Random = new Random();
 
@@ -59,7 +54,6 @@ namespace AccessCalibration
             _press.performed += OnPress;
             _press.Enable();
             StartTrial(now);
-            NextStimulusAt += FirstSignalDelaySeconds;
         }
 
         void StartTrial(double now)

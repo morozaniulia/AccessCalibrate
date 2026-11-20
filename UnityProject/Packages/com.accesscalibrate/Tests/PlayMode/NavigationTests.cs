@@ -27,6 +27,7 @@ namespace AccessCalibration.PlayModeTests
             public DeviceChoice? Used;
             public bool PickerOpen;
             public double IntroSeconds => Intro;
+            public bool CanReplayIntro => true;
             public void ShowWelcome() { }
             public void SetWelcomeSelection(int index) { }
             public void ShowIntro(int index, int count, string title, string instructions) { }
@@ -186,10 +187,46 @@ namespace AccessCalibration.PlayModeTests
             double start = Now;
             _runner.WelcomeStart();
             var r = _runner.Reaction;
+            Assert.IsTrue(r.IsRunning && r.IsInIntro);
+            for (double t = start; t < start + 10; t += 0.25)
+            {
+                TickAt(r, t);
+                Assert.IsFalse(r.StimulusVisible, "never during the intro");
+            }
+            TickAt(r, start + 10);
+            Assert.IsFalse(r.IsInIntro);
             Assert.GreaterOrEqual(r.NextStimulusAt, start + 10 + r.MinWaitSeconds, "intro, then the usual random wait");
-            Assert.LessOrEqual(r.NextStimulusAt, start + 10 + r.MaxWaitSeconds);
-            TickAt(r, start + 9.9);
-            Assert.IsFalse(r.StimulusVisible, "never during the intro");
+            Assert.LessOrEqual(r.NextStimulusAt, start + 10 + r.MaxWaitSeconds + 1e-9);
+        }
+
+        [Test]
+        public void EveryCheck_WaitsForTheIntro_NoTimerRunsDuringIt()
+        {
+            _view.Intro = 10;
+            StartChecks();
+            for (int i = 0; i < 2; i++) _runner.SkipCurrent();   // Repeated presses: gives up after 6 s without a press
+            var taps = _runner.Taps;
+            double start = Now;
+            TickAt(taps, start + 9);
+            Assert.IsTrue(taps.IsRunning && taps.IsInIntro, "its 6 s wait has not started yet");
+            TickAt(taps, start + 10);
+            TickAt(taps, start + 15);
+            Assert.IsTrue(taps.IsRunning, "5 s after the intro: still waiting for the first press");
+            TickAt(taps, start + 16.1);
+            Assert.IsFalse(taps.IsRunning, "6 s after the intro it moves on");
+        }
+
+        [Test]
+        public void R_ReplaysTheIntro_TheCheckStartsAgain()
+        {
+            _view.Intro = 10;
+            StartChecks();
+            _runner.SkipCurrent();                         // Hold
+            TickAt(_runner.Hold, Now + 10.5);              // intro over, waiting for the press
+            Assert.IsFalse(_runner.Hold.IsInIntro);
+            PressAndTick(Keyboard.rKey);
+            Assert.AreSame(_runner.Hold, _runner.CurrentTest);
+            Assert.IsTrue(_runner.Hold.IsInIntro, "the intro plays again");
         }
 
         // ------------------------------------------------------------------ device picker

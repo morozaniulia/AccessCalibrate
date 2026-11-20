@@ -21,6 +21,14 @@ namespace AccessCalibration.UI
             Glow = glow;
         }
 
+        float _pulse;
+        /// <summary>0..1: the dot at the end of the arc pulses in place (motion; 0 = still).</summary>
+        public float Pulse
+        {
+            get => _pulse;
+            set { if (!Mathf.Approximately(value, _pulse)) { _pulse = value; MarkDirtyRepaint(); } }
+        }
+
         public float Value
         {
             get => _value;
@@ -49,8 +57,8 @@ namespace AccessCalibration.UI
             p.BeginPath(); p.Arc(c, radius, -90f, end); p.Stroke();
             if (Glow) return;
             var dot = c + new Vector2(Mathf.Cos(end * Mathf.Deg2Rad), Mathf.Sin(end * Mathf.Deg2Rad)) * radius;
-            var halo = C("--ac-ring-fill"); halo.a *= 0.25f;
-            p.fillColor = halo; p.BeginPath(); p.Arc(dot, 15f * k, 0, 360); p.Fill();
+            var halo = C("--ac-ring-fill"); halo.a *= 0.25f * (1f - 0.4f * _pulse);
+            p.fillColor = halo; p.BeginPath(); p.Arc(dot, (15f + 5f * _pulse) * k, 0, 360); p.Fill();
             p.fillColor = C("--ac-ring-dot-c"); p.BeginPath(); p.Arc(dot, 9f * k, 0, 360); p.Fill();
         }
     }

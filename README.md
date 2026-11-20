@@ -113,8 +113,8 @@ Docs/                DESIGN_SPEC.md, screenshots
 
 | Suite | Tests | What it covers |
 |---|---|---|
-| EditMode | 110 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for every text colour on every surface in all presets (galaxy included), opaque text colours, no literal colours in the USS |
-| PlayMode | 109 | each check with simulated keyboard / mouse / gamepad / touch input, buttons held over from the previous check, runner, welcome and suggestions flows, Back / Skip / Skip the whole setup, the device picker, adjusted values, the summary (Copy results, Redo), touches only inside the press area, glyph families, live device drawings (Xbox, PlayStation, keyboard), rendering of every screen in all three themes (compared with the design), SVG drawings, the demo level (including a jump with simulated input), the playable build |
+| EditMode | 119 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for every text colour on every surface in all presets (galaxy included), opaque text colours, no literal colours in the USS, the motion timeline (fog-in, easing, reduce motion, blur fallback) |
+| PlayMode | 116 | each check with simulated keyboard / mouse / gamepad / touch input, buttons held over from the previous check, runner, welcome and suggestions flows, Back / Skip / Skip the whole setup, the device picker, the intro (nothing measured during it, Replay with R), adjusted values, the summary (Copy results, Redo), touches only inside the press area, glyph families, live device drawings (Xbox, PlayStation, keyboard), rendering of every screen in all three themes (compared with the design), the motion of every screen (frames at fixed times), the blur shader in builds, SVG drawings, the demo level (including a jump with simulated input), the playable build |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
 A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:
@@ -138,7 +138,7 @@ To run your own study, use study mode (below). It saves one CSV row per calibrat
 - **A still cursor is not proof of a still hand.** Measuring starts only after the player actively brings the dot into the circle. If no input arrives while measuring, or the spread is practically 0, the result is marked *uncertain*, not *steady*: a parked mouse sends nothing. The pilot study found this case (see `Docs/study-results.md`).
 - **Short samples.** Each check lasts a few seconds. Fatigue, practice, the time of day, or an unfamiliar controller can change the results. That is why every suggestion stays editable, and the calibration can be repeated at any time.
 - **Motor abilities only.** Vision, hearing and cognitive needs are out of scope.
-- **UI Toolkit limits.** There is no real backdrop blur (the optional blur in the design spec isn't implemented, so the panel is more opaque instead). Gradients and shadows are approximated, and dashed outlines are drawn in code.
+- **UI Toolkit limits.** There is no backdrop blur (UI Toolkit blurs an element, not what is behind it), so the panels are more opaque instead. Gradients and shadows are approximated, and dashed outlines are drawn in code.
 
 ## Prior work
 
@@ -236,6 +236,15 @@ Text and line colours are opaque on purpose: Unity blends translucent colours in
 A test checks that every preset keeps text at **4.5:1 contrast or more** over a black, a white and a grey game behind the panel. Another test checks that the stylesheet uses no colour that isn't a token.
 
 Font: [Manrope](https://github.com/googlefonts/manrope), under the SIL Open Font License 1.1 (see `NOTICE` and `Fonts/OFL.txt`). A theme's `font` field replaces it everywhere.
+
+## Motion
+
+The screens follow the design's motion (`Docs/design-v2/DESIGN_SPEC_v2.md`, section 4): elements "fog in" (opacity, blur 14 px → 0, a small rise and scale), each check opens with an intro (title and "What we measure" appear centred, then slide into the left column; then the tip, the centre and the options), the centre swaps with a fade when a check becomes active, and the signal, the hold ring and the current step have soft loops. Nothing flashes.
+
+- **The intro is part of the check.** Each check opens with a short intro (about 4 s, the design's order with shorter steps). It measures nothing until its centre is visible (2.9 s; Button reach 2.2 s): no timer runs before that, and Reaction's first signal comes after it plus the usual random wait. "Replay the intro (R)" plays it again on a ready screen.
+- **Reduce motion.** `CalibrationRunner.ReduceMotion` shows every screen in its final state at once, with no intro and no loops.
+- **Blur.** `CalibrationRunner.MotionBlur` (on by default) blurs the fog-ins. If frames get slow while a blur plays (under 40 fps over half a second), blur turns off for the rest of the session and opacity and scale stay. Measured in the WebGL build: 60 fps either way on a desktop GPU; with software rendering, blur dropped the intro to 3 to 4 fps before the fallback and 15 to 19 fps after it.
+- **Builds.** The view copies the package's `AccessCalibratePanel` asset instead of a panel made in code: the asset references UI Toolkit's blur shader, so the shader is included in player builds.
 
 ## Translating the texts
 

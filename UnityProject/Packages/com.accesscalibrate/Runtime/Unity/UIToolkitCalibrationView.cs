@@ -50,7 +50,6 @@ namespace AccessCalibration
 
         // check screens
         CalibrationTest _checkTest;
-        bool _inIntro;
         readonly Dictionary<string, VisualElement> _states = new Dictionary<string, VisualElement>();
         Label _status, _substatus, _holdValue, _holdUnit, _count, _measureState, _measureLeft, _reachCount;
         VisualElement _statusBlock, _progressFill, _reachProgressFill, _reachList;
@@ -95,7 +94,20 @@ namespace AccessCalibration
         public GlyphFamily GlyphFamily => _glyphs?.Family ?? GlyphFamily.Keyboard;
 
         /// <summary>Length of a check's intro (the motion comes in stage 4; until then there is none).</summary>
-        public double IntroSeconds => 0;
+        /// <summary>Seconds until the check may measure: its centre is fully visible (the options still settle after it).</summary>
+        public double IntroSeconds => _reduceMotion ? 0 : _runner != null && _runner.CurrentTest is ButtonAccessTest ? ReachStartSeconds : CheckStartSeconds;
+
+        /// <summary>A check screen's intro, start to end (about 4 s), and when its centre is visible (measuring starts).</summary>
+        public const double CheckIntroSeconds = 3.9, CheckStartSeconds = 2.9;
+        /// <summary>Button reach: title, button list, controller, options.</summary>
+        public const double ReachIntroSeconds = 3.2, ReachStartSeconds = 2.2;
+
+        public bool CanReplayIntro => _screen == Screen.Check && ReplayVisible;
+
+        readonly MotionTimeline _motion = new MotionTimeline();         // the screen: intros, transitions, loops
+        readonly MotionTimeline _dialogMotion = new MotionTimeline();   // the device picker over it
+        internal MotionTimeline ScreenMotion => _motion;
+        internal MotionTimeline DialogMotion => _dialogMotion;
 
         /// <summary>Tests: show a family without a real device press.</summary>
         internal void ForceGlyphFamily(GlyphFamily family) => _glyphs.Set(family);
@@ -106,7 +118,11 @@ namespace AccessCalibration
             go.SetActive(false);
             go.transform.SetParent(runner.transform, false);
 
-            var panel = ScriptableObject.CreateInstance<PanelSettings>();
+            // A copy of the package's panel asset: made in the editor, it references UI Toolkit's
+            // runtime shaders (the Gaussian blur of the fog-ins and glows among them), so they are
+            // in every build. A PanelSettings made in code has none, and blur fails in a player.
+            var template = Resources.Load<PanelSettings>(ResourceFolder + "AccessCalibratePanel");
+            var panel = template != null ? Instantiate(template) : ScriptableObject.CreateInstance<PanelSettings>();
             panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>(ResourceFolder + "AccessCalibrateTheme");
             panel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
             panel.referenceResolution = new Vector2Int(1280, 720);
@@ -127,6 +143,7 @@ namespace AccessCalibration
 
             view.Bind(runner.ReduceMotion);
             view.SkipClicked += runner.SkipCurrent;
+            view.ReplayIntroClicked += runner.ReplayIntro;
             return view;
         }
 
@@ -139,6 +156,11 @@ namespace AccessCalibration
             if (sheet != null) _doc.rootVisualElement.styleSheets.Add(sheet);
             _doc.rootVisualElement.pickingMode = PickingMode.Ignore;
             _reduceMotion = reduceMotion;
+            _motion.Reduce = _dialogMotion.Reduce = reduceMotion;
+            _motion.Blur = _dialogMotion.Blur = (_runner == null || _runner.MotionBlur) && !MotionTimeline.SlowDevice;
+            // too slow on this device: both timelines drop the blur (opacity + scale stay)
+            _motion.BlurFellBack += () => _dialogMotion.TurnOffBlur();
+            _dialogMotion.BlurFellBack += () => _motion.TurnOffBlur();
             _root.EnableInClassList("ac-reduce-motion", reduceMotion);
             _backdrop = new ThemeBackdrop();
             _root.Insert(0, _backdrop);
@@ -350,6 +372,8 @@ namespace AccessCalibration
             {
                 int count = _runner != null ? _runner.Tests.Count : 5;
                 for (int i = 0; i < count; i++) _steps.Add(Step(i, current));
+                // the current step's glow pulses (1.8 s), softly
+                _motion.Loop(_steps.Q(className: "ac-step-glow"), (e, t) => e.style.opacity = 0.6f + 0.4f * Mathf.Cos((float)(t / 1.8 * 2 * Math.PI)));
             }
             _topRight.Clear();
             if (welcome)
@@ -451,6 +475,8 @@ namespace AccessCalibration
 
         void ShowPage(Screen screen)
         {
+            _motion.Stop();
+            _barsAt = -1;
             _screen = screen;
             _root.style.display = DisplayStyle.Flex;
             foreach (var kv in _pages) kv.Value.EnableInClassList("ac-page--shown", kv.Key == screen);
@@ -509,6 +535,7 @@ namespace AccessCalibration
 
         public void ShowWelcome()
         {
+            bool again = _screen == Screen.Welcome && _root.style.display != DisplayStyle.None;
             ShowPage(Screen.Welcome);
             _checkTest = null;
             BuildWelcome();
@@ -516,6 +543,28 @@ namespace AccessCalibration
             TopBar(-1, welcome: true);
             BottomBar(ScreenTexts.WelcomeNote, false, true, (PromptAction.Move, ScreenTexts.HintSelect), (PromptAction.Confirm, ScreenTexts.HintConfirm));
             ApplyFontOverride();
+            var ring = _pages[Screen.Welcome].Q<DashedCircle>();
+            _motion.Loop(ring, (e, t) => e.style.rotate = new Rotate((float)(t / 8 * 360)));
+            if (!again) PlayWelcome();
+        }
+
+        /// <summary>01: title (0.2 s) → subtitle (0.9) → steps one by one (1.7, 0.18 apart) → line (2.6) → dots (3.4) → device (3.8) → buttons (4.2).</summary>
+        void PlayWelcome()
+        {
+            _motion.Begin();
+            var page = _pages[Screen.Welcome];
+            var parts = page.Children().ToList();
+            if (parts.Count < 6) return;
+            _motion.FogIn(parts[0], 0.2, 0.8);
+            _motion.FogIn(parts[1], 0.9, 0.8);
+            var steps = parts[2].Children().ToList();
+            for (int i = 0; i < steps.Count; i++) _motion.FogIn(steps[i], 1.7 + 0.18 * i, 0.6);
+            _motion.DrawX(parts[3].Q(className: "ac-welcome-line"), 2.6, 0.8);
+            var dots = parts[3].Query(className: "ac-welcome-dot").ToList();
+            dots.Insert(0, parts[3].Q(className: "ac-welcome-current"));
+            for (int i = 0; i < dots.Count; i++) _motion.Pop(dots[i], 3.4 + 0.08 * i);
+            _motion.FogIn(parts[4], 3.8, 0.7);
+            _motion.FogIn(parts[5], 4.2, 0.7);
         }
 
         public void SetWelcomeSelection(int index)
@@ -529,14 +578,16 @@ namespace AccessCalibration
         public void ShowIntro(int index, int count, string title, string instructions)
         {
             var test = _runner != null && index - 1 < _runner.Tests.Count ? _runner.Tests[index - 1] : null;
-            _inIntro = true;
             ShowCheck(test);
+            PlayCheckIntro();
         }
 
         public void ShowTest(string title, string instructions)
         {
-            _inIntro = false;
-            ShowCheck(_runner != null ? _runner.CurrentTest : null);
+            var current = _runner != null ? _runner.CurrentTest : null;
+            // Begin right after ShowIntro: same check, keep the screen (and its intro) as it is
+            if (_screen == Screen.Check && current != null && current == _checkTest) { UpdateCheck(force: true); return; }
+            ShowCheck(current);
         }
 
         void ShowCheck(CalibrationTest test)
@@ -550,6 +601,8 @@ namespace AccessCalibration
         void BuildCheck(CalibrationTest test)
         {
             _checkTest = test;
+            _motion.Stop();
+            _shownState = null;
             _states.Clear();
             _colLeft.Clear(); _colCenter.Clear(); _colRight.Clear();
             _stage = null;
@@ -690,11 +743,124 @@ namespace AccessCalibration
             return e;
         }
 
+        string _shownState;
+
+        /// <summary>
+        /// The centre's state. Ready → active (06, 08, 10): the ready centre fades out with blur and
+        /// scales to 0.94, the new one fogs in, then the status and sub lines. Reaction's signal is a
+        /// stimulus: it shows at once, never animated in.
+        /// </summary>
         void ShowState(string name)
         {
             CheckState = name;
-            foreach (var kv in _states) Show(kv.Value, kv.Key == name);
+            if (name == _shownState) return;
+            string prev = _shownState;
+            _shownState = name;
+            bool animate = !_motion.Reduce && prev == "ready" && name != "signal" && name != "ready" && _states.ContainsKey(prev) && _states.ContainsKey(name);
+            if (!animate)
+            {
+                foreach (var kv in _states) Show(kv.Value, kv.Key == name);
+                return;
+            }
+            var from = _states[prev];
+            var to = _states[name];
+            foreach (var kv in _states) Show(kv.Value, kv.Value == from);
+            _motion.Begin();
+            _motion.FogOut(from, 0.4, 0.7);
+            _motion.At(1.1, () => { Show(from, false); Show(to, true); });
+            _motion.FogIn(to, 1.1, 0.8, dy: 0, scale: 1.06f);
+            if (_status != null) _motion.Fade(_status, 1.3, 0.5);
+            if (_substatus != null) _motion.Fade(_substatus, 1.5, 0.5);
         }
+
+        // ---- check intro (03, 05, 07, 09, 11)
+
+        void PlayCheckIntro()
+        {
+            _motion.Begin();
+            if (_motion.Reduce) return;
+            // About 4 s, the spec's order with shorter steps and overlaps (the check measures from CheckStartSeconds)
+            var tb = _colLeft.Q(className: "ac-title-block");
+            if (tb != null) IntroBlock(tb, 0, 0.7);                              // centred 0–0.5, slides 0.7–1.3
+            if (_checkTest is ButtonAccessTest)
+            {
+                // the title moves left, then the button list stacks in (52 px step), the controller, the options
+                var rows = _reachList?.Children().ToList() ?? new List<VisualElement>();
+                StackIn(rows, 1.3, 52);
+                _motion.FogIn(_colCenter, 1.6, 0.6);                              // visible at 2.2 = ReachStartSeconds
+                RightColumnIntro(1.9);                                            // done at 3.2 = ReachIntroSeconds
+                return;
+            }
+            _motion.DrawX(_colLeft.Q(className: "ac-divider"), 1.2, 0.4);
+            var m = _colLeft.Q(className: "ac-measure");
+            if (m != null) IntroBlock(m, 1.2, 1.75);                             // centred 1.2–1.7, slides 1.75–2.35
+            _motion.FogIn(_colLeft.Q(className: "ac-tip"), 2.1, 0.5);
+            _motion.FogIn(_colCenter, 2.3, 0.6);                                  // visible at 2.9 = CheckStartSeconds
+            RightColumnIntro(2.6);                                                // done at 3.9 = CheckIntroSeconds
+        }
+
+        /// <summary>A block fogs in centred on the screen at 1.08, holds, then slides to its place; each line slides from its centred offset to the left edge.</summary>
+        void IntroBlock(VisualElement block, double at, double slideAt)
+        {
+            Func<Vector2> centre = () => CentreOffset(block);
+            _motion.FogInAt(block, at, 0.5, centre, 1.08f);
+            _motion.Slide(block, slideAt, 0.6, centre, () => Vector2.zero, Ease.InOut, 1.08f, 1f);
+            foreach (var label in block.Query<Label>().ToList())
+            {
+                var l = label;
+                l.style.alignSelf = Align.FlexStart;   // sized to its text (left-aligned anyway), so its width is the line's width
+                _motion.Slide(l, slideAt, 0.6, () => new Vector2(LineOffset(l), 0), () => Vector2.zero, Ease.InOut);
+            }
+        }
+
+        /// <summary>
+        /// Cards stack in: the first appears, the others drop out from behind it with an overshoot
+        /// (0.1 s apart). A card's content stays hidden until the card is in place, so texts never
+        /// pass over each other.
+        /// </summary>
+        void StackIn(IList<VisualElement> cards, double at, float step, double gap = 0.1, double duration = 0.45)
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                double t = at + gap * i;
+                if (i == 0) _motion.FogIn(cards[0], t, duration);
+                else
+                {
+                    _motion.Drop(cards[i], t, duration, new Vector2(0, -step * i));
+                    foreach (var child in cards[i].Children().ToList()) _motion.Fade(child, t + duration * 0.75, 0.2);
+                }
+            }
+        }
+
+        /// <summary>"Your options" fades in, the cards stack, then the note.</summary>
+        void RightColumnIntro(double at)
+        {
+            _motion.Fade(_colRight.Q(className: "ac-options-label"), at, 0.4);
+            StackIn(_colRight.Query(className: "ac-option").ToList(), at + 0.2, 56);
+            foreach (var other in _colRight.Children().ToList())
+                if (!other.ClassListContains("ac-options-label") && !other.ClassListContains("ac-option"))
+                    _motion.FogIn(other, at + 0.8, 0.5);
+        }
+
+        /// <summary>The offset that puts an element's centre on the screen's centre (NaN until laid out).</summary>
+        Vector2 CentreOffset(VisualElement e)
+        {
+            var r = e.layout;
+            if (e.parent == null || float.IsNaN(r.width) || r.width <= 0) return new Vector2(float.NaN, float.NaN);
+            var c = e.parent.ChangeCoordinatesTo(_root, r.center);
+            var root = _root.layout;
+            return new Vector2(root.width / 2 - c.x, root.height / 2 - c.y);
+        }
+
+        /// <summary>How far a line moves right to be centred in its block: (blockWidth − lineWidth) / 2.</summary>
+        static float LineOffset(Label l)
+        {
+            float block = l.parent != null ? l.parent.layout.width : float.NaN;
+            float w = l.layout.width;
+            if (float.IsNaN(block) || block <= 0 || float.IsNaN(w)) return float.NaN;
+            return Mathf.Max(0, (block - w) / 2);
+        }
+
 
         SvgDrawing NewDrawing(string name, string svg = null)
         {
@@ -723,6 +889,20 @@ namespace AccessCalibration
             var circle = E("ac-signal");
             circle.Add(L(ScreenTexts.ReactionSignal, "ac-signal-text"));
             signal.Add(circle);
+            // 04: three rings ripple out (2.4 s, 0.8 s apart, scale 1 → 1.5, fading out); the dashed ring turns in 8 s
+            var ripples = signal.Query(className: "ac-ripple").ToList();
+            for (int i = 0; i < ripples.Count; i++)
+            {
+                double delay = 0.8 * i;
+                _motion.Loop(ripples[i], (e, t) =>
+                {
+                    if (t < delay) { e.style.opacity = 0; return; }
+                    float ph = (float)(((t - delay) % 2.4) / 2.4);
+                    e.style.scale = new Scale(Vector2.one * (1 + 0.5f * ph));
+                    e.style.opacity = 0.5f * (1 - ph);
+                });
+            }
+            _motion.Loop(dashed, (e, t) => e.style.rotate = new Rotate((float)(t / 8 * 360)));
         }
 
         void BuildHoldCentre(VisualElement stage, bool keyboard)
@@ -736,6 +916,14 @@ namespace AccessCalibration
             _holdRing = new HoldRing();
             ringBox.Add(_holdGlow);
             ringBox.Add(_holdRing);
+            // 06: the glow breathes (2 s), the dot pulses, the whole ring scales 1 → 1.015 over 3 s
+            var ring = _holdRing;
+            _motion.Loop(_holdGlow, (e, t) => e.style.opacity = 0.65f + 0.35f * Mathf.Cos((float)(t / 2 * 2 * Math.PI)));
+            _motion.Loop(ringBox, (e, t) =>
+            {
+                e.style.scale = new Scale(Vector2.one * (1 + 0.0075f * (1 - Mathf.Cos((float)(t / 3 * 2 * Math.PI)))));
+                ring.Pulse = 0.5f - 0.5f * Mathf.Cos((float)(t / 1.2 * 2 * Math.PI));
+            });
             var value = E("ac-ring-box");
             _holdValue = L("", "ac-big-value");
             _holdUnit = L("", "ac-big-unit");
@@ -834,6 +1022,18 @@ namespace AccessCalibration
             if (_target == null) return;
             var c = new Vector2(xInRadii, yInRadii);
             if (c.sqrMagnitude > 1.1f * 1.1f) c = c.normalized * 1.1f;
+            _cursorGoal = c;
+            if (_reduceMotion) _target.Cursor = c;   // 10: otherwise the dot follows smoothly (about 120 ms)
+        }
+
+        Vector2 _cursorGoal;
+
+        void SmoothCursor()
+        {
+            if (_target == null || _reduceMotion) return;
+            float k = 1f - Mathf.Exp(-Time.unscaledDeltaTime / 0.12f);
+            var c = Vector2.Lerp(_target.Cursor, _cursorGoal, k);
+            if ((c - _cursorGoal).sqrMagnitude < 1e-6f) c = _cursorGoal;
             _target.Cursor = c;
         }
 
@@ -841,13 +1041,16 @@ namespace AccessCalibration
 
         void Update()
         {
+            _motion.Tick();
+            _dialogMotion.Tick();
+            SmoothCursor();
             if (_screen == Screen.Check) UpdateCheck(force: false);
         }
 
         void UpdateCheck(bool force)
         {
             var test = _checkTest;
-            bool running = test != null && test.IsRunning && !_inIntro;
+            bool running = test != null && test.IsRunning && !test.IsInIntro;
             switch (test)
             {
                 case ReactionTest r:
@@ -988,6 +1191,7 @@ namespace AccessCalibration
 
         public void ShowConfirmation(ProposalReview review)
         {
+            bool again = (_screen == Screen.Suggestions || _screen == Screen.NoChanges) && _review == review;
             _review = review;
             _checkTest = null;
             _rows.Clear();
@@ -995,7 +1199,7 @@ namespace AccessCalibration
             bool nothing = review.Items.Count == 0;
             ShowPage(nothing ? Screen.NoChanges : Screen.Suggestions);
             int done = _runner != null ? _runner.Tests.Count : 5;
-            if (nothing) { BuildNoChanges(done); return; }
+            if (nothing) { BuildNoChanges(done); if (!again) PlayNoChanges(); return; }
 
             int on = review.Items.Count(i => i.Accepted);
             TopBar(done, rightText: CountText(review.Items.Count, on), showChange: false);
@@ -1044,8 +1248,47 @@ namespace AccessCalibration
 
             BottomBar(null, false, false, (PromptAction.Move, ScreenTexts.HintSelect), (PromptAction.Toggle, ScreenTexts.HintToggle), (PromptAction.Adjust, ScreenTexts.HintAdjust));
             _detailIndex = 0;
+            if (!again) PlaySuggestions(left, right);
             RefreshConfirmation();
             ApplyFontOverride();
+        }
+
+        double _barsAt = -1;   // when the Default / With this bars grow (they are rebuilt with the detail panel)
+
+        /// <summary>12: title → subtitle → rows stack (66 px step) → detail slides in from the right → bars grow → buttons.</summary>
+        void PlaySuggestions(VisualElement left, VisualElement right)
+        {
+            _motion.Begin();
+            if (_motion.Reduce) return;
+            var parts = left.Children().ToList();
+            _motion.FogIn(parts[0], 0.1, 0.7);
+            _motion.FogIn(parts[1], 0.5, 0.7);
+            double t = 0.9;
+            StackIn(_rows, t, 66, 0.12, 0.6);
+            t += 0.12 * _rows.Count + 0.3;
+            _motion.Fade(_detail, t, 0.6);
+            _motion.Slide(_detail, t, 0.7, () => new Vector2(48, 0), () => Vector2.zero, Ease.Out);
+            _barsAt = t + 0.5;
+            _motion.FogIn(right.Q(className: "ac-buttons"), _barsAt + 0.5, 0.6);
+        }
+
+        /// <summary>13: title → text → the line draws while each check dot pops in (0.4 s apart) with its name → buttons.</summary>
+        void PlayNoChanges()
+        {
+            _motion.Begin();
+            if (_motion.Reduce) return;
+            var page = _pages[Screen.NoChanges];
+            var parts = page.Children().ToList();
+            _motion.FogIn(parts[0], 0.1, 0.7);
+            _motion.FogIn(parts[1], 0.5, 0.7);
+            var checks = page.Query(className: "ac-nochange-check").ToList();
+            _motion.DrawX(page.Q(className: "ac-nochange-line"), 1.0, 0.4 * Math.Max(1, checks.Count - 1));
+            for (int i = 0; i < checks.Count; i++)
+            {
+                _motion.Pop(checks[i].Q(className: "ac-nochange-dot"), 1.0 + 0.4 * i);
+                _motion.FogIn(checks[i].Q(className: "ac-nochange-name"), 1.0 + 0.4 * i, 0.5, dy: 4);
+            }
+            _motion.FogIn(page.Q(className: "ac-buttons"), 1.2 + 0.4 * checks.Count, 0.6);
         }
 
         static string CountText(int count, int on) =>
@@ -1159,6 +1402,8 @@ namespace AccessCalibration
                     break;
             }
             _detail.Add(bars);
+            if (_barsAt >= 0 && _motion.Playing)
+                foreach (var fill in bars.Query(className: "ac-bar-fill").ToList()) _motion.DrawX(fill, _barsAt, 0.7);
             _detail.Add(E("ac-detail-spacer"));
 
             if (c.Setting == "timingMultiplier") _detail.Add(Advanced(index, "×" + value, new[] { "×1.0", "×1.5", "×2.0", "×2.5" },
@@ -1228,6 +1473,7 @@ namespace AccessCalibration
         /// </summary>
         public void ShowSummary(Measurements m, ProposalReview review, bool applied)
         {
+            bool again = _screen == Screen.Summary;
             ShowPage(Screen.Summary);
             _checkTest = null;
             _selectable.Clear();
@@ -1279,6 +1525,26 @@ namespace AccessCalibration
             TopBar(done, showChange: false);
             BottomBar(ScreenTexts.SummaryNote, false, false, (PromptAction.Move, ScreenTexts.HintSelect), (PromptAction.Confirm, ScreenTexts.HintConfirm));
             ApplyFontOverride();
+            if (!again) PlaySummary(page);
+        }
+
+        /// <summary>14: title → header → rows slide in from the left (0.25 s apart), each "Applied" pops → buttons.</summary>
+        void PlaySummary(VisualElement page)
+        {
+            _motion.Begin();
+            if (_motion.Reduce) return;
+            _motion.FogIn(page.Q(className: "ac-summary-head"), 0.1, 0.7);
+            _motion.FogIn(page.Q(className: "ac-table-head"), 0.6, 0.6);
+            var rows = page.Query(className: "ac-summary-row").ToList();
+            for (int i = 0; i < rows.Count; i++)
+            {
+                double t = 1.0 + 0.25 * i;
+                _motion.Fade(rows[i], t, 0.6);
+                _motion.Slide(rows[i], t, 0.7, () => new Vector2(-40, 0), () => Vector2.zero, Ease.Out);
+                var st = rows[i].Q(className: "ac-summary-status");
+                if (st != null && st is Label l && l.text == ScreenTexts.StatusApplied) _motion.Pop(st, t + 0.4);
+            }
+            _motion.FogIn(page.Q(className: "ac-buttons"), 1.0 + 0.25 * rows.Count + 0.4, 0.6);
         }
 
         public void SetSummarySelection(int index)
@@ -1384,6 +1650,18 @@ namespace AccessCalibration
             BottomBar(ScreenTexts.DeviceNote, false, false, (PromptAction.Move, ScreenTexts.HintSelect), (PromptAction.Confirm, ScreenTexts.HintConfirm), (PromptAction.Cancel, ScreenTexts.HintCancel));
             SetDeviceSelection(selected);
             ApplyFontOverride();
+            if (!wasOpen)
+            {
+                // 02: the screen's content fades out first (no text shows through the panel while it
+                // comes in), the scrim fades in, the dialog rises 24 px and sharpens, the rows drop in
+                // (0.12 s apart); once the panel is opaque, the content comes back, dimmed by the scrim.
+                _dialogMotion.Begin();
+                _dialogMotion.Fade(_main, 0, 0.25, 1, 0);
+                _dialogMotion.Fade(_dialogLayer, 0, 0.3);
+                _dialogMotion.FogIn(dialog, 0.25, 0.6, dy: 24, scale: 1);
+                for (int i = 0; i < _deviceRows.Count; i++) _dialogMotion.Drop(_deviceRows[i], 0.6 + 0.12 * i, 0.5, new Vector2(0, -14));
+                _dialogMotion.Fade(_main, 0.85, 0.3, 0, 1);
+            }
         }
 
         public void SetDeviceSelection(int index)
@@ -1399,6 +1677,7 @@ namespace AccessCalibration
         public void HideDevicePicker()
         {
             if (_dialogLayer == null || !_dialogLayer.ClassListContains("ac-dialog-layer--shown")) return;
+            _dialogMotion.Finish();
             _dialogLayer.RemoveFromClassList("ac-dialog-layer--shown");
             _dialogLayer.Clear();
             _deviceRows.Clear();
@@ -1420,6 +1699,8 @@ namespace AccessCalibration
         {
             _screen = Screen.Hidden;
             _checkTest = null;
+            _motion.Stop();
+            _dialogMotion.Finish();
             _root.style.display = DisplayStyle.None;
         }
 

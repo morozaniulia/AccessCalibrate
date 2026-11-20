@@ -48,12 +48,14 @@ namespace AccessCalibration.PlayModeTests
             if (Directory.Exists(_dir)) Directory.Delete(_dir, recursive: true);
         }
 
-        IEnumerator StartRunner(int width = 1280, int height = 720)
+        /// <summary>The runner with the built-in view. Layout tests turn motion off (final states at once); motion tests keep it.</summary>
+        IEnumerator StartRunner(int width = 1280, int height = 720, bool reduceMotion = true)
         {
             _host = new GameObject("Runner");
             _host.SetActive(false);
             _runner = _host.AddComponent<CalibrationRunner>();
             _runner.Clock = () => _now;
+            _runner.ReduceMotion = reduceMotion;
             _host.SetActive(true);
             _runner.StartCalibration();
             _view = _runner.View as UIToolkitCalibrationView;
@@ -537,6 +539,196 @@ namespace AccessCalibration.PlayModeTests
             yield return null;
             Assert.IsTrue(HasText(ScreenTexts.CopyDone));
             yield return Snapshot("v2-dark-14-summary-copied");
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Motion_CheckIntro_FollowsTheSpec()
+        {
+            yield return StartRunner(reduceMotion: false);
+            double mt = 0;
+            _view.ScreenMotion.Clock = () => mt;
+            _runner.WelcomeStart();                                  // Reaction: its intro starts now
+            yield return null; yield return null;
+            Assert.AreEqual(UIToolkitCalibrationView.CheckIntroSeconds, _view.ScreenMotion.Length, 0.01, "IntroSeconds is the timeline's length");
+            Assert.AreEqual(4.0, UIToolkitCalibrationView.CheckIntroSeconds, 0.15, "about 4 s");
+            Assert.AreEqual(UIToolkitCalibrationView.CheckStartSeconds, _runner.Reaction.StartDelaySeconds, 1e-9, "the check measures once its centre is visible");
+            Assert.IsTrue(_runner.Reaction.IsInIntro);
+
+            var tb = _view.Root.Q(className: "ac-title-block");
+            var centre = Q<VisualElement>("ac-col-center");
+            var cards = _view.Root.Q("ac-col-right").Query(className: "ac-option").ToList();
+            foreach (var t in new[] { 0.3, 0.6, 1.0, 1.5, 2.0, 2.5, 3.1, 4.5 })
+            {
+                mt = t;
+                yield return null; yield return null;
+                if (t == 0.3) Assert.Less(tb.style.opacity.value, 1f, "fogging in");
+                if (t == 0.6)
+                {
+                    Assert.AreEqual(1f, tb.style.opacity.value, 1e-3);
+                    Assert.Greater(Mathf.Abs(tb.style.translate.value.x.value), 100f, "centred on the screen");
+                    Assert.AreEqual(1.08f, tb.style.scale.value.value.x, 1e-3);
+                    foreach (var line in tb.Query<Label>().ToList())
+                    {
+                        Assert.AreNotEqual(0f, line.resolvedStyle.opacity, "every line is visible: " + line.text);
+                        float x = line.style.translate.value.x.value;
+                        Assert.IsTrue(x > 0 && x < 145, "each line centred in its block: " + line.text + " " + x);
+                    }
+                    Assert.AreEqual(0f, centre.style.opacity.value, "the centre comes later");
+                    Assert.AreEqual(0f, cards[0].style.opacity.value);
+                }
+                if (t == 1.5) Assert.AreEqual(0f, tb.style.translate.value.x.value, 0.5f, "in its column");
+                if (t == 2.5) Assert.Greater(centre.style.opacity.value, 0f, "the centre fogs in at 2.3 s");
+                if (t == 3.1)
+                {
+                    Assert.AreEqual(1f, centre.style.opacity.value, 1e-4, "the centre is in place when measuring starts");
+                    Assert.AreEqual(StyleKeyword.Null, centre.style.filter.keyword, "and sharp");
+                    var dropping = cards[2].Children().First();
+                    Assert.AreEqual(0f, dropping.style.opacity.value, "a card's text stays hidden until the card is in place");
+                }
+                if (t == 4.5)
+                {
+                    Assert.IsFalse(_view.ScreenMotion.Playing);
+                    Assert.AreEqual(StyleKeyword.Null, tb.style.opacity.keyword, "final state: the USS decides");
+                    Assert.AreEqual(StyleKeyword.Null, cards[2].style.translate.keyword);
+                }
+                yield return Snapshot("motion-03-" + t.ToString("00.0", System.Globalization.CultureInfo.InvariantCulture));
+            }
+            Assert.IsTrue(_runner.Reaction.IsInIntro, "the runner's own clock has not moved");
+            _now += UIToolkitCalibrationView.CheckStartSeconds;
+            _runner.Reaction.Tick(_now);
+            Assert.IsFalse(_runner.Reaction.IsInIntro);
+            Assert.IsFalse(_runner.Reaction.StimulusVisible, "then the usual random wait");
+        }
+
+        [UnityTest, Timeout(120000)]
+        public IEnumerator Motion_ReadyToActive_TheCentreSwapsWithAFade()
+        {
+            yield return StartRunner(reduceMotion: false);
+            double mt = 0;
+            _view.ScreenMotion.Clock = () => mt;
+            _runner.WelcomeStart();
+            _runner.SkipCurrent();                                   // Hold
+            yield return null;
+            mt = 5; yield return null;                               // intro over
+            _now += UIToolkitCalibrationView.CheckStartSeconds + 0.1;
+            _runner.Hold.Tick(_now);
+            Assert.IsFalse(_runner.Hold.IsInIntro);
+            var ready = Q<VisualElement>("ac-state-ready");
+            var ring = Q<VisualElement>("ac-state-ring");
+            Assert.AreEqual(GlyphFamily.Xbox, _view.GlyphFamily);
+            Press(_pad.buttonSouth, time: _now); yield return null; yield return null;   // same family: no rebuild; input time on the runner's clock
+            Assert.IsTrue(_runner.Hold.IsHolding);
+            Assert.AreEqual("ring", _view.CheckState);
+            Assert.AreEqual(DisplayStyle.Flex, ready.resolvedStyle.display, "the ready centre fades out first");
+            Assert.AreEqual(DisplayStyle.None, ring.resolvedStyle.display);
+            mt = 5 + 0.8; yield return null; yield return null;
+            Assert.Less(ready.style.opacity.value, 1f);
+            yield return Snapshot("motion-06-swap-0.8");
+            mt = 5 + 1.5; yield return null; yield return null;
+            Assert.AreEqual(DisplayStyle.None, ready.resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.Flex, ring.resolvedStyle.display, "the ring fogs in");
+            yield return Snapshot("motion-06-swap-1.5");
+            mt = 5 + 2.5; yield return null; yield return null;
+            Assert.IsFalse(_view.ScreenMotion.Playing);
+            Release(_pad.buttonSouth, time: _now + 0.5); yield return null;
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator Motion_OtherScreens_AnimateIn_ThenSettle()
+        {
+            yield return StartRunner(reduceMotion: false);
+            double mt = 0;
+            _view.ScreenMotion.Clock = () => mt;
+            _view.DialogMotion.Clock = () => mt;
+
+            // 01 Welcome (built before the clock was replaced: show it again from the start)
+            _view.Hide();
+            _view.ShowWelcome();
+            yield return null;
+            var welcome = Q<VisualElement>("ac-page-welcome").Children().ToList();
+            mt = 1.0; yield return null; yield return null;
+            Assert.Greater(welcome[0].style.opacity.value, 0f, "title first");
+            Assert.AreEqual(0f, welcome[5].style.opacity.value, "buttons last");
+            yield return Snapshot("motion-01-welcome-1.0");
+            mt = 2.2; yield return null; yield return null;
+            yield return Snapshot("motion-01-welcome-2.2");
+            mt = 6; yield return null; yield return null;
+            Assert.IsFalse(_view.ScreenMotion.Playing);
+
+            // 02 device picker
+            mt = 10;
+            _runner.OpenDevicePicker();
+            yield return null;
+            var main = Q<VisualElement>("ac-main");
+            mt = 10.2; yield return null; yield return null;
+            Assert.Less(main.style.opacity.value, 1f, "the screen fades out first");
+            mt = 10.45; yield return null; yield return null;
+            Assert.AreEqual(0f, main.style.opacity.value, "nothing shows through the panel while it comes in");
+            yield return Snapshot("motion-02-picker-0.45");
+            mt = 12; yield return null; yield return null;
+            Assert.IsFalse(_view.DialogMotion.Playing);
+            Assert.AreEqual(1f, main.resolvedStyle.opacity, "back behind the opaque panel, dimmed by the scrim");
+            _runner.CloseDevicePicker();
+
+            // 12 suggestions
+            mt = 20;
+            _runner.ShowProposal(DesignMeasurements());
+            yield return null;
+            mt = 21.4; yield return null; yield return null;
+            var lastRow = Q<VisualElement>("ac-page-suggest").Query(className: "ac-suggestion").ToList().Last();
+            Assert.AreEqual(0f, lastRow.Q(className: "ac-suggestion-text").style.opacity.value, "a row's text stays hidden until it is in place");
+            yield return Snapshot("motion-12-suggestions-1.4");
+            mt = 22.6; yield return null; yield return null;
+            yield return Snapshot("motion-12-suggestions-2.6");
+            mt = 26; yield return null; yield return null;
+            Assert.IsFalse(_view.ScreenMotion.Playing);
+
+            // 14 summary
+            _runner.ConfirmationInputDelaySeconds = 0;
+            mt = 30;
+            _runner.Accept();
+            yield return null;
+            mt = 31.6; yield return null; yield return null;
+            yield return Snapshot("motion-14-summary-1.6");
+            mt = 36; yield return null; yield return null;
+            Assert.IsFalse(_view.ScreenMotion.Playing);
+            Assert.AreEqual(StyleKeyword.Null, Q<VisualElement>("ac-page-summary").Q(className: "ac-summary-row").style.opacity.keyword);
+
+            // 13 no changes
+            mt = 40;
+            _runner.ShowProposal(new Measurements());
+            yield return null;
+            mt = 41.9; yield return null; yield return null;
+            yield return Snapshot("motion-13-no-changes-1.9");
+            mt = 46; yield return null; yield return null;
+            Assert.IsFalse(_view.ScreenMotion.Playing);
+        }
+
+        [UnityTest, Timeout(60000)]
+        public IEnumerator Panel_ReferencesTheBlurShader_SoPlayersCanBlur()
+        {
+            yield return StartRunner();
+            var so = Resources.Load<PanelSettings>("AccessCalibrate/AccessCalibratePanel");
+            Assert.IsNotNull(so, "the panel template ships in Resources");
+            Assert.AreEqual("AccessCalibratePanel(Clone)", _view.Panel.name, "the view uses a copy of it");
+#if UNITY_EDITOR
+            var field = new UnityEditor.SerializedObject(_view.Panel).FindProperty("m_RuntimeGaussianBlurShader");
+            Assert.IsNotNull(field?.objectReferenceValue, "the blur shader is referenced (otherwise it is stripped from builds)");
+#endif
+        }
+
+        [UnityTest, Timeout(60000)]
+        public IEnumerator ReduceMotion_NoIntro_FinalStatesAtOnce()
+        {
+            yield return StartRunner(reduceMotion: true);
+            _runner.WelcomeStart();
+            yield return null;
+            Assert.AreEqual(0, _view.IntroSeconds);
+            Assert.IsFalse(_runner.Reaction.IsInIntro, "nothing to wait for");
+            Assert.IsFalse(_view.ScreenMotion.Playing);
+            var tb = _view.Root.Q(className: "ac-title-block");
+            Assert.AreEqual(StyleKeyword.Null, tb.style.opacity.keyword, "no inline motion styles");
+            Assert.AreEqual(1f, tb.resolvedStyle.opacity);
         }
 
         [UnityTest, Timeout(60000)]
