@@ -1,38 +1,57 @@
-/* High Contrast: solid black panel, pure white text, yellow focus, no translucency. Overrides tokens only. */
+/* High Contrast: black background, white text and lines, yellow accent. Overrides tokens only. */
 .ac-root {
-    --ac-overlay: rgba(0, 0, 0, 0.92);
+    --ac-bg-image: none;
+    --ac-bg-top: #000000;
+    --ac-bg-bottom: #000000;
+    --ac-bg-overlay: rgba(0, 0, 0, 0);
+    --ac-text: #FFFFFF;
+    --ac-text-body: #FFFFFF;
+    --ac-text-soft: #FFFFFF;
+    --ac-text-dim: #FFFFFF;
+    --ac-text-muted: #FFFFFF;
+    --ac-text-faint: #FFFFFF;
+    --ac-line: #B2B2B2;   /* rgba(255, 255, 255, 0.70) */
+    --ac-line-strong: #B2B2B2;   /* rgba(255, 255, 255, 0.70) */
+    --ac-control-border: #B2B2B2;   /* rgba(255, 255, 255, 0.70) */
+    --ac-surface-card: #000000;
+    --ac-surface-control: #000000;
+    --ac-surface-sunken: #000000;
+    --ac-accent: #FFD60A;
+    --ac-on-accent: #000000;
+    --ac-accent-glow: rgba(255, 255, 255, 0.70);
+    --ac-primary: #FFFFFF;
+    --ac-on-primary: #000000;
+    /* v1 names, kept until the v2 layout lands */
     --ac-panel: #000000;
     --ac-panel-blurred: #000000;
-    --ac-panel-border: #FFFFFF;
-    --ac-panel-highlight: #FFFFFF;
-    --ac-divider: #FFFFFF;
-    --ac-glass-border: #FFFFFF;
-    --ac-glass-highlight: #FFFFFF;
-    --ac-text: #FFFFFF;
+    --ac-panel-border: #B2B2B2;
+    --ac-panel-highlight: #B2B2B2;
+    --ac-divider: #B2B2B2;
+    --ac-glass-border: #B2B2B2;
+    --ac-glass-highlight: #B2B2B2;
     --ac-text-secondary: #FFFFFF;
-    --ac-text-muted: #E6E6E6;
     --ac-text-upcoming: #FFFFFF;
     --ac-text-hint: #FFFFFF;
-    --ac-text-reason: #E6E6E6;
-    --ac-surface: #141414;
-    --ac-surface-row: #0A0A0A;
-    --ac-surface-row-border: #BFBFBF;
-    --ac-surface-uncertain: #000000;
-    --ac-surface-focus: #1F1F1F;
-    --ac-focus-border: #FFE600;
-    --ac-focus-highlight: #FFE600;
-    --ac-track: #5C5C5C;
-    --ac-focus: #FFE600;
-    --ac-focus-soft: #B3A100;
+    --ac-text-reason: #FFFFFF;
+    --ac-surface: #000000;
+    --ac-surface-row: #000000;
+    --ac-surface-row-border: #B2B2B2;
+    --ac-surface-uncertain: rgba(0, 0, 0, 0);
+    --ac-surface-focus: #000000;
+    --ac-focus-border: #FFD60A;
+    --ac-focus-highlight: #FFD60A;
+    --ac-track: #B2B2B2;
+    --ac-focus: #FFD60A;
+    --ac-focus-soft: rgba(255, 255, 255, 0.70);
     --ac-on-focus: #000000;
-    --ac-primary-halo: #FFFFFF;
-    --ac-ring: #FFFFFF;
+    --ac-primary-halo: rgba(255, 255, 255, 0.70);
+    --ac-ring: #B2B2B2;
     --ac-knob-off: #FFFFFF;
-    --ac-arena-fill: #0A0A0A;
-    --ac-arena-border: #FFFFFF;
-    --ac-crosshair: #5C5C5C;
-    --ac-trail: #B3B3B3;
+    --ac-arena-fill: #000000;
+    --ac-arena-border: #B2B2B2;
+    --ac-crosshair: #B2B2B2;
+    --ac-trail: #FFFFFF;
     --ac-cursor-halo: #000000;
-    --ac-uncertain-border: #FFFFFF;
-    --ac-scrollbar: #FFFFFF;
+    --ac-uncertain-border: #B2B2B2;
+    --ac-scrollbar: #B2B2B2;
 }

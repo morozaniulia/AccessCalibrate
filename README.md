@@ -113,7 +113,7 @@ Docs/                DESIGN_SPEC.md, screenshots
 
 | Suite | Tests | What it covers |
 |---|---|---|
-| EditMode | 106 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for all presets, no literal colours in the USS |
+| EditMode | 110 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for every text colour on every surface in all presets (galaxy included), opaque text colours, no literal colours in the USS |
 | PlayMode | 83 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input), the playable build's summary, copied text and Redo |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
@@ -193,7 +193,7 @@ The script prints a table of medians per label, then draws one small chart per m
 
 The built-in screens follow the "console overlay" design in [`Docs/DESIGN_SPEC.md`](Docs/DESIGN_SPEC.md): a translucent panel over the game, a step rail, a large white focus, and controller glyphs that follow the device in use (Xbox, PlayStation, Switch, keyboard). Every colour, radius and font in the stylesheet is a `--ac-…` variable defined on `.ac-root`.
 
-There are three presets: **Glass Dark** (default), **Glass Light** and **High Contrast** (solid black, white text, yellow focus). To use one, create a theme asset (**Assets → Create → AccessCalibrate → Theme**), pick a preset, optionally add your own USS and font, and assign it to `CalibrationRunner.Theme`. Changes show up live in Play mode. At runtime, for example when the game's own high-contrast option is on, call:
+There are three presets: **Dark** (default, galaxy background), **Light** (light grey gradient, dark text) and **High Contrast** (black background, white text and lines, yellow accent). To use one, create a theme asset (**Assets → Create → AccessCalibrate → Theme**), pick a preset, optionally add your own USS and font, and assign it to `CalibrationRunner.Theme`. Changes show up live in Play mode. At runtime, for example when the game's own high-contrast option is on, call:
 
 ```csharp
 AccessCalibrate.UseTheme(ThemePreset.HighContrast);
@@ -209,34 +209,29 @@ A theme USS only overrides variables, and it is applied after the default styles
 ```css
 /* MyGameTheme.uss: warm accent, squarer corners */
 .ac-root {
-    --ac-focus: #FFB347;             /* primary button, current step, switches "on" */
-    --ac-on-focus: #1A1206;          /* text on the accent */
-    --ac-panel: rgba(28, 20, 12, 0.90);
-    --ac-panel-border: rgba(255, 179, 71, 0.30);
-    --ac-radius-panel: 12px;
-    --ac-radius-control: 8px;
-    --ac-radius-row: 6px;
+    --ac-accent: #FFB347;            /* selected row, current step, signal */
+    --ac-on-accent: #1A1206;         /* text on the accent */
+    --ac-radius-control: 2px;
+    --ac-radius-row: 2px;
 }
 ```
 
-| Token | Glass Dark default | Used for |
+Text and line colours are opaque on purpose: Unity blends translucent colours in linear space in Linear-colour-space projects, which makes translucent text on a light background lighter than intended. The contrast test checks every text colour on every surface, in all three presets, at 4.5:1 or more.
+
+| Token | Dark default | Used for |
 |---|---|---|
-| `--ac-overlay` | `rgba(8, 10, 14, 0.55)` | full-screen dim over the game |
-| `--ac-panel` | `rgba(20, 22, 30, 0.88)` | main panel |
-| `--ac-panel-border` / `--ac-panel-highlight` | white 14% / 22% | panel hairline / top-edge highlight |
-| `--ac-divider` | white 10% | rail divider |
-| `--ac-glass-border` / `--ac-glass-highlight` | white 16% / 20% | glass controls: border / top edge |
-| `--ac-text` | `#FFFFFF` | titles, labels |
-| `--ac-text-secondary` | white 78% | body text |
-| `--ac-text-muted` | white 62% | eyebrows, counters, notes |
-| `--ac-text-hint` / `--ac-text-reason` | white 72% / 68% | hint bar / reason lines |
-| `--ac-surface` / `--ac-surface-row` | white 7% / 5% | secondary buttons, chips / setting rows |
-| `--ac-surface-focus` / `--ac-focus-border` | white 10% / 55% | focused row background / border |
-| `--ac-focus` / `--ac-on-focus` | `#FFFFFF` / `#0B0C10` | primary button, current step, switch on, signal / text on it |
-| `--ac-track` | white 16% | progress tracks, switch off |
-| `--ac-uncertain-border` | white 34% | dashed outline of an uncertain row |
-| `--ac-radius-panel` / `-control` / `-row` | `36px` / `20px` / `16px` | corners |
-| `--ac-font-500` … `--ac-font-800` | Manrope Medium … ExtraBold | text weights |
+| `--ac-bg-top` / `--ac-bg-bottom` | `#070A18` | background gradient (Light: `#F6F7F9` → `#E8EAEE`) |
+| `--ac-bg-image` / `--ac-bg-overlay` | galaxy / `rgba(3, 5, 14, 0.38)` | background image (`none` in Light and High Contrast) and the colour over it |
+| `--ac-text` | `#EEF2FF` | titles, labels |
+| `--ac-text-body` / `-soft` / `-dim` | `#D3D7E5` / `#C9CEDC` / `#A9AEBE` | body text, from strongest to softest |
+| `--ac-text-muted` / `-faint` | `#9097B1` / `#7F869F` | section labels, notes / small labels |
+| `--ac-line` / `--ac-line-strong` | `#232C48` / `#364262` | card borders, dividers / tracks, outlines |
+| `--ac-control-border` | `#494F66` | secondary buttons |
+| `--ac-surface-card` / `-control` / `-sunken` | `rgba(12, 20, 46, 0.62)` / `0.40` / `rgba(5, 8, 20, 0.35)` | cards and rows / secondary buttons / insets |
+| `--ac-accent` / `--ac-on-accent` | `#F2EEE6` / `#07142A` | selected row, current step, signal / text on it |
+| `--ac-primary` / `--ac-on-primary` | `#EEF2FF` / `#0B1230` | primary button, glyphs / text on it |
+| `--ac-radius-control` / `-row` | `6px` / `4px` | buttons and panels / rows |
+| `--ac-font-400` … `--ac-font-800` | Manrope Regular … ExtraBold | text weights |
 
 A test checks that every preset keeps text at **4.5:1 contrast or more** over a black, a white and a grey game behind the panel. Another test checks that the stylesheet uses no colour that isn't a token.
 

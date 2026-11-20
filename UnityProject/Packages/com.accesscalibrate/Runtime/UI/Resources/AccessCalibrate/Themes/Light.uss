@@ -1,0 +1,57 @@
+/* Light: gradient background, dark text, dark accent. Overrides tokens only. */
+.ac-root {
+    --ac-bg-image: none;
+    --ac-bg-top: #F6F7F9;
+    --ac-bg-bottom: #E8EAEE;
+    --ac-bg-overlay: rgba(0, 0, 0, 0);
+    --ac-text: #11141C;
+    --ac-text-body: #2D3037;   /* rgba(17, 20, 28, 0.88) */
+    --ac-text-soft: #373940;   /* rgba(17, 20, 28, 0.84) */
+    --ac-text-dim: #585A60;   /* rgba(17, 20, 28, 0.70) */
+    --ac-text-muted: #66686D;   /* rgba(17, 20, 28, 0.64) */
+    --ac-text-faint: #626469;   /* rgba(17, 20, 28, 0.66) */
+    --ac-line: #D8D9DA;   /* rgba(17, 20, 28, 0.16) */
+    --ac-line-strong: #BCBDBF;   /* rgba(17, 20, 28, 0.28) */
+    --ac-control-border: #B7B8BA;   /* rgba(17, 20, 28, 0.30) */
+    --ac-surface-card: #FEFEFE;   /* rgba(255, 255, 255, 0.94) */
+    --ac-surface-control: #F9F9FA;   /* rgba(255, 255, 255, 0.62) */
+    --ac-surface-sunken: #F9F9FA;   /* rgba(255, 255, 255, 0.62) */
+    --ac-accent: #11141C;
+    --ac-on-accent: #FFFFFF;
+    --ac-accent-glow: rgba(17, 20, 28, 0.35);
+    --ac-primary: #11141C;
+    --ac-on-primary: #FFFFFF;
+    /* v1 names, kept until the v2 layout lands */
+    --ac-panel: #FEFEFE;
+    --ac-panel-blurred: #FEFEFE;
+    --ac-panel-border: #D8D9DA;
+    --ac-panel-highlight: #D8D9DA;
+    --ac-divider: #D8D9DA;
+    --ac-glass-border: #B7B8BA;
+    --ac-glass-highlight: #D8D9DA;
+    --ac-text-secondary: #373940;
+    --ac-text-upcoming: #2D3037;
+    --ac-text-hint: #66686D;
+    --ac-text-reason: #66686D;
+    --ac-surface: #F9F9FA;
+    --ac-surface-row: #FEFEFE;
+    --ac-surface-row-border: #D8D9DA;
+    --ac-surface-uncertain: rgba(0, 0, 0, 0);
+    --ac-surface-focus: #F9F9FA;
+    --ac-focus-border: #11141C;
+    --ac-focus-highlight: #11141C;
+    --ac-track: #BCBDBF;
+    --ac-focus: #11141C;
+    --ac-focus-soft: rgba(17, 20, 28, 0.35);
+    --ac-on-focus: #FFFFFF;
+    --ac-primary-halo: rgba(17, 20, 28, 0.35);
+    --ac-ring: #BCBDBF;
+    --ac-knob-off: #66686D;
+    --ac-arena-fill: #F9F9FA;
+    --ac-arena-border: #BCBDBF;
+    --ac-crosshair: #D8D9DA;
+    --ac-trail: #626469;
+    --ac-cursor-halo: #E8EAEE;
+    --ac-uncertain-border: #B7B8BA;
+    --ac-scrollbar: #BCBDBF;
+}

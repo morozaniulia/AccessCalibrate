@@ -7,15 +7,15 @@ using UnityEngine.UIElements;
 
 namespace AccessCalibration
 {
-    /// <summary>The three built-in looks.</summary>
+    /// <summary>The three built-in looks (Docs/design-v2/DESIGN_SPEC_v2.md).</summary>
     public enum ThemePreset
     {
-        /// <summary>Translucent dark panel, white text (default).</summary>
-        GlassDark,
-        /// <summary>Translucent light panel, dark text.</summary>
-        GlassLight,
-        /// <summary>Solid black panel, pure white text, yellow focus, no translucency.</summary>
-        HighContrast,
+        /// <summary>Galaxy background, light text, warm off-white accent (default).</summary>
+        Dark = 0,
+        /// <summary>Light grey gradient, dark text, dark accent.</summary>
+        Light = 1,
+        /// <summary>Black background, white text and lines, yellow accent, nothing translucent.</summary>
+        HighContrast = 2,
     }
 
     /// <summary>
@@ -27,7 +27,7 @@ namespace AccessCalibration
     [CreateAssetMenu(menuName = "AccessCalibrate/Theme", fileName = "CalibrationTheme")]
     public sealed class CalibrationTheme : ScriptableObject
     {
-        public ThemePreset preset = ThemePreset.GlassDark;
+        public ThemePreset preset = ThemePreset.Dark;
 
         [Tooltip("Optional USS that overrides --ac-… variables on .ac-root (colours, radii, fonts).")]
         public StyleSheet themeOverrides;
@@ -49,12 +49,12 @@ namespace AccessCalibration
             return t;
         }
 
-        /// <summary>The preset's override USS (null for Glass Dark — it is the default stylesheet).</summary>
+        /// <summary>The preset's override USS (null for Dark — it is the default stylesheet).</summary>
         public static StyleSheet LoadPresetSheet(ThemePreset preset)
         {
             switch (preset)
             {
-                case ThemePreset.GlassLight: return Resources.Load<StyleSheet>("AccessCalibrate/Themes/GlassLight");
+                case ThemePreset.Light: return Resources.Load<StyleSheet>("AccessCalibrate/Themes/Light");
                 case ThemePreset.HighContrast: return Resources.Load<StyleSheet>("AccessCalibrate/Themes/HighContrast");
                 default: return null;
             }

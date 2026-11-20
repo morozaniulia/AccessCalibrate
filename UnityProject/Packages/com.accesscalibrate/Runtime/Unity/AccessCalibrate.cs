@@ -35,7 +35,7 @@ namespace AccessCalibration
 
         /// <summary>
         /// The theme chosen at runtime (e.g. the game's own "high contrast" setting). When null, each
-        /// CalibrationRunner uses its own theme field, and an empty field means Glass Dark.
+        /// CalibrationRunner uses its own theme field, and an empty field means Dark.
         /// </summary>
         public static CalibrationTheme Theme { get; private set; }
 
@@ -46,7 +46,7 @@ namespace AccessCalibration
             OnThemeChanged?.Invoke(theme);
         }
 
-        /// <summary>Switch to one of the built-in presets (Glass Dark, Glass Light, High Contrast).</summary>
+        /// <summary>Switch to one of the built-in presets (Dark, Light, High Contrast).</summary>
         public static void UseTheme(ThemePreset preset) => UseTheme(CalibrationTheme.FromPreset(preset));
 
         /// <summary>The thresholds used by the rules engine. Games may replace or edit it before calibrating.</summary>

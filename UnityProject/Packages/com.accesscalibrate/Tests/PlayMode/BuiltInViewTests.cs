@@ -197,14 +197,24 @@ namespace AccessCalibration.PlayModeTests
             Assert.Less(apply.layout.width, 0.45f * _view.Root.Q("ac-panel").layout.width, "Apply hugs its content");
             Assert.AreEqual(30f, applyLabel.worldBound.xMin - apply.worldBound.xMin, 6f, "30 px left padding (+ border)");
 
+            // Background comes from the theme: Dark = galaxy image over #070A18
+            Assert.IsNotNull(_view.Backdrop.Image, "Dark shows the galaxy");
+            Assert.AreEqual(new Color32(0x07, 0x0A, 0x18, 255), (Color32)_view.Backdrop.Top);
+            Assert.AreEqual(_view.Root.layout.size, _view.Backdrop.layout.size, "the background fills the screen");
+
             // Themes switch live, without rebuilding the screen
-            AccessCalibrate.UseTheme(ThemePreset.GlassLight);
-            yield return Snapshot("7-confirmation-glass-light");
-            yield return KeyboardSnapshot("7-confirmation-glass-light");
+            AccessCalibrate.UseTheme(ThemePreset.Light);
+            yield return Snapshot("7-confirmation-light");
+            Assert.IsNull(_view.Backdrop.Image, "Light has no image");
+            Assert.AreEqual(new Color32(0xF6, 0xF7, 0xF9, 255), (Color32)_view.Backdrop.Top, "Light gradient top");
+            Assert.AreEqual(new Color32(0xE8, 0xEA, 0xEE, 255), (Color32)_view.Backdrop.Bottom, "Light gradient bottom");
+            yield return KeyboardSnapshot("7-confirmation-light");
             AccessCalibrate.UseTheme(ThemePreset.HighContrast);
             yield return Snapshot("8-confirmation-high-contrast");
+            Assert.IsNull(_view.Backdrop.Image, "High Contrast has no image");
+            Assert.AreEqual(new Color32(0, 0, 0, 255), (Color32)_view.Backdrop.Top);
             yield return KeyboardSnapshot("8-confirmation-high-contrast");
-            AccessCalibrate.UseTheme(ThemePreset.GlassDark);
+            AccessCalibrate.UseTheme(ThemePreset.Dark);
 
             // PlayStation glyphs (drawn shapes). Device → family is covered by GlyphFamilyTests.
             _view.ForceGlyphFamily(GlyphFamily.PlayStation);
@@ -273,11 +283,11 @@ namespace AccessCalibration.PlayModeTests
             var buttonsTop = _view.Root.Q<Button>("ac-apply").worldBound.y;
 
             // Light and High Contrast themes: same soft edge, no drawn shapes.
-            AccessCalibrate.UseTheme(ThemePreset.GlassLight);
-            yield return Snapshot("6b-confirmation-long-glass-light");
+            AccessCalibrate.UseTheme(ThemePreset.Light);
+            yield return Snapshot("6b-confirmation-long-light");
             AccessCalibrate.UseTheme(ThemePreset.HighContrast);
             yield return Snapshot("6b-confirmation-long-high-contrast");
-            AccessCalibrate.UseTheme(ThemePreset.GlassDark);
+            AccessCalibrate.UseTheme(ThemePreset.Dark);
 
             _view.ConfirmList.scrollOffset = new Vector2(0, 90);
             yield return null;

@@ -36,6 +36,7 @@ namespace AccessCalibration
         readonly List<StyleSheet> _themeSheets = new List<StyleSheet>();
         bool _reduceMotion;
 
+        ThemeBackdrop _backdrop;
         VisualElement _root, _panel, _pageIntro, _pageTest, _pageConfirm, _hints;
         // welcome / intro
         Label _railEyebrow, _railNote, _introEyebrow, _introTitle, _introBody, _readyText, _readyWait, _notNowNote;
@@ -68,6 +69,7 @@ namespace AccessCalibration
         /// <summary>The panel this view draws into (e.g. to render it into a texture).</summary>
         public PanelSettings Panel => _doc != null ? _doc.panelSettings : null;
         internal VisualElement Root => _root;
+        internal ThemeBackdrop Backdrop => _backdrop;
         internal int StabilityTrailCount => _arena.TrailCount;
         /// <summary>The glyph family on screen (follows the last device that pressed a button).</summary>
         public GlyphFamily GlyphFamily => _glyphs?.Family ?? GlyphFamily.Keyboard;
@@ -115,6 +117,8 @@ namespace AccessCalibration
             _doc.rootVisualElement.pickingMode = PickingMode.Ignore;
             _reduceMotion = reduceMotion;
             _root.EnableInClassList("ac-reduce-motion", reduceMotion);
+            _backdrop = new ThemeBackdrop();
+            _root.Insert(0, _backdrop);
 
             _panel = _root.Q("ac-panel");
             _pageIntro = _root.Q("ac-page-intro");

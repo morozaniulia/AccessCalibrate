@@ -27,7 +27,7 @@ namespace AccessCalibration
         [Tooltip("Create the built-in UI Toolkit screens automatically.")]
         public bool UseBuiltInView = true;
 
-        [Tooltip("Look of the built-in screens. Empty = Glass Dark. AccessCalibrate.UseTheme(...) overrides it at runtime.")]
+        [Tooltip("Look of the built-in screens. Empty = Dark. AccessCalibrate.UseTheme(...) overrides it at runtime.")]
         public CalibrationTheme Theme;
 
         /// <summary>On the Welcome screen, presses are ignored this long (a press that opened it can't choose).</summary>

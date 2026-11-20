@@ -1,52 +1,72 @@
-/* AccessCalibrate — "console overlay" (Docs/DESIGN_SPEC.md). Reference size 1280×720.
-   Every colour, radius and font comes from a --ac-… token defined on .ac-root (Glass Dark).
-   Themes (Themes/*.uss or your own USS) override only these tokens. */
+/* AccessCalibrate. Reference size 1280×720. Every colour, radius and font comes from a --ac-… token
+   defined on .ac-root; this file is the Dark theme (default). Themes/Light.uss, Themes/HighContrast.uss
+   or your own USS override only these tokens. Values: Docs/design-v2/DESIGN_SPEC_v2.md §3. */
 
 .ac-root {
-    /* ---- colours ---- */
-    --ac-overlay: rgba(8, 10, 14, 0.55);
-    --ac-panel: rgba(20, 22, 30, 0.88);
-    --ac-panel-blurred: rgba(20, 22, 30, 0.62);
-    --ac-panel-border: rgba(255, 255, 255, 0.14);
-    --ac-panel-highlight: rgba(255, 255, 255, 0.22);
-    --ac-divider: rgba(255, 255, 255, 0.10);
-    --ac-glass-border: rgba(255, 255, 255, 0.16);
-    --ac-glass-highlight: rgba(255, 255, 255, 0.20);
-    --ac-text: #FFFFFF;
-    --ac-text-secondary: rgba(255, 255, 255, 0.78);
-    --ac-text-muted: rgba(255, 255, 255, 0.62);
-    --ac-text-upcoming: rgba(255, 255, 255, 0.88);
-    --ac-text-hint: rgba(255, 255, 255, 0.72);
-    --ac-text-reason: rgba(255, 255, 255, 0.68);
-    --ac-surface: rgba(255, 255, 255, 0.07);
-    --ac-surface-row: rgba(255, 255, 255, 0.05);
-    --ac-surface-row-border: rgba(255, 255, 255, 0.12);
-    --ac-surface-uncertain: rgba(255, 255, 255, 0.02);
-    --ac-surface-focus: rgba(255, 255, 255, 0.10);
-    --ac-focus-border: rgba(255, 255, 255, 0.55);
-    --ac-focus-highlight: rgba(255, 255, 255, 0.25);
-    --ac-track: rgba(255, 255, 255, 0.16);
-    --ac-focus: #FFFFFF;
-    --ac-focus-soft: rgba(255, 255, 255, 0.55);
-    --ac-on-focus: #0B0C10;
-    --ac-primary-halo: rgba(255, 255, 255, 0.22);
-    --ac-ring: rgba(255, 255, 255, 0.22);
-    --ac-knob-off: rgba(255, 255, 255, 0.75);
-    --ac-arena-fill: rgba(255, 255, 255, 0.04);
-    --ac-arena-border: rgba(255, 255, 255, 0.14);
-    --ac-crosshair: rgba(255, 255, 255, 0.10);
-    --ac-trail: rgba(255, 255, 255, 0.30);
-    --ac-cursor-halo: rgba(11, 12, 16, 0.85);
-    --ac-uncertain-border: rgba(255, 255, 255, 0.34);
-    --ac-scrollbar: rgba(255, 255, 255, 0.30);
+    /* ---- colours (Dark: galaxy background) ---- */
+    --ac-bg-image: url("Images/galaxy.jpg");
+    --ac-bg-top: #070A18;
+    --ac-bg-bottom: #070A18;
+    --ac-bg-overlay: rgba(3, 5, 14, 0.38);
+    --ac-text: #EEF2FF;
+    --ac-text-body: #D3D7E5;   /* rgba(238, 242, 255, 0.88) */
+    --ac-text-soft: #C9CEDC;   /* rgba(238, 242, 255, 0.84) */
+    --ac-text-dim: #A9AEBE;   /* rgba(238, 242, 255, 0.70) */
+    --ac-text-muted: #9097B1;   /* rgba(220, 228, 255, 0.64) */
+    --ac-text-faint: #7F869F;   /* rgba(220, 228, 255, 0.56) */
+    --ac-line: #232C48;   /* rgba(170, 195, 255, 0.16) */
+    --ac-line-strong: #364262;   /* rgba(170, 195, 255, 0.28) */
+    --ac-control-border: #494F66;   /* rgba(220, 228, 255, 0.30) */
+    --ac-surface-card: rgba(12, 20, 46, 0.62);
+    --ac-surface-control: rgba(12, 20, 46, 0.40);
+    --ac-surface-sunken: rgba(5, 8, 20, 0.35);
+    --ac-accent: #F2EEE6;
+    --ac-on-accent: #07142A;
+    --ac-accent-glow: rgba(242, 238, 230, 0.35);
+    --ac-primary: #EEF2FF;
+    --ac-on-primary: #0B1230;
+    /* v1 names, kept until the v2 layout lands */
+    --ac-panel: rgba(12, 20, 46, 0.62);
+    --ac-panel-blurred: rgba(12, 20, 46, 0.62);
+    --ac-panel-border: #232C48;
+    --ac-panel-highlight: #232C48;
+    --ac-divider: #232C48;
+    --ac-glass-border: #494F66;
+    --ac-glass-highlight: #232C48;
+    --ac-text-secondary: #C9CEDC;
+    --ac-text-upcoming: #D3D7E5;
+    --ac-text-hint: #9097B1;
+    --ac-text-reason: #9097B1;
+    --ac-surface: rgba(12, 20, 46, 0.40);
+    --ac-surface-row: rgba(12, 20, 46, 0.62);
+    --ac-surface-row-border: #232C48;
+    --ac-surface-uncertain: rgba(3, 5, 14, 0.38);
+    --ac-surface-focus: rgba(12, 20, 46, 0.40);
+    --ac-focus-border: #F2EEE6;
+    --ac-focus-highlight: #F2EEE6;
+    --ac-track: #364262;
+    --ac-focus: #F2EEE6;
+    --ac-focus-soft: rgba(242, 238, 230, 0.35);
+    --ac-on-focus: #07142A;
+    --ac-primary-halo: rgba(242, 238, 230, 0.35);
+    --ac-ring: #364262;
+    --ac-knob-off: #9097B1;
+    --ac-arena-fill: rgba(5, 8, 20, 0.35);
+    --ac-arena-border: #364262;
+    --ac-crosshair: #232C48;
+    --ac-trail: #7F869F;
+    --ac-cursor-halo: #070A18;
+    --ac-uncertain-border: #494F66;
+    --ac-scrollbar: #364262;
     --ac-transparent: rgba(0, 0, 0, 0);
     /* ---- shape ---- */
-    --ac-radius-panel: 36px;
-    --ac-radius-control: 20px;
-    --ac-radius-row: 16px;
-    --ac-radius-chip: 10px;
-    --ac-radius-key: 8px;
+    --ac-radius-panel: 6px;
+    --ac-radius-control: 6px;
+    --ac-radius-row: 4px;
+    --ac-radius-chip: 6px;
+    --ac-radius-key: 5px;
     /* ---- font (Manrope, SIL OFL 1.1) ---- */
+    --ac-font-400: url("Fonts/Manrope-Regular.ttf");
     --ac-font-500: url("Fonts/Manrope-Medium.ttf");
     --ac-font-600: url("Fonts/Manrope-SemiBold.ttf");
     --ac-font-700: url("Fonts/Manrope-Bold.ttf");
@@ -54,11 +74,30 @@
 
     position: absolute;
     left: 0; top: 0; right: 0; bottom: 0;
-    background-color: var(--ac-overlay);
+    background-color: var(--ac-bg-bottom);
     align-items: center;
     justify-content: center;
     -unity-font-definition: var(--ac-font-500);
     color: var(--ac-text);
+}
+
+/* ---------------------------------------------------------------- background (ThemeBackdrop) */
+.ac-backdrop {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    /* read in code (custom properties must be set on the element itself) */
+    --ac-backdrop-top: var(--ac-bg-top);
+    --ac-backdrop-bottom: var(--ac-bg-bottom);
+}
+.ac-backdrop-image {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    background-image: var(--ac-bg-image);
+    background-size: cover;
+    background-position-x: center;
+    background-position-y: center;
+}
+.ac-backdrop-overlay {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    background-color: var(--ac-bg-overlay);
 }
 
 /* ---------------------------------------------------------------- panel */
