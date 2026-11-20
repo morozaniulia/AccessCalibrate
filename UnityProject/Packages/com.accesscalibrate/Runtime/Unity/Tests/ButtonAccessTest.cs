@@ -49,6 +49,7 @@ namespace AccessCalibration
         bool _pressedCurrent;
         InputAction _current;
         readonly List<string> _unpressed = new List<string>();
+        readonly List<double> _reach = new List<double>();
 
         public override string Title => CalibrationTexts.ButtonsTitle;
         public override string Instructions => CalibrationTexts.ButtonsInstructions;
@@ -58,12 +59,16 @@ namespace AccessCalibration
         public int PromptIndex => Math.Max(0, _index);
         public double PromptSecondsLeft => Math.Max(0, SecondsPerButton - (Clock() - _shownAt));
 
+        /// <summary>For each button already asked for: seconds until it was pressed, NaN if not reached in time.</summary>
+        public IReadOnlyList<double> ReachSeconds => _reach;
+
         /// <summary>The button currently asked for (null when done). Exposed for tests.</summary>
         public ButtonPrompt CurrentPrompt => IsRunning && _index < Buttons.Count ? Buttons[_index] : null;
 
         protected override void OnBegin(double now)
         {
             _unpressed.Clear();
+            _reach.Clear();
             _anyPressed = false;
             _index = -1;
             Next(now);
@@ -99,6 +104,7 @@ namespace AccessCalibration
             if (!_anyPressed) { Remember(ctx); _anyPressed = true; }
             // Move on at the next Tick, outside this input callback.
             _pressedCurrent = true;
+            _reach.Add(Clock() - _shownAt);
             _current?.Disable();
         }
 
@@ -111,6 +117,7 @@ namespace AccessCalibration
             else if (_index < Buttons.Count && now - _shownAt >= SecondsPerButton)
             {
                 _unpressed.Add(Buttons[_index].Name);
+                _reach.Add(double.NaN);
                 Next(now);
             }
         }

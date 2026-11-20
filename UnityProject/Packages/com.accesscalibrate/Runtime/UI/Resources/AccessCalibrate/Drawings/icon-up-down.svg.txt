@@ -1,0 +1,1 @@
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" style="display: block" xmlns="http://www.w3.org/2000/svg"><path d="M7 1.5 V12.5 M4 4.5 L7 1.5 L10 4.5 M4 9.5 L7 12.5 L10 9.5" fill="none" stroke="#0B1230" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>

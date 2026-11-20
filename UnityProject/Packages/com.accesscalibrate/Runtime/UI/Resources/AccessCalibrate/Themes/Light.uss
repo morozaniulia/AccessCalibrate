@@ -4,6 +4,7 @@
     --ac-bg-top: #F6F7F9;
     --ac-bg-bottom: #E8EAEE;
     --ac-bg-overlay: rgba(0, 0, 0, 0);
+    --ac-scrim: rgba(17, 20, 28, 0.35);
     --ac-text: #11141C;
     --ac-text-body: #2D3037;   /* rgba(17, 20, 28, 0.88) */
     --ac-text-soft: #373940;   /* rgba(17, 20, 28, 0.84) */
@@ -12,46 +13,59 @@
     --ac-text-faint: #626469;   /* rgba(17, 20, 28, 0.66) */
     --ac-line: #D8D9DA;   /* rgba(17, 20, 28, 0.16) */
     --ac-line-strong: #BCBDBF;   /* rgba(17, 20, 28, 0.28) */
+    --ac-line-dialog: #CACBCC;   /* rgba(17, 20, 28, 0.22) */
     --ac-control-border: #B7B8BA;   /* rgba(17, 20, 28, 0.30) */
+    --ac-key-border: #9FA0A4;   /* rgba(17, 20, 28, 0.40) */
     --ac-surface-card: #FEFEFE;   /* rgba(255, 255, 255, 0.94) */
     --ac-surface-control: #F9F9FA;   /* rgba(255, 255, 255, 0.62) */
     --ac-surface-sunken: #F9F9FA;   /* rgba(255, 255, 255, 0.62) */
+    --ac-surface-panel: #FEFEFE;   /* rgba(255, 255, 255, 0.94) */
+    --ac-surface-dialog: #F9F9FA;   /* rgba(255, 255, 255, 0.94) */
+    --ac-surface-arena: #FEFEFE;   /* rgba(255, 255, 255, 0.94) */
     --ac-accent: #11141C;
     --ac-on-accent: #FFFFFF;
     --ac-accent-glow: rgba(17, 20, 28, 0.35);
+    --ac-accent-halo: rgba(17, 20, 28, 0.06);
+    --ac-accent-glow-soft: rgba(17, 20, 28, 0.25);
     --ac-primary: #11141C;
     --ac-on-primary: #FFFFFF;
-    /* v1 names, kept until the v2 layout lands */
+    --ac-shadow: rgba(0, 0, 0, 0.15);
+    --ac-track: #DDDDDF;   /* rgba(17, 20, 28, 0.14) */
+    --ac-track-soft: #E2E2E3;   /* rgba(17, 20, 28, 0.12) */
+    --ac-track-slider: #D3D4D6;   /* rgba(17, 20, 28, 0.18) */
+    --ac-track-value: #626469;   /* rgba(17, 20, 28, 0.66) */
+    --ac-track-marker: #626469;   /* rgba(17, 20, 28, 0.66) */
+    --ac-step-done: #2D3037;   /* rgba(17, 20, 28, 0.88) */
+    --ac-step-dot: #B7B8BA;   /* rgba(17, 20, 28, 0.30) */
+    --ac-step-line: #D8D9DA;   /* rgba(17, 20, 28, 0.16) */
+    --ac-ring-outer: #CACBCC;   /* rgba(17, 20, 28, 0.22) */
+    --ac-ring-inner: #CFCFD1;   /* rgba(17, 20, 28, 0.20) */
+    --ac-ring-dot: #FFFFFF;
+    --ac-tick-lit: #292B33;   /* rgba(17, 20, 28, 0.90) */
+    --ac-crosshair: #E6E7E8;   /* rgba(17, 20, 28, 0.10) */
+    --ac-toggle-off-border: #A9AAAD;   /* rgba(17, 20, 28, 0.36) */
+    --ac-toggle-off-knob: #626469;   /* rgba(17, 20, 28, 0.66) */
+    --ac-icon: #404349;   /* rgba(17, 20, 28, 0.80) */
+    --ac-draw-body: #FFFFFF;
+    --ac-draw-body-2: #FFFFFF;
+    --ac-draw-fill: #F8F8F8;   /* rgba(17, 20, 28, 0.03) */
+    --ac-draw-fill-soft: #FAFAFA;   /* rgba(17, 20, 28, 0.02) */
+    --ac-draw-fill-strong: #ECECED;   /* rgba(17, 20, 28, 0.08) */
+    --ac-draw-stroke: #B3B4B6;   /* rgba(17, 20, 28, 0.32) */
+    --ac-draw-stroke-key: #B8B8BB;   /* rgba(17, 20, 28, 0.30) */
+    --ac-draw-stroke-frame: #CFD0D2;   /* rgba(17, 20, 28, 0.20) */
+    --ac-draw-stroke-mouse: #A0A1A4;   /* rgba(17, 20, 28, 0.40) */
+    --ac-draw-stroke-soft: #D9D9DB;   /* rgba(17, 20, 28, 0.16) */
+    --ac-draw-stroke-faint: #F1F1F1;   /* rgba(17, 20, 28, 0.06) */
+    --ac-draw-label: #626469;   /* rgba(17, 20, 28, 0.66) */
+    --ac-draw-key-label: #626469;   /* rgba(17, 20, 28, 0.66) */
+    --ac-draw-on-highlight: #FFFFFF;
+    /* v1 names, used by the feedback app's summary until stage 3 */
     --ac-panel: #FEFEFE;
-    --ac-panel-blurred: #FEFEFE;
-    --ac-panel-border: #D8D9DA;
-    --ac-panel-highlight: #D8D9DA;
-    --ac-divider: #D8D9DA;
-    --ac-glass-border: #B7B8BA;
-    --ac-glass-highlight: #D8D9DA;
     --ac-text-secondary: #373940;
-    --ac-text-upcoming: #2D3037;
-    --ac-text-hint: #66686D;
     --ac-text-reason: #66686D;
-    --ac-surface: #F9F9FA;
     --ac-surface-row: #FEFEFE;
     --ac-surface-row-border: #D8D9DA;
-    --ac-surface-uncertain: rgba(0, 0, 0, 0);
-    --ac-surface-focus: #F9F9FA;
-    --ac-focus-border: #11141C;
-    --ac-focus-highlight: #11141C;
-    --ac-track: #BCBDBF;
     --ac-focus: #11141C;
-    --ac-focus-soft: rgba(17, 20, 28, 0.35);
     --ac-on-focus: #FFFFFF;
-    --ac-primary-halo: rgba(17, 20, 28, 0.35);
-    --ac-ring: #BCBDBF;
-    --ac-knob-off: #66686D;
-    --ac-arena-fill: #F9F9FA;
-    --ac-arena-border: #BCBDBF;
-    --ac-crosshair: #D8D9DA;
-    --ac-trail: #626469;
-    --ac-cursor-halo: #E8EAEE;
-    --ac-uncertain-border: #B7B8BA;
-    --ac-scrollbar: #BCBDBF;
 }

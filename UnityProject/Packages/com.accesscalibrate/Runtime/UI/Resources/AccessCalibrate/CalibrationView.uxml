@@ -1,113 +1,37 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <!-- "Console overlay" design (Docs/DESIGN_SPEC.md). Styles: CalibrationViewStyle.uss + theme USS. -->
+    <!-- UI v2 (Docs/design-v2). Styles: CalibrationViewStyle.uss + theme USS. Reference size 1280×720.
+         The view (UIToolkitCalibrationView) fills the pages from code. -->
     <ui:VisualElement name="ac-root" class="ac-root">
-        <ui:VisualElement name="ac-panel" class="ac-panel">
-
-            <!-- Welcome + check intro: step rail on the left, content on the right -->
-            <ui:VisualElement name="ac-page-intro" class="ac-page ac-page--rail">
-                <ui:VisualElement name="ac-rail" class="ac-rail">
-                    <ui:Label name="ac-rail-eyebrow" class="ac-eyebrow" />
-                    <ui:VisualElement name="ac-rail-list" class="ac-rail-list" />
-                    <ui:Label name="ac-rail-note" class="ac-rail-note" />
+        <ui:VisualElement name="ac-screen" class="ac-screen">
+            <ui:VisualElement name="ac-topbar" class="ac-topbar">
+                <ui:VisualElement class="ac-top-left">
+                    <ui:Label name="ac-top-title" class="ac-top-title" />
                 </ui:VisualElement>
-                <ui:VisualElement name="ac-intro-main" class="ac-intro-main">
-                    <ui:VisualElement class="ac-intro-content">
-                        <ui:VisualElement class="ac-intro-text">
-                            <ui:Label name="ac-intro-eyebrow" class="ac-step-eyebrow" />
-                            <ui:Label name="ac-intro-title" class="ac-h1" />
-                            <ui:Label name="ac-intro-body" class="ac-body" />
-                            <ui:VisualElement name="ac-welcome-buttons" class="ac-welcome-buttons">
-                                <ui:Button name="ac-start" class="ac-btn ac-btn--primary ac-btn--wide" />
-                                <ui:VisualElement class="ac-welcome-secondary-row">
-                                    <ui:Button name="ac-not-now" class="ac-btn ac-btn--secondary ac-btn--wide" />
-                                    <ui:Label name="ac-not-now-note" class="ac-muted-note" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement name="ac-intro-glyph" class="ac-intro-glyph" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="ac-ready-bar" class="ac-ready-bar">
-                        <ui:Label name="ac-ready-text" class="ac-ready-text" />
-                        <ui:Label name="ac-ready-wait" class="ac-ready-wait" />
-                    </ui:VisualElement>
+                <ui:VisualElement class="ac-top-center">
+                    <ui:VisualElement name="ac-steps" class="ac-steps" />
                 </ui:VisualElement>
+                <ui:VisualElement name="ac-top-right" class="ac-top-right" />
             </ui:VisualElement>
 
-            <!-- A check in progress: top bar + one stage -->
-            <ui:VisualElement name="ac-page-test" class="ac-page ac-page--test">
-                <ui:VisualElement class="ac-topbar">
-                    <ui:Label name="ac-chip" class="ac-chip" />
-                    <ui:Label name="ac-test-name" class="ac-test-name" />
-                    <ui:VisualElement class="ac-spacer" />
-                    <ui:Label name="ac-trial-label" class="ac-trial-label" />
-                    <ui:VisualElement name="ac-trial-bars" class="ac-trial-bars" />
+            <ui:VisualElement name="ac-main" class="ac-main">
+                <ui:VisualElement name="ac-page-welcome" class="ac-page ac-welcome" />
+                <ui:VisualElement name="ac-page-check" class="ac-page ac-check">
+                    <ui:VisualElement name="ac-col-left" class="ac-col-left" />
+                    <ui:VisualElement name="ac-col-center" class="ac-col-center" />
+                    <ui:VisualElement name="ac-col-right" class="ac-col-right" />
                 </ui:VisualElement>
-                <ui:VisualElement class="ac-stage">
-                    <ui:VisualElement name="ac-stage-reaction" class="ac-stage-reaction">
-                        <ui:VisualElement name="ac-stim-ring" class="ac-stim-ring">
-                            <ui:VisualElement name="ac-stim" class="ac-stim">
-                                <ui:Label name="ac-stim-label" class="ac-stim-label" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="ac-stage-hold" class="ac-stage-hold">
-                        <ui:VisualElement name="ac-hold-ring-host" class="ac-hold-ring-host">
-                            <ui:VisualElement class="ac-hold-center">
-                                <ui:Label name="ac-hold-seconds" class="ac-hold-seconds" />
-                                <ui:Label name="ac-hold-of" class="ac-hold-of" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:Label name="ac-hold-headline" class="ac-stage-headline" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="ac-stage-stability" class="ac-stage-stability">
-                        <ui:VisualElement name="ac-arena-host" class="ac-arena-host" />
-                        <ui:VisualElement class="ac-stability-text">
-                            <ui:Label name="ac-stability-title" class="ac-h1 ac-h1--stage" />
-                            <ui:Label name="ac-stability-body" class="ac-body" />
-                            <ui:VisualElement class="ac-measure-row">
-                                <ui:Label name="ac-stability-measuring" class="ac-measuring" />
-                                <ui:Label name="ac-stability-left" class="ac-time-left" />
-                            </ui:VisualElement>
-                            <ui:VisualElement class="ac-bar"><ui:VisualElement name="ac-stability-bar" class="ac-bar-fill" /></ui:VisualElement>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement name="ac-stage-generic" class="ac-stage-generic">
-                        <ui:Label name="ac-generic-big" class="ac-generic-big" />
-                        <ui:Label name="ac-generic-sub" class="ac-generic-sub" />
-                        <ui:VisualElement name="ac-generic-bar-track" class="ac-bar ac-bar--wide"><ui:VisualElement name="ac-generic-bar" class="ac-bar-fill" /></ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:Label name="ac-status" class="ac-status" />
-                </ui:VisualElement>
-                <ui:VisualElement name="ac-test-footer" class="ac-test-footer">
-                    <ui:VisualElement name="ac-tone-note" class="ac-tone-note">
-                        <ui:VisualElement name="ac-speaker" class="ac-speaker" />
-                        <ui:Label name="ac-tone-text" class="ac-tone-text" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
+                <ui:VisualElement name="ac-page-suggest" class="ac-page ac-suggest" />
+                <ui:VisualElement name="ac-page-nochange" class="ac-page ac-nochange" />
+                <ui:VisualElement name="ac-page-summary" class="ac-page ac-summary" />
             </ui:VisualElement>
 
-            <!-- Suggested settings -->
-            <ui:VisualElement name="ac-page-confirm" class="ac-page ac-page--confirm">
-                <ui:VisualElement class="ac-confirm-header">
-                    <ui:VisualElement class="ac-confirm-titles">
-                        <ui:Label name="ac-confirm-eyebrow" class="ac-eyebrow" />
-                        <ui:Label name="ac-confirm-title" class="ac-h1 ac-h1--confirm" />
-                    </ui:VisualElement>
-                    <ui:Label name="ac-confirm-note" class="ac-confirm-note" />
-                </ui:VisualElement>
-                <ui:VisualElement name="ac-confirm-list-wrap" class="ac-confirm-list-wrap">
-                    <ui:ScrollView name="ac-confirm-list" class="ac-confirm-list" />
-                    <ui:Label name="ac-confirm-empty" class="ac-confirm-empty" />
-                </ui:VisualElement>
-                <ui:VisualElement class="ac-confirm-buttons">
-                    <ui:Button name="ac-apply" class="ac-btn ac-btn--primary ac-btn--apply" />
-                    <ui:Button name="ac-redo" class="ac-btn ac-btn--secondary" />
-                    <ui:Button name="ac-skip-all" class="ac-btn ac-btn--secondary" />
-                </ui:VisualElement>
-            </ui:VisualElement>
+            <!-- Device picker: over the top bar and the page, under the bottom bar -->
+            <ui:VisualElement name="ac-dialog-layer" class="ac-dialog-layer" />
 
-            <!-- Controller / keyboard hints (glyphs follow the device in use) -->
-            <ui:VisualElement name="ac-hints" class="ac-hints" />
+            <ui:VisualElement name="ac-bottombar" class="ac-bottombar">
+                <ui:VisualElement name="ac-hints" class="ac-hints" />
+                <ui:VisualElement name="ac-bottom-right" class="ac-bottom-right" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -304,11 +304,24 @@ namespace AccessCalibration.UI
             });
         }
 
+        SvgDrawing _icon;
+        /// <summary>The glyph shown (tests).</summary>
+        public Glyph Current { get; private set; }
+
         public void Set(Glyph glyph)
         {
+            Current = glyph;
             _shape = glyph.Shape;
-            _text.text = glyph.Shape == GlyphShape.None ? glyph.Text : "";
+            _text.text = glyph.Shape == GlyphShape.None && glyph.Icon == null ? glyph.Text : "";
             EnableInClassList("ac-glyph--key", glyph.IsKey);
+            if (_icon != null && _icon.DrawingName != "icon-" + glyph.Icon) { _icon.RemoveFromHierarchy(); _icon = null; }
+            if (glyph.Icon != null && _icon == null)
+            {
+                _icon = new SvgDrawing("icon-" + glyph.Icon);
+                _icon.AddToClassList("ac-glyph-icon");
+                Add(_icon);
+            }
+            _text.style.display = _icon != null ? DisplayStyle.None : DisplayStyle.Flex;
             MarkDirtyRepaint();
         }
 

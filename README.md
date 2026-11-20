@@ -17,7 +17,7 @@ The calibration only, no Unity install needed. Keyboard, mouse or gamepad. At th
 | | | |
 |---|---|---|
 | ![Welcome screen](Docs/images/ui-1-welcome.png) | ![Reaction check](Docs/images/ui-3-reaction.png) | ![Hold check](Docs/images/ui-4-hold.png) |
-| ![Steadiness check](Docs/images/ui-5-steadiness.png) | ![Suggested settings](Docs/images/ui-6-confirmation.png) | |
+| ![Steadiness check](Docs/images/ui-5-steadiness.png) | ![Suggested settings](Docs/images/ui-6-suggestions.png) | |
 
 *All images are rendered by the automated tests (`BuiltInViewTests`); the measurements shown are test inputs, not data from players.*
 
@@ -114,7 +114,7 @@ Docs/                DESIGN_SPEC.md, screenshots
 | Suite | Tests | What it covers |
 |---|---|---|
 | EditMode | 110 | signal processing, every rule and its edges, profile JSON, profile store (atomic writes, corrupt files), API, study CSV (culture, quoting), theme contrast ≥ 4.5:1 for every text colour on every surface in all presets (galaxy included), opaque text colours, no literal colours in the USS |
-| PlayMode | 83 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen, the demo level (including a jump with simulated input), the playable build's summary, copied text and Redo |
+| PlayMode | 87 | each check with simulated keyboard / mouse / gamepad input, buttons held over from the intro, runner, welcome and confirmation flows, glyph families, rendering of every screen in all three themes (compared with the design), SVG drawings, the demo level (including a jump with simulated input), the playable build's summary, copied text and Redo |
 | Python | 5 | loading, grouping and medians in `tools/plot_study.py` |
 
 A few checks were also confirmed by **breaking the code on purpose**, to make sure the tests notice:
@@ -191,7 +191,7 @@ The script prints a table of medians per label, then draws one small chart per m
 
 ## Theming
 
-The built-in screens follow the "console overlay" design in [`Docs/DESIGN_SPEC.md`](Docs/DESIGN_SPEC.md): a translucent panel over the game, a step rail, a large white focus, and controller glyphs that follow the device in use (Xbox, PlayStation, Switch, keyboard). Every colour, radius and font in the stylesheet is a `--ac-…` variable defined on `.ac-root`.
+The built-in screens use a 1280×720 layout that scales with the screen: a top bar with the step indicator, three columns on each check (what to do and what is measured, the device drawing or the live measurement, and your options), and a bottom bar with button hints that follow the device in use (Xbox, PlayStation, Switch, keyboard). The controller, keyboard and mouse drawings are SVG files drawn in code, so they stay sharp at any size and follow the theme. Every colour, radius and font in the stylesheet is a `--ac-…` variable defined on `.ac-root`, and every text is in `ScreenTexts`.
 
 There are three presets: **Dark** (default, galaxy background), **Light** (light grey gradient, dark text) and **High Contrast** (black background, white text and lines, yellow accent). To use one, create a theme asset (**Assets → Create → AccessCalibrate → Theme**), pick a preset, optionally add your own USS and font, and assign it to `CalibrationRunner.Theme`. Changes show up live in Play mode. At runtime, for example when the game's own high-contrast option is on, call:
 
@@ -201,8 +201,8 @@ AccessCalibrate.UseTheme(ThemePreset.HighContrast);
 
 | | | |
 |---|---|---|
-| ![Suggested settings, Glass Dark](Docs/images/ui-6-confirmation.png) | ![Suggested settings, Glass Light](Docs/images/ui-7-confirmation-glass-light.png) | ![Suggested settings, High Contrast](Docs/images/ui-8-confirmation-high-contrast.png) |
-| Glass Dark | Glass Light | High Contrast |
+| ![Suggested settings, Dark](Docs/images/ui-6-suggestions.png) | ![Suggested settings, Light](Docs/images/ui-7-suggestions-light.png) | ![Suggested settings, High Contrast](Docs/images/ui-8-suggestions-high-contrast.png) |
+| Dark | Light | High Contrast |
 
 A theme USS only overrides variables, and it is applied after the default stylesheet:
 
