@@ -718,6 +718,24 @@ namespace AccessCalibration.PlayModeTests
         }
 
         [UnityTest, Timeout(60000)]
+        public IEnumerator SmallKeyGlyphs_FitTheirText()
+        {
+            yield return StartRunner();
+            _view.ForceGlyphFamily(GlyphFamily.Keyboard);
+            yield return null; yield return null;
+            var glyphs = _view.Root.Q("ac-page-welcome").Query<GlyphBadge>().ToList();
+            Assert.IsNotEmpty(glyphs);
+            foreach (var g in glyphs)
+            {
+                var label = g.Q<Label>(className: "ac-glyph-text");
+                if (label == null || string.IsNullOrEmpty(label.text)) continue;
+                float text = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined).x;
+                Assert.GreaterOrEqual(g.layout.width, text + 8, "\"" + label.text + "\" fits its key (Start button on Welcome)");
+            }
+            yield return Snapshot("v2-keyboard-01-welcome");
+        }
+
+        [UnityTest, Timeout(60000)]
         public IEnumerator ReduceMotion_NoIntro_FinalStatesAtOnce()
         {
             yield return StartRunner(reduceMotion: true);

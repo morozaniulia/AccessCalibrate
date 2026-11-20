@@ -236,6 +236,7 @@
 .ac-glyph--top-key { height: 30px; }
 .ac-glyph--small { width: 26px; height: 26px; border-radius: 13px; }
 .ac-glyph--small .ac-glyph-text { font-size: 12px; }
+.ac-glyph--small.ac-glyph--key { width: auto; min-width: 26px; padding: 0 7px; border-radius: var(--ac-radius-key); }   /* a key name ("Enter") stays a key, never squeezed into a circle */
 .ac-glyph--inverse { background-color: var(--ac-on-primary); --ac-glyph-c: var(--ac-primary); }
 .ac-glyph--inverse .ac-glyph-text { color: var(--ac-primary); }
 .ac-glyph--inverse.ac-glyph--key { background-color: var(--ac-on-primary); border-width: 0; }
